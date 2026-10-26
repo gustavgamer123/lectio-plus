@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lectio+</title>
+<meta name="description" content="Et roligere og mere overskueligt Lectio. Gratis Chrome-udvidelse lavet af en elev til elever.">
+<meta property="og:title" content="Lectio+">
+<meta property="og:description" content="Skema. Lektier. Afleveringer. Overskueligt på ét sted.">
+<meta property="og:image" content="https://gustavgamer123.github.io/lectio-plus/assets/overblik.jpg">
+<link rel="icon" href="assets/icon.png">
+<style>
+  /* Layout: hero med produktbillede. En skoledag som tidslinje. Historien på fjordblå flade. Kom i gang og FAQ. */
+  @font-face { font-family: "SG"; font-weight: 400; font-display: swap; src: url("assets/sg-400.woff2") format("woff2"); }
+  @font-face { font-family: "SG"; font-weight: 500; font-display: swap; src: url("assets/sg-500.woff2") format("woff2"); }
+  @font-face { font-family: "SG"; font-weight: 600; font-display: swap; src: url("assets/sg-600.woff2") format("woff2"); }
+  @font-face { font-family: "SG"; font-weight: 700; font-display: swap; src: url("assets/sg-700.woff2") format("woff2"); }
+  :root {
+    --bg: #f3f4f1; --surface: #ffffff; --ink: #1c1f1e; --ink-2: #5d6461; --ink-3: #8c928f; --rule: #e1e4df;
+    --fjord: #13566b; --fjord-ink: #ffffff; --fjord-soft: #9fd3df; --accent: #13566b;
+    --font: "SG", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --shadow: 0 1px 2px rgba(20, 30, 28, .06), 0 24px 60px rgba(20, 30, 28, .14);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #111413; --surface: #191d1c; --ink: #e4e7e3; --ink-2: #a0a7a3; --ink-3: #737a77; --rule: #2a302e; --fjord: #13566b; --accent: #74b9c8; --shadow: 0 24px 60px rgba(0, 0, 0, .5); color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --bg: #111413; --surface: #191d1c; --ink: #e4e7e3; --ink-2: #a0a7a3; --ink-3: #737a77; --rule: #2a302e; --fjord: #13566b; --accent: #74b9c8; --shadow: 0 24px 60px rgba(0, 0, 0, .5); color-scheme: dark; }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  h1, h2, h3 { text-wrap: balance; letter-spacing: -.02em; line-height: 1.12; margin: 0; }
+
+  /* topbar */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 22px; }
+  .mark { font-weight: 700; font-size: 21px; letter-spacing: -.02em; color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; }
+  .mark img { width: 30px; height: 30px; border-radius: 8px; }
+  .mark .wm span { color: var(--accent); }
+  .top nav { display: flex; align-items: center; gap: 22px; font-size: 15px; }
+  .top nav a { color: var(--ink-2); text-decoration: none; }
+  .top nav a:hover { color: var(--ink); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 10px; font: 600 15.5px var(--font); text-decoration: none; border: 1px solid transparent; white-space: nowrap; }
+  .btn-main { background: var(--ink); color: var(--bg) !important; }
+  .btn-main:hover { opacity: .88; }
+  .btn-line { border-color: var(--rule); color: var(--ink) !important; background: var(--surface); }
+  .btn-sm { height: 36px; padding: 0 14px; font-size: 14px; }
+
+  /* hero */
+  .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; padding-block: 48px 72px; }
+  .hero h1 { font-size: clamp(42px, 6.4vw, 76px); font-weight: 700; letter-spacing: -.035em; line-height: 1.02; }
+  .hero h1 em { font-style: normal; color: var(--ink-3); display: block; }
+  .hero .lede { font-size: 20px; color: var(--ink-2); margin: 22px 0 30px; max-width: 30ch; }
+  .ctas { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .soon { font-size: 14.5px; color: var(--ink-3); }
+  .shot { border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--rule); background: var(--surface); }
+  .shot .bar { display: flex; gap: 6px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+  .shot .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--rule); }
+  .shot .bar span { margin-left: 12px; font-size: 12.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .hero .shot { width: 118%; max-width: none; }
+
+  .facts { display: flex; flex-wrap: wrap; gap: 12px 40px; padding-block: 22px; border-block: 1px solid var(--rule); font-size: 15.5px; color: var(--ink-2); }
+  .facts b { color: var(--ink); font-weight: 600; }
+
+  /* en dag */
+  .day { padding-block: 96px 40px; }
+  .day > header { max-width: 640px; margin-bottom: 56px; }
+  .day h2, .how h2, .faq h2 { font-size: clamp(32px, 4.4vw, 48px); font-weight: 700; }
+  .day > header p { color: var(--ink-2); font-size: 19px; margin: 14px 0 0; }
+  .stop { display: grid; grid-template-columns: 120px minmax(0, 4fr) minmax(0, 7fr); gap: 32px; padding-block: 36px; border-top: 1px solid var(--rule); align-items: start; }
+  .time { font-size: 30px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--accent); line-height: 1; padding-top: 6px; }
+  .time small { display: block; font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--ink-3); margin-top: 8px; }
+  .stop h3 { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+  .stop p { color: var(--ink-2); margin: 0; max-width: 40ch; }
+  .stop ul { margin: 14px 0 0; padding: 0; list-style: none; color: var(--ink-2); font-size: 15.5px; }
+  .stop li { padding-left: 18px; position: relative; margin-bottom: 4px; }
+  .stop li::before { content: ""; position: absolute; left: 0; top: .62em; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  kbd { font: 600 13px var(--font); border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; background: var(--surface); color: var(--ink); }
+
+  /* historien */
+  .story { background: var(--fjord); color: var(--fjord-ink); margin-top: 72px; }
+  .story .wrap { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 56px; padding-block: 104px; }
+  .story h2 { font-size: clamp(32px, 4.4vw, 48px); color: var(--fjord-ink); }
+  .story h2 span { color: var(--fjord-soft); }
+  .story .text { font-size: 21px; line-height: 1.6; max-width: 36em; }
+  .story .text p { margin: 0 0 18px; }
+  .story .sign { margin-top: 30px; font-size: 17px; color: var(--fjord-soft); }
+  .story .sign b { color: var(--fjord-ink); font-weight: 600; display: block; font-size: 19px; }
+
+  /* kom i gang */
+  .how { padding-block: 96px 24px; }
+  .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 40px; counter-reset: s; }
+  .step { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 26px; counter-increment: s; }
+  .step::before { content: counter(s); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: var(--bg); font-weight: 700; margin-bottom: 18px; }
+  .step h3 { font-size: 19px; margin-bottom: 6px; }
+  .step p { margin: 0; color: var(--ink-2); font-size: 15.5px; }
+  .step code { font: 500 14px var(--font); background: var(--bg); padding: 1px 6px; border-radius: 5px; }
+
+  /* faq */
+  .faq { padding-block: 72px 96px; display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 56px; }
+  details { border-top: 1px solid var(--rule); padding-block: 18px; }
+  details:last-child { border-bottom: 1px solid var(--rule); }
+  summary { cursor: pointer; font-weight: 600; font-size: 18.5px; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; color: var(--ink-3); font-weight: 400; font-size: 24px; line-height: 1; }
+  details[open] summary::after { content: "−"; }
+  details p { color: var(--ink-2); margin: 10px 0 0; max-width: 60ch; }
+
+  footer { border-top: 1px solid var(--rule); padding-block: 28px 40px; color: var(--ink-3); font-size: 14.5px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer a { color: var(--ink-2); }
+
+  @media (max-width: 960px) {
+    .hero { grid-template-columns: 1fr; gap: 40px; padding-block: 24px 56px; }
+    .hero .shot { width: 100%; }
+    .stop { grid-template-columns: 1fr; gap: 16px; }
+    .story .wrap, .faq { grid-template-columns: 1fr; gap: 28px; }
+    .steps { grid-template-columns: 1fr; }
+    .top nav a:not(.btn) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="#"><img src="assets/icon.png" alt=""><span class="wm">Lectio<span>+</span></span></a>
+    <nav>
+      <a href="#dagen">Funktioner</a>
+      <a href="#historien">Historien</a>
+      <a href="privatliv/">Privatliv</a>
+      <a class="btn btn-main btn-sm" href="#kom-i-gang">Hent den</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>Lectio. <em>Bare til at finde rundt i.</em></h1>
+      <p class="lede">En gratis Chrome-udvidelse der samler skema og lektier og afleveringer på ét roligt overblik. Lavet af en elev til elever.</p>
+      <div class="ctas">
+        <a class="btn btn-main" href="#kom-i-gang">Kom i gang</a>
+        <span class="soon">Kommer snart i Chrome Web Store</span>
+      </div>
+    </div>
+    <div class="shot">
+      <div class="bar"><i></i><i></i><i></i><span>lectio.dk</span></div>
+      <img src="assets/overblik.jpg" width="1280" height="800" alt="Overblikket i Lectio+ med dagens moduler og kommende lektier og afleveringer">
+    </div>
+  </section>
+
+  <div class="facts">
+    <span><b>Gratis.</b> Ingen konto.</span>
+    <span><b>Dine data bliver hos dig.</b> Ingen server.</span>
+    <span><b>Mørk tilstand</b> på hele Lectio.</span>
+    <span><b>Ét klik</b> tilbage til Lectios egen visning.</span>
+  </div>
+
+  <section class="day" id="dagen">
+    <header>
+      <h2>En skoledag med Lectio+</h2>
+      <p>Fra du står op til du slukker lyset. Sådan hjælper den på de tidspunkter hvor du faktisk åbner Lectio.</p>
+    </header>
+
+    <article class="stop">
+      <div class="time">07:40<small>På vej i skole</small></div>
+      <div>
+        <h3>Hvor skal jeg hen?</h3>
+        <p>Overblikket viser dit næste modul og lokalet med det samme. Ændrede og aflyste timer kan du ikke overse.</p>
+        <ul><li>Næste modul i stor skrift</li><li>Dagens timer med lektier markeret</li><li>Lektier og afleveringer samlet pr. dag</li></ul>
+      </div>
+      <div class="shot"><img src="assets/overblik.jpg" width="1280" height="800" alt="Overblik med næste modul"></div>
+    </article>
+
+    <article class="stop">
+      <div class="time">09:30<small>I frikvarteret</small></div>
+      <div>
+        <h3>Hele ugen på én side</h3>
+        <p>Det nye ugeskema er bygget efter tiden. Klik på et modul og se lektier og noter og lokale uden at åbne en ny side.</p>
+        <ul><li>Rød linje viser hvor langt dagen er</li><li>Bladr mellem uger med <kbd>Alt</kbd> + pil</li></ul>
+      </div>
+      <div class="shot"><img src="assets/ugeskema.jpg" width="1280" height="800" alt="Ugeskema med detaljer om et modul"></div>
+    </article>
+
+    <article class="stop">
+      <div class="time">15:30<small>Hjemme</small></div>
+      <div>
+        <h3>Hvad skal afleveres?</h3>
+        <p>Opgaver er delt op i Mangler og Kommende og Afleveret. Fristerne skifter farve når det begynder at haste.</p>
+        <ul><li>Filtrér på fag</li><li>Se elevtid og opgavenoter</li></ul>
+      </div>
+      <div class="shot"><img src="assets/opgaver.jpg" width="1280" height="800" alt="Opgaver sorteret efter frist"></div>
+    </article>
+
+    <article class="stop">
+      <div class="time">21:30<small>Om aftenen</small></div>
+      <div>
+        <h3>Lektier med flueben</h3>
+        <p>Lektierne står pr. dag med links og lærernes noter. Sæt flueben når du er færdig. Mørk tilstand gør det rart at læse sent.</p>
+        <ul><li>Flueben gemmes i din browser</li><li>Mørk tilstand følger din computer</li></ul>
+      </div>
+      <div class="shot"><img src="assets/lektier.jpg" width="1280" height="800" alt="Lektier i mørk tilstand med flueben"></div>
+    </article>
+
+    <article class="stop">
+      <div class="time">Altid<small>Når du leder</small></div>
+      <div>
+        <h3>Find alt med <kbd>Ctrl</kbd> + <kbd>K</kbd></h3>
+        <p>Søg efter en side eller et fag eller en opgave og hop direkte derhen. Ingen menuer at klikke rundt i.</p>
+      </div>
+      <div class="shot"><img src="assets/soegning.jpg" width="1280" height="800" alt="Søgefeltet åbent med resultater"></div>
+    </article>
+  </section>
+</div>
+
+<section class="story" id="historien">
+  <div class="wrap">
+    <h2>Hvorfor jeg lavede <span>Lectio+</span></h2>
+    <div>
+      <div class="text">
+        <p>Jeg går i 2.g og åbner Lectio flere gange hver eneste dag. Og hver gang tænkte jeg det samme. Hvorfor er det så svært at finde ud af hvad jeg har for i morgen?</p>
+        <p>Lektierne ligger ét sted. Afleveringerne et andet. Skemaet et tredje. Og det hele er fyldt med små links og menuer der ligner noget fra 2005.</p>
+        <p>Så jeg besluttede at gøre noget ved det. Lectio+ startede som noget jeg byggede til mig selv. Nu er den til alle der har det på samme måde.</p>
+      </div>
+      <p class="sign"><b>Gustav</b>2.g i Struer</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="how" id="kom-i-gang">
+    <h2>Kom i gang</h2>
+    <div class="steps">
+      <div class="step"><h3>Hent udvidelsen</h3><p>Den kommer snart i Chrome Web Store. Indtil da kan du hente koden på <a href="https://github.com/gustavgamer123/lectio-plus">GitHub</a> og pakke den ud.</p></div>
+      <div class="step"><h3>Tilføj den til Chrome</h3><p>Åbn <code>chrome://extensions</code> og slå Udviklertilstand til. Klik Indlæs upakket og vælg mappen <code>extension</code>.</p></div>
+      <div class="step"><h3>Log ind på Lectio</h3><p>Log ind som du plejer. Så er Lectio+ klar. Indstillinger finder du ved at klikke på ikonet i Chrome.</p></div>
+    </div>
+  </section>
+
+  <section class="faq">
+    <h2>Spørgsmål</h2>
+    <div>
+      <details><summary>Er det sikkert?</summary><p>Ja. Udvidelsen har ingen server og sender intet væk fra din computer. Dit login bliver aldrig læst. Koden ligger åbent på GitHub så alle kan se hvad den gør. Læs mere i <a href="privatliv/">privatlivspolitikken</a>.</p></details>
+      <details><summary>Er det lavet af Lectio?</summary><p>Nej. Lectio+ er et uafhængigt projekt og har ingen forbindelse til MaCom A/S eller Lectio. Du bruger stadig Lectio som normalt. Udvidelsen ændrer kun hvordan det ser ud.</p></details>
+      <details><summary>Virker den på min skole?</summary><p>Den er bygget og testet på Struer Statsgymnasium. Den burde virke på alle skoler der bruger Lectio fordi siderne er bygget ens. Virker noget ikke så skriv det på GitHub.</p></details>
+      <details><summary>Kan jeg få det gamle Lectio tilbage?</summary><p>Ja. Der er en knap nederst i menuen og et link øverst på hver side. Du kan også slå enkelte dele fra i indstillingerne.</p></details>
+      <details><summary>Koster det noget?</summary><p>Nej. Den er gratis og har ingen reklamer.</p></details>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>Lectio+ er ikke tilknyttet MaCom A/S eller Lectio.</span>
+    <span><a href="privatliv/">Privatliv</a> · <a href="https://github.com/gustavgamer123/lectio-plus">GitHub</a></span>
+  </div>
+</footer>
+</body>
+</html>

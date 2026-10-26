@@ -1,6 +1,6 @@
 # Lectio+
 
-Et roligere og mere overskueligt Lectio. Lectio+ er en Chrome-udvidelse der lægger sig oven på lectio.dk og bruger dit eget login.
+Et roligere og mere overskueligt Lectio. Se [hjemmesiden](https://gustavgamer123.github.io/lectio-plus/). Lectio+ er en Chrome-udvidelse der lægger sig oven på lectio.dk og bruger dit eget login.
 
 ![Overblik](docs-img/overblik.png)
 
