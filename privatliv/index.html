@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lectio+ privatlivspolitik</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;700&display=swap">
+<style>
+  /* Enkel læseside: én kolonne med fjordblå accent som i udvidelsen */
+  :root {
+    --bg: #f3f4f1; --surface: #ffffff; --ink: #1c1f1e; --ink-2: #5d6461; --rule: #e1e4df; --accent: #13566b;
+    --font: "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #111413; --surface: #191d1c; --ink: #e4e7e3; --ink-2: #a0a7a3; --rule: #2a302e; --accent: #74b9c8; color-scheme: dark } }
+  :root[data-theme="dark"] { --bg: #111413; --surface: #191d1c; --ink: #e4e7e3; --ink-2: #a0a7a3; --rule: #2a302e; --accent: #74b9c8; color-scheme: dark }
+  body { background: var(--bg); color: var(--ink); font: 17px/1.6 var(--font); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 48px 64px; }
+  main { max-width: 680px; margin: 0 auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 36px clamp(20px, 5vw, 44px) 40px; }
+  .brand { font-weight: 700; font-size: 18px; letter-spacing: -.01em; margin: 0 0 28px; }
+  .brand span { color: var(--accent); }
+  h1 { font-size: clamp(28px, 5vw, 36px); line-height: 1.15; letter-spacing: -.02em; margin: 0 0 6px; text-wrap: balance; }
+  .date { color: var(--ink-2); margin: 0 0 28px; font-size: 15px; }
+  h2 { font-size: 19px; margin: 30px 0 6px; letter-spacing: -.01em; }
+  p, li { margin: 0 0 10px; }
+  ul { padding-left: 20px; margin: 0 0 10px; }
+  .summary { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; margin: 0 0 8px; font-size: 18px; }
+  footer { max-width: 680px; margin: 18px auto 0; color: var(--ink-2); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<main>
+  <p class="brand">Lectio<span>+</span></p>
+  <h1>Privatlivspolitik</h1>
+  <p class="date">Gældende fra 26. oktober 2026</p>
+
+  <p class="summary">Lectio+ indsamler ingen data. Alt foregår i din egen browser og intet sendes videre til nogen.</p>
+
+  <h2>Hvad udvidelsen gør</h2>
+  <p>Lectio+ ændrer udseendet af lectio.dk mens du er logget ind. Udvidelsen læser de sider du selv har adgang til i Lectio. Det er for eksempel skema og lektier og opgaver og beskeder og fravær og karakterer. Indholdet bliver vist i et nyt design direkte i din browser.</p>
+
+  <h2>Hvad der bliver gemt</h2>
+  <p>Udvidelsen gemmer kun to slags ting og kun i din egen browser:</p>
+  <ul>
+    <li>Dine indstillinger som tema og hvilke visninger der er slået til. De gemmes med Chromes indbyggede lager og kan følge din Google-konto hvis du har slået Chrome-synkronisering til.</li>
+    <li>De flueben du sætter ved lektier. De gemmes lokalt i browseren og slettes automatisk efter 60 dage.</li>
+  </ul>
+
+  <h2>Hvad der ikke sker</h2>
+  <ul>
+    <li>Ingen data sendes til en server. Udvidelsen har ingen server.</li>
+    <li>Der er ingen statistik og ingen sporing og ingen reklamer.</li>
+    <li>Dit login og din adgangskode bliver aldrig læst eller gemt.</li>
+    <li>Intet bliver solgt eller delt med andre.</li>
+  </ul>
+
+  <h2>Adgang og tilladelser</h2>
+  <p>Udvidelsen har kun adgang til sider på lectio.dk. Den bruger tilladelsen "storage" til at gemme dine indstillinger.</p>
+
+  <h2>Sådan sletter du alt</h2>
+  <p>Fjern udvidelsen under chrome://extensions. Så forsvinder dine indstillinger og flueben også.</p>
+
+  <h2>Tilknytning</h2>
+  <p>Lectio+ er et uafhængigt projekt. Det er ikke lavet af eller tilknyttet MaCom A/S eller Lectio.</p>
+
+  <h2>Kontakt</h2>
+  <p>Spørgsmål kan stilles via fanen Support på udvidelsens side i Chrome Web Store.</p>
+</main>
+<footer>Ændres politikken bliver datoen øverst opdateret.</footer>
+</body>
+</html>
