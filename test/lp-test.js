@@ -1773,9 +1773,8 @@
   function enhanceFeedback(fb) {
     const html = document.documentElement;
     // Lectios editor (CKEditor) starter først efter at Lectio+ har kørt, så skrivetilstand
-    // aflæses fra serverens egen markup: redigeringslisten og tekstfeltet findes kun når man skriver.
-    const editing = !!fb.querySelector('[id*="EditLV"], [contenteditable="true"], .cke') ||
-      (!document.querySelector('[id$="tocAndToolbar_editModeBtn"]') && !!fb.querySelector('textarea'));
+    // aflæses fra serverens eget tekstfelt, som kun findes når man skriver.
+    const editing = !!fb.querySelector('textarea, .cke, [contenteditable="true"]');
     html.classList.add('lp-fbpage');
     html.classList.toggle('lp-fbedit', editing);
     if (fb.querySelector('.lp-act-cardhead')) return;
