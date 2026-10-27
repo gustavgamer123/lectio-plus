@@ -1767,7 +1767,9 @@
   // læse- og skrivetilstand med en hel sideindlæsning, så tilstanden aflæses én gang her.
   function enhanceFeedback(fb) {
     const html = document.documentElement;
-    const editing = !!fb.querySelector('[contenteditable="true"], .cke');
+    // Lectios editor (CKEditor) starter først efter at Lectio+ har kørt, så skrivetilstand
+    // aflæses fra serverens eget tekstfelt, som kun findes når man skriver.
+    const editing = !!fb.querySelector('textarea, .cke, [contenteditable="true"]');
     html.classList.add('lp-fbpage');
     html.classList.toggle('lp-fbedit', editing);
     if (fb.querySelector('.lp-act-cardhead')) return;
@@ -1785,6 +1787,15 @@
     fb.prepend(head);
     head.querySelectorAll('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy)?.click()));
     if (empty) head.insertAdjacentHTML('afterend', '<p class="lp-empty lp-fb-empty">Du har ikke skrevet noget til denne lektion endnu.</p>');
+    // ekstra sikkerhed: dukker editoren op senere, skiftes kortet til skrivetilstand
+    if (!editing) {
+      const recheck = () => setTimeout(() => {
+        if (!fb.querySelector('.cke, [contenteditable="true"]') || html.classList.contains('lp-fbedit')) return;
+        fb.querySelectorAll('.lp-fb-head, .lp-fb-empty').forEach((x) => x.remove());
+        enhanceFeedback(fb);
+      }, 300);
+      if (document.readyState === 'complete') recheck(); else addEventListener('load', recheck, { once: true });
+    }
   }
 
   /* ---------------- studieplan: forløb pr. hold ---------------- */
@@ -1945,7 +1956,7 @@
   }
 
   async function init() {
-    try { localStorage.removeItem('lp-test-code'); localStorage.removeItem('lp-dev-code'); localStorage.removeItem('lpx-run'); localStorage.removeItem('lpq'); localStorage.removeItem('lpz'); } catch (e) { /* oprydning efter test */ }
+    try { localStorage.removeItem('lp-test-code'); localStorage.removeItem('lp-dev-code'); localStorage.removeItem('lpx-run'); localStorage.removeItem('lpq'); localStorage.removeItem('lpz'); localStorage.removeItem('lpy'); localStorage.removeItem('lpx2'); } catch (e) { /* oprydning efter test */ }
     settings = await loadSettings();
     saveBoot();
     applyTheme();

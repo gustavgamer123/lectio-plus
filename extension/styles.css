@@ -1108,6 +1108,12 @@ html.lp-fbpage #ElevContentContainer .homeworkContainer { margin: 0 !important; 
 html.lp-fbpage #ElevContentContainer .homeworkContainer :is(h1, h2, h3) { font-size: 16px !important; font-weight: 700 !important; margin: 14px 0 4px !important; color: var(--ink) !important; }
 html.lp-fbpage #ElevContentContainer .homeworkContainer :is(p, li) { color: var(--ink) !important; }
 html.lp-fbpage #ElevContentContainer .homeworkContainer a { color: var(--accent) !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment { margin: 0 !important; padding: 12px 16px !important; border-radius: 10px !important; background: var(--sunk) !important; font-size: 15px !important; line-height: 1.6; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment + article.lc-display-fragment { margin-top: 8px !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :is(h1, h2, h3) { margin: 10px 0 2px !important; font-size: 16px !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment > h1[style*="background-image"] { padding: 0 0 0 26px !important; background-position: 0 50% !important; background-size: 16px auto !important; background-repeat: no-repeat !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :first-child { margin-top: 0 !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :last-child { margin-bottom: 0 !important; }
 
 /* skrivetilstand: Lectios værktøjslinje bliver en rolig bar der følger med ned */
 html.lp-fbedit [id$="tocAndToolbar_toolbaroutercontainer"] {
