@@ -9,6 +9,7 @@ Et roligere og mere overskueligt Lectio. Se [hjemmesiden](https://gustavgamer123
 - Overblik over din dag med næste modul og lokale
 - Lektier og afleveringer samlet pr. dag
 - Nyt ugeskema hvor du klikker på et modul og ser lektier og noter
+- Vælg din egen farve til hvert fag
 - Egne sider til opgaver og lektier samt fravær og karakterer
 - Flueben på lektier
 - Mørk tilstand på hele Lectio

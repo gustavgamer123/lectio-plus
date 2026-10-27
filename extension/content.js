@@ -14,7 +14,7 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
 
   /* ---------------- indstillinger ---------------- */
-  const DEFAULTS = { enabled: true, theme: 'auto', dashboard: true, skema: true, views: true, hideDone: false };
+  const DEFAULTS = { enabled: true, theme: 'auto', dashboard: true, skema: true, views: true, hideDone: false, colors: {} };
   const hasChrome = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync;
   function loadSettings() {
     return new Promise((res) => {
@@ -92,8 +92,12 @@
     if (/^[A-ZÆØÅ]{1,4}\d?$/.test(code)) return { code, name: code };
     return null;
   }
+  // Farver brugeren selv har valgt til et fag (gemt pr. fagkode) går forud for de automatiske.
+  const SWATCHES = [0, 20, 38, 55, 90, 135, 162, 182, 200, 218, 238, 262, 288, 322];
   function hueFor(str) {
     if (!str) return 230;
+    const own = settings.colors && settings.colors[str];
+    if (typeof own === 'number') return own;
     let h = 0;
     for (const c of str) h = (h * 31 + c.charCodeAt(0)) >>> 0;
     const palette = [230, 262, 292, 330, 352, 18, 36, 152, 172, 196, 210, 120];
@@ -443,7 +447,10 @@
     x: I('<path d="M6 6l12 12M18 6 6 18"/>'),
     pin: I('<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/>'),
     ext: I('<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
-    layers: I('<path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 13 9 5 9-5"/>')
+    layers: I('<path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 13 9 5 9-5"/>'),
+    pen: I('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/>'),
+    plus: I('<path d="M12 5v14M5 12h14"/>'),
+    palette: I('<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.7 1.8-1.7H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14.5" cy="7" r="1"/>')
   };
 
   /* ---------------- navigation ---------------- */
@@ -773,6 +780,11 @@
       dr.querySelector('.lp-dr-panel').addEventListener('click', (e) => {
         const b = e.target.closest('[data-dr]');
         if (!b) return;
+        if (b.dataset.dr === 'color') {
+          const box = b.closest('.lp-dr-body').querySelector('.lp-dr-colors');
+          box.hidden = !box.hidden; b.setAttribute('aria-expanded', !box.hidden);
+          return;
+        }
         if (b.dataset.dr === 'x') closeModal(); else stepLesson(+b.dataset.dr);
       });
       document.documentElement.classList.add('lp-drawer-open');
@@ -786,7 +798,9 @@
     const navLabel = (x) => (x ? `${x.subject?.name || x.title || 'Aktivitet'}, ${dayLabel(x.start, now)}${x.allDay ? '' : ' ' + hm(x.start)}` : '');
     const tipBlock = (title, txt) => (txt ? `<section><h4 class="lp-c-head">${title}</h4><p class="lp-pre">${esc(txt.replace(/\s*\[\.\.\.\]\s*/g, ' ...'))}</p></section>` : '');
     const fromTip = tipBlock('Note', l.note) + tipBlock('Lektier', l.homework) + tipBlock('Øvrigt indhold', l.other);
-    p.style.setProperty('--h', hueFor(l.subject?.code || l.title));
+    const code = l.subject?.code;
+    p.style.setProperty('--h', hueFor(code || l.title));
+    if (code) p.dataset.hc = code; else delete p.dataset.hc;
     p.innerHTML = `
       <header class="lp-dr-top">
         <div class="lp-dr-nav">
@@ -797,7 +811,8 @@
         <button type="button" class="lp-icon-btn" data-dr="x" aria-label="Luk">${ICONS.x}</button>
       </header>
       <div class="lp-dr-body">
-        <p class="lp-dr-subj">${subjDot(l.subject?.code || l.title)}<span>${esc(l.subject?.name || 'Aktivitet')}</span>${flag}</p>
+        <p class="lp-dr-subj">${subjDot(code || l.title)}<span>${esc(l.subject?.name || 'Aktivitet')}</span>${flag}${code ? `<button type="button" class="lp-dr-colbtn" data-dr="color" aria-expanded="false" title="Skift farve på alle ${esc(l.subject.name)}-timer">${ICONS.palette}Farve</button>` : ''}</p>
+        ${code ? `<div class="lp-dr-colors" hidden>${swatchRow(code, l.subject.name)}</div>` : ''}
         <h2>${esc(l.title || l.subject?.name || l.hold || 'Aktivitet')}</h2>
         <p class="lp-dr-when">${esc(when)}</p>
         ${live ? `<span class="lp-progress"><i style="width:${Math.round(((now - l.start) / (l.end - l.start)) * 100)}%"></i></span>` : ''}
@@ -827,7 +842,97 @@
   }
 
   /* ---------------- komponenter ---------------- */
-  const subjDot = (code) => `<i class="lp-sd" style="--h:${hueFor(code)}"></i>`;
+  const hc = (code) => (code ? ` data-hc="${esc(code)}"` : '');
+  const subjDot = (code) => `<i class="lp-sd"${hc(code)} style="--h:${hueFor(code)}"></i>`;
+
+  /* ---------------- egne farver til fag ---------------- */
+  // Række med farveprøver til ét fag. Klik håndteres samlet nedenfor.
+  const swatchRow = (code, name) => {
+    const own = settings.colors && typeof settings.colors[code] === 'number' ? settings.colors[code] : null;
+    return `<div class="lp-swatches" data-code="${esc(code)}" role="group" aria-label="Farve til ${esc(name || code)}">
+      <div class="lp-sw-grid">${SWATCHES.map((h, i) => `<button type="button" class="lp-sw${own === h ? ' is-on' : ''}" data-sw="${h}" style="--h:${h}" aria-pressed="${own === h}" aria-label="Farve ${i + 1}"></button>`).join('')}</div>
+      <button type="button" class="lp-sw-reset${own == null ? ' is-on' : ''}" data-sw="" aria-pressed="${own == null}">Standardfarve</button>
+    </div>`;
+  };
+  function repaintColors() {
+    document.querySelectorAll('[data-hc]').forEach((el) => el.style.setProperty('--h', hueFor(el.dataset.hc)));
+    document.querySelectorAll('.lp-swatches[data-code]').forEach((row) => {
+      const own = settings.colors ? settings.colors[row.dataset.code] : undefined;
+      row.querySelectorAll('[data-sw]').forEach((b) => {
+        const on = b.dataset.sw === '' ? typeof own !== 'number' : +b.dataset.sw === own;
+        b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on);
+      });
+    });
+    document.querySelectorAll('.lp-col-row [data-own]').forEach((s) => { s.textContent = typeof settings.colors?.[s.dataset.own] === 'number' ? 'Egen farve' : ''; });
+    const rb = document.querySelector('#lp-colors [data-col="reset"]');
+    if (rb) rb.disabled = !Object.keys(settings.colors || {}).length;
+  }
+  function setColor(code, h) {
+    const c = { ...(settings.colors || {}) };
+    if (h == null) delete c[code]; else c[code] = h;
+    settings.colors = c;
+    saveSetting('colors', c);
+    repaintColors();
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('[data-sw]');
+    if (!b) return;
+    const row = b.closest('.lp-swatches[data-code]');
+    if (row) setColor(row.dataset.code, b.dataset.sw === '' ? null : +b.dataset.sw);
+  });
+  // Fag fra skemaet, ens hold og dem man allerede har farvet.
+  function knownSubjects(lessons = []) {
+    const map = new Map();
+    const add = (s) => { if (s && s.code && !map.has(s.code)) map.set(s.code, s.name || s.code); };
+    lessons.forEach((l) => add(l.subject));
+    (cache.front?.d?.hold || []).forEach((h) => add(subjectFrom(h.name)));
+    Object.keys(settings.colors || {}).forEach((code) => add({ code, name: SUBJECTS[code] || code }));
+    return [...map].map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name, 'da'));
+  }
+  function closeColors() {
+    const p = document.getElementById('lp-colors');
+    if (!p) return;
+    p.remove();
+    document.querySelector('[data-act="colors"]')?.setAttribute('aria-expanded', 'false');
+  }
+  function toggleColors(btn, lessons) {
+    if (document.getElementById('lp-colors')) { closeColors(); return; }
+    const subs = knownSubjects(lessons);
+    const pop = document.createElement('div');
+    pop.id = 'lp-colors';
+    pop.setAttribute('role', 'dialog');
+    pop.setAttribute('aria-label', 'Farver til fag');
+    pop.innerHTML = `<header><h3>Farver til fag</h3><button type="button" class="lp-icon-btn" data-col="x" aria-label="Luk">${ICONS.x}</button></header>
+      <p class="lp-col-help">Vælg en farve til et fag. Den bruges i skemaet og alle andre steder i Lectio+.</p>
+      ${subs.length ? `<ul class="lp-col-list">${subs.map((s) => `<li>
+        <button type="button" class="lp-col-row" aria-expanded="false">${subjDot(s.code)}<span>${esc(s.name)}</span><small data-own="${esc(s.code)}">${typeof settings.colors?.[s.code] === 'number' ? 'Egen farve' : ''}</small></button>
+        ${swatchRow(s.code, s.name)}</li>`).join('')}</ul>` : '<p class="lp-empty">Ingen fag fundet i denne uge.</p>'}
+      <footer><button type="button" class="lp-btn lp-btn-ghost" data-col="reset"${Object.keys(settings.colors || {}).length ? '' : ' disabled'}>Nulstil alle farver</button></footer>`;
+    btn.closest('.lp-vhead').appendChild(pop);
+    btn.setAttribute('aria-expanded', 'true');
+    const openRow = (li) => {
+      pop.querySelectorAll('.lp-col-list li').forEach((x) => { const on = x === li && !x.classList.contains('is-open'); x.classList.toggle('is-open', on); x.querySelector('.lp-col-row').setAttribute('aria-expanded', on); });
+    };
+    pop.addEventListener('click', (e) => {
+      const r = e.target.closest('.lp-col-row');
+      if (r) { openRow(r.closest('li')); return; }
+      const a = e.target.closest('[data-col]');
+      if (!a) return;
+      if (a.dataset.col === 'x') closeColors();
+      if (a.dataset.col === 'reset') { settings.colors = {}; saveSetting('colors', {}); repaintColors(); }
+    });
+    pop.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeColors(); btn.focus(); } });
+    setTimeout(() => {
+      const away = (e) => {
+        if (!document.getElementById('lp-colors')) { document.removeEventListener('pointerdown', away, true); return; }
+        if (e.target.closest('#lp-colors, [data-act="colors"]')) return;
+        closeColors(); document.removeEventListener('pointerdown', away, true);
+      };
+      document.addEventListener('pointerdown', away, true);
+    });
+    pop.tabIndex = -1;
+    pop.focus({ preventScroll: true });
+  }
   const skeleton = (n = 3) => `<div class="lp-skel">${'<i></i>'.repeat(n)}</div>`;
   const errBox = (e) => `<p class="lp-empty">Lectio svarede ikke. Prøv at genindlæse siden.<br><small>${esc(e?.message || e)}</small></p>`;
   const section = (title, href, body, cls = '') => `<section class="lp-sec ${cls}">
@@ -1018,7 +1123,7 @@
 
       const cur = dayLessons.find((l) => !l.cancelled && l.start <= now && now < l.end);
       const next = lessons.filter((l) => !l.cancelled && l.start > now)[0];
-      const block = (lbl, l, sub, extra = '') => `<button type="button" class="lp-hero-item" data-n="${lbl}" style="--h:${hueFor(l.subject?.code)}">
+      const block = (lbl, l, sub, extra = '') => `<button type="button" class="lp-hero-item" data-n="${lbl}"${hc(l.subject?.code)} style="--h:${hueFor(l.subject?.code)}">
           <span class="lp-hero-lbl">${lbl === 'nu' ? 'Nu' : cur ? 'Bagefter' : 'Næste time'}</span>
           <strong>${esc(l.subject?.name || l.title || 'Aktivitet')}</strong>
           <span class="lp-hero-room">${esc(l.room || 'Intet lokale')}</span>
@@ -1101,8 +1206,11 @@
         `<button type="button" class="lp-btn" data-wk="-1" title="Forrige uge (Alt+venstre)" aria-label="Forrige uge">${ICONS.left}</button>
           <button type="button" class="lp-btn${isCurrent ? ' is-disabled' : ''}" data-wk="0">I dag</button>
           <button type="button" class="lp-btn" data-wk="1" title="Næste uge (Alt+højre)" aria-label="Næste uge">${ICONS.right}</button>
+          <button type="button" class="lp-btn lp-btn-ghost" data-act="colors" aria-expanded="false" aria-haspopup="dialog" title="Vælg farver til fagene">${ICONS.palette}Farver</button>
           <a class="lp-btn lp-btn-ghost" href="${BASE}SkemaNy.aspx?week=${wp}&lp=orig">Lectios visning</a>`)}
       <div id="lp-week" class="lp-card lp-week-card">${skeleton(8)}</div>`;
+    let weekLessons = [];
+    app.querySelector('[data-act="colors"]').addEventListener('click', (e) => toggleColors(e.currentTarget, weekLessons));
     app.querySelectorAll('[data-wk]').forEach((b) => b.addEventListener('click', () => {
       const d = +b.dataset.wk;
       const nd = d === 0 ? new Date() : new Date(weekDate.getTime() + d * 7 * 864e5);
@@ -1111,6 +1219,7 @@
     }));
     const draw = (sk) => {
       if (token !== weekToken) return;
+      weekLessons = sk.lessons;
       const timed = sk.lessons.filter((l) => !l.allDay && l.start && l.end);
       const toMin = (s) => { const [a, b] = s.split(':').map(Number); return a * 60 + b; };
       let minM = sk.modules.length ? toMin(sk.modules[0].start) : 8 * 60;
@@ -1140,7 +1249,7 @@
           const hgt = Math.max(22, ((l.end - l.start) / 6e4) * PX - 3);
           const live = !l.cancelled && l.start <= now && now < l.end;
           const width = 100 / l._lanes;
-          return `<button type="button" class="lp-blk${l.cancelled ? ' is-cancelled' : ''}${l.changed ? ' is-changed' : ''}${live ? ' is-live' : ''}${l.end < now ? ' is-past' : ''}${hgt < 44 ? ' is-short' : ''}" data-li="${all.indexOf(l)}"
+          return `<button type="button" class="lp-blk${l.cancelled ? ' is-cancelled' : ''}${l.changed ? ' is-changed' : ''}${live ? ' is-live' : ''}${l.end < now ? ' is-past' : ''}${hgt < 44 ? ' is-short' : ''}" data-li="${all.indexOf(l)}"${hc(l.subject?.code)}
             style="--h:${hueFor(l.subject?.code)};top:${top}px;height:${hgt}px;left:calc(${width * l._lane}% + 3px);width:calc(${width}% - 6px)">
             <strong>${esc(l.subject?.name || l.title || 'Aktivitet')}</strong>
             <small>${hm(l.start)}${l.room ? ', ' + esc(l.room) : ''}</small>
@@ -1152,7 +1261,7 @@
         const nowLine = isToday && nowM >= minM && nowM <= maxM ? `<div class="lp-nowline" style="top:${(nowM - minM) * PX}px"></div>` : '';
         return `<div class="lp-day${isToday ? ' is-today' : ''}">
           <div class="lp-day-head"><span>${esc(d.name)}</span><b>${d.date ? d.date.getDate() : ''}</b></div>
-          <div class="lp-day-all">${dayAll.map((l) => `<button type="button" class="lp-allday" data-li="${all.indexOf(l)}" style="--h:${hueFor(l.title)}">${esc(l.title || l.subject?.name || 'Begivenhed')}</button>`).join('')}</div>
+          <div class="lp-day-all">${dayAll.map((l) => `<button type="button" class="lp-allday" data-li="${all.indexOf(l)}"${hc(l.subject?.code || l.title)} style="--h:${hueFor(l.subject?.code || l.title)}">${esc(l.title || l.subject?.name || 'Begivenhed')}</button>`).join('')}</div>
           <div class="lp-day-body" style="height:${H}px">${hours.map((t) => `<div class="lp-hline" style="top:${(t - minM) * PX}px"></div>`).join('')}${blocks}${nowLine}</div>
         </div>`;
       }).join('');
@@ -1561,6 +1670,7 @@
     box.id = 'lp-afl';
     box.className = 'lp-afl';
     box.style.setProperty('--h', hueFor(subj?.code));
+    if (subj?.code) box.dataset.hc = subj.code;
     box.innerHTML = `
       <p class="lp-afl-subj">${subjDot(subj?.code)}${esc(subj?.name || info.hold || 'Opgave')}${info.hold && subj ? `<small>${esc(info.hold)}</small>` : ''}</p>
       <h1>${esc(info.opgavetitel || 'Opgave')}</h1>
@@ -1606,12 +1716,13 @@
   /* ---------------- lektionsside ---------------- */
   function enhanceActivityPage() {
     const content = document.getElementById('homeworkContentContainer');
+    const fb = document.getElementById('ElevContentContainer');
     const host = document.querySelector('#contenttable, .ls-content');
-    if (!content || !host || document.getElementById('lp-act-hero')) return;
-    const brik = content.querySelector('[id$="actHeader"] a.s2skemabrik') || document.querySelector('a.s2skemabrik[data-tooltip]');
+    if ((!content && !fb) || !host || document.getElementById('lp-act-hero')) return;
+    const brik = document.querySelector('[id$="actHeader"] a.s2skemabrik[data-tooltip], .ls-paper-header a.s2skemabrik[data-tooltip]') || document.querySelector('a.s2skemabrik[data-tooltip]');
     const l = brik ? parseTip(brik.getAttribute('data-tooltip') || '') : {};
     if (brik) { l.changed = brik.classList.contains('s2changed') || l.status === 'changed'; l.cancelled = brik.classList.contains('s2cancelled') || l.status === 'cancelled'; }
-    const noteTa = content.querySelector('textarea.activity-note');
+    const noteTa = document.querySelector('textarea.activity-note');
     const note = noteTa ? (noteTa.value || noteTa.textContent || '').trim() : '';
     const forl = [...document.querySelectorAll('a[href*="forloeb_vis"]')].map((a) => ({ t: a.textContent.trim(), h: a.href })).filter((x) => x.t);
     const subj = l.subject;
@@ -1622,6 +1733,7 @@
     hero.id = 'lp-act-hero';
     hero.className = 'lp-afl';
     hero.style.setProperty('--h', hueFor(subj?.code || l.title));
+    if (subj?.code) hero.dataset.hc = subj.code;
     hero.innerHTML = `
       <p class="lp-afl-subj">${subjDot(subj?.code || l.title)}${esc(subj?.name || 'Aktivitet')}${l.hold && subj ? `<small>${esc(l.hold)}</small>` : ''}${flag}</p>
       <h1>${esc(l.title || subj?.name || 'Lektion')}</h1>
@@ -1641,6 +1753,7 @@
     shellActions = `${btn('ctl02', 'Min forrige lektion', ICONS.left)}${btn('ctl03', 'Min næste lektion', ICONS.right)}${holdLink ? `<a class="lp-btn lp-btn-ghost" href="${esc(holdLink.href)}">Holdets lektioner</a>` : ''}`;
     const tabs = [...document.querySelectorAll('.lectioTabToolbar a')].map((a) => ({ t: a.textContent.trim(), h: a.getAttribute('href') || '#', on: !a.getAttribute('href') || a.getAttribute('href') === '#' }));
     if (tabs.length > 1) shellTabs = `<nav class="lp-tabs" aria-label="Undersider">${tabs.map((x) => `<a href="${esc(x.on ? '#' : abs(x.h) || x.h)}"${x.on ? ' class="is-on" aria-current="page"' : ''}>${esc(x.t)}</a>`).join('')}</nav>`;
+    if (fb) { enhanceFeedback(fb); return; }
     // indholdskortet får en overskrift som de andre kort
     if (!content.querySelector('.lp-act-cardhead')) {
       const h = document.createElement('div');
@@ -1649,6 +1762,29 @@
       content.prepend(h);
     }
     if (!content.textContent.replace(/Lektier og materialer/, '').trim()) content.insertAdjacentHTML('beforeend', '<p class="lp-empty">Ingen lektier eller materialer til denne lektion.</p>');
+  }
+  // Fanen Elevfeedback: elevens egne noter og svar til lektionen. Lectio skifter mellem
+  // læse- og skrivetilstand med en hel sideindlæsning, så tilstanden aflæses én gang her.
+  function enhanceFeedback(fb) {
+    const html = document.documentElement;
+    const editing = !!fb.querySelector('[contenteditable="true"], .cke');
+    html.classList.add('lp-fbpage');
+    html.classList.toggle('lp-fbedit', editing);
+    if (fb.querySelector('.lp-act-cardhead')) return;
+    const info = fb.querySelector('.nb_type_information');
+    const body = fb.querySelector('[id$="inlineHomeworkDiv"]');
+    const empty = !editing && (!body || (!body.textContent.trim() && !body.querySelector('img, iframe, video, audio, a, table')));
+    const editBtn = document.querySelector('[id$="tocAndToolbar_editModeBtn"]');
+    const newBtn = document.querySelector('[id$="NytElevindholdBtn"]');
+    const proxy = (el, label, icon, cls = '') => (el && el.id ? `<button type="button" class="lp-btn ${cls}" data-proxy="${esc(el.id)}">${icon}${label}</button>` : '');
+    const sub = editing ? 'Tryk på Gem i værktøjslinjen eller Alt+S når du er færdig.' : (info ? info.textContent.trim() : '');
+    const head = document.createElement('div');
+    head.className = 'lp-act-cardhead lp-fb-head';
+    head.innerHTML = `<div><h2>Elevfeedback</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div>
+      <div class="lp-fb-actions">${editing ? proxy(newBtn, 'Nyt indlæg', ICONS.plus, 'lp-btn-ghost') : proxy(editBtn, empty ? 'Skriv' : 'Rediger', ICONS.pen)}</div>`;
+    fb.prepend(head);
+    head.querySelectorAll('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy)?.click()));
+    if (empty) head.insertAdjacentHTML('afterend', '<p class="lp-empty lp-fb-empty">Du har ikke skrevet noget til denne lektion endnu.</p>');
   }
 
   /* ---------------- studieplan: forløb pr. hold ---------------- */
@@ -1692,7 +1828,7 @@
       const later = y != null ? h.phases.filter((p) => p.y > y && p !== next) : h.phases;
       const prog = cur ? Math.round(((y - cur.y) / (cur.y2 - cur.y)) * 100) : 0;
       const item = (p) => `<li><a href="${esc(p.href || '#')}">${esc(p.title)}</a><small>${esc(range(p))}</small></li>`;
-      return `<section class="lp-card lp-sp" style="--h:${hueFor(s?.code || h.name)}">
+      return `<section class="lp-card lp-sp"${hc(s?.code)} style="--h:${hueFor(s?.code || h.name)}">
         <header class="lp-card-head"><h2>${subjDot(s?.code || h.name)}${esc(s?.name || h.name)}</h2><small>${esc(h.name)}</small></header>
         <div class="lp-card-body">
           ${cur ? `<div class="lp-sp-now"><span>Nu</span><a href="${esc(cur.href || '#')}"><strong>${esc(cur.title)}</strong></a><small>${esc(range(cur))}</small><span class="lp-progress"><i style="width:${prog}%"></i></span></div>` : '<p class="lp-empty lp-sp-none">Intet forløb lige nu.</p>'}
@@ -1727,7 +1863,7 @@
     }
     return null;
   }
-  const OWN_UI = '#lp-side, #lp-app, #lp-drawer, #lp-palette, #lp-topbar, #lp-pill, #lp-scrim, #lp-afl, #lp-act-hero, #lp-shell-head';
+  const OWN_UI = '#lp-side, #lp-app, #lp-drawer, #lp-palette, #lp-topbar, #lp-pill, #lp-scrim, #lp-afl, #lp-act-hero, #lp-shell-head, .lp-act-cardhead, .lp-fb-empty, #lp-colors';
   // Finder lyse flader og mørk tekst i Lectios egne sider og farver dem om i mørk tilstand.
   function darkFix(root) {
     const html = document.documentElement;
@@ -1809,7 +1945,7 @@
   }
 
   async function init() {
-    try { localStorage.removeItem('lp-test-code'); localStorage.removeItem('lp-dev-code'); localStorage.removeItem('lpx-run'); localStorage.removeItem('lpq'); } catch (e) { /* oprydning efter test */ }
+    try { localStorage.removeItem('lp-test-code'); localStorage.removeItem('lp-dev-code'); localStorage.removeItem('lpx-run'); localStorage.removeItem('lpq'); localStorage.removeItem('lpz'); } catch (e) { /* oprydning efter test */ }
     settings = await loadSettings();
     saveBoot();
     applyTheme();
@@ -1890,6 +2026,7 @@
     chrome.storage.onChanged.addListener((ch) => {
       if (ch.theme && Object.keys(ch).length === 1) { settings.theme = ch.theme.newValue; saveBoot(); applyTheme(); return; }
       if (ch.hideDone && Object.keys(ch).length === 1) return;
+      if (ch.colors && Object.keys(ch).length === 1) { settings.colors = ch.colors.newValue || {}; repaintColors(); return; }
       location.reload();
     });
   }

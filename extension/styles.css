@@ -1031,3 +1031,109 @@ html.lp-on .outerContentFrame .ls-content { display: block !important; width: au
 html.lp-actpage #PrintAktivititetArea, html.lp-actpage .ls-toccontent-container, html.lp-actpage .ls-tabs4, html.lp-actpage .lectioTabContent,
 html.lp-actpage .ls-texteditor-container, html.lp-actpage .ls-tocandcontentparent, html.lp-actpage .ls-tocContent-outer,
 html.lp-actpage .ls-texteditor-paper-container, html.lp-actpage #homeworkContentContainer { display: block !important; width: auto !important; max-width: none !important; min-width: 0 !important; float: none !important; }
+
+/* ---------- 1.7 egne farver til fag ---------- */
+#lp-app .lp-vhead { position: relative; }
+#lp-colors {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: min(460px, calc(100vw - 32px)); max-height: min(72vh, 660px); overflow: auto;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; box-shadow: 0 18px 44px rgba(0, 0, 0, .16);
+  padding: 14px 14px 12px; font-family: var(--font); color: var(--ink); text-align: left;
+}
+html[data-lp-theme="dark"] #lp-colors { box-shadow: 0 18px 44px rgba(0, 0, 0, .5); }
+#lp-colors:focus { outline: none; }
+#lp-colors header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#lp-colors h3 { margin: 0 !important; font-size: 16px !important; font-weight: 700 !important; color: var(--ink) !important; letter-spacing: 0; }
+#lp-colors .lp-icon-btn svg { width: 16px; height: 16px; }
+.lp-col-help { margin: 2px 0 10px !important; color: var(--ink-2) !important; font-size: 13.5px; line-height: 1.45; }
+.lp-col-list { list-style: none !important; margin: 0 !important; padding: 0 !important; }
+.lp-col-list li { border-top: 1px solid var(--rule); margin: 0 !important; padding: 0 !important; }
+.lp-col-row {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; border: 0; border-radius: 8px; background: transparent;
+  color: var(--ink) !important; font: 500 14.5px var(--font); text-align: left; cursor: pointer;
+}
+.lp-col-row:hover, .lp-col-list li.is-open .lp-col-row { background: var(--sunk); }
+.lp-col-row .lp-sd { width: 12px; height: 12px; margin: 0; }
+.lp-col-row span { flex: 1; min-width: 0; }
+.lp-col-row small { color: var(--ink-3); font-size: 12.5px; }
+.lp-col-list li:not(.is-open) .lp-swatches { display: none; }
+.lp-col-list .lp-swatches { padding: 10px 8px 12px 30px; }
+#lp-colors footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--rule); padding-top: 10px; }
+#lp-colors footer .lp-btn:disabled { opacity: .45; cursor: default; background: transparent; }
+
+.lp-swatches { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.lp-sw-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.lp-sw {
+  width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: hsl(var(--h) 55% var(--dot-l)); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08); transition: transform .12s ease;
+}
+.lp-sw:hover { transform: scale(1.12); }
+.lp-sw.is-on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px hsl(var(--h) 55% var(--dot-l)); }
+.lp-sw-reset {
+  height: 26px; padding: 0 11px; border-radius: 13px; border: 1px solid var(--rule); background: transparent;
+  color: var(--ink-2) !important; font: 500 12.5px var(--font); cursor: pointer;
+}
+.lp-sw-reset:hover { background: var(--sunk); color: var(--ink) !important; }
+.lp-sw-reset.is-on { color: var(--ink) !important; border-color: var(--ink-3); }
+:is(.lp-sw, .lp-sw-reset, .lp-col-row, .lp-dr-colbtn):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* farve direkte fra lektionsskuffen */
+.lp-dr-colbtn {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border-radius: 7px;
+  border: 1px solid var(--rule); background: transparent; color: var(--ink-2) !important; font: 500 13px var(--font); cursor: pointer;
+}
+.lp-dr-colbtn svg { width: 15px !important; height: 15px !important; flex: none; }
+.lp-dr-colbtn:hover, .lp-dr-colbtn[aria-expanded="true"] { background: var(--sunk); color: var(--ink) !important; }
+.lp-dr-colors { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--sunk); }
+.lp-dr-colors[hidden] { display: none !important; }
+.lp-dr-colors .lp-sw.is-on { box-shadow: 0 0 0 2px var(--sunk), 0 0 0 4px hsl(var(--h) 55% var(--dot-l)); }
+
+/* ---------- 1.7 elevfeedback på lektionssiden ---------- */
+html.lp-fbpage #ElevContentContainer {
+  background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--rule) !important; border-radius: 16px !important;
+  padding: 18px 22px !important; margin: 0 !important; font-size: 15px; line-height: 1.6; min-height: 0 !important; height: auto !important; box-shadow: none !important;
+}
+html.lp-fbpage #ElevContentContainer > .ls-paper-header, html.lp-fbpage #ElevContentContainer > .nb_type_information, html.lp-fbpage .ls-tocContent-outer > menutemplate, html.lp-fbpage [id$="tocAndToolbar_toolbarMenuContainer"] { display: none !important; }
+.lp-fb-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px 20px; flex-wrap: wrap; }
+.lp-fb-head h2 { margin: 0 !important; }
+.lp-fb-head p { margin: 2px 0 0 !important; color: var(--ink-2) !important; font-size: 14px; line-height: 1.45; }
+.lp-fb-actions { display: flex; gap: 6px; }
+.lp-fb-actions .lp-btn svg { width: 16px; height: 16px; flex: none; }
+.lp-fb-empty { padding: 12px 0 2px !important; }
+html.lp-fbpage #ElevContentContainer .ls-paper { background: transparent !important; border: 0 !important; border-radius: 0 !important; padding: 0 !important; margin: 16px 0 0 !important; box-shadow: none !important; min-height: 0 !important; width: auto !important; max-width: none !important; }
+html.lp-fbpage #ElevContentContainer :is(.homeworkContainer, [id$="editorContainer"], .cke, span:has(> .cke), div:has(> .cke)) { width: auto !important; max-width: none !important; display: block !important; }
+html.lp-fbpage #ElevContentContainer .ls-paper + .ls-paper { border-top: 1px solid var(--rule) !important; padding-top: 16px !important; }
+html.lp-fbpage #ElevContentContainer .ls-section-subgroup-heading { margin: 0 0 8px !important; padding: 0 !important; border: 0 !important; background: transparent !important; font-size: 13px !important; font-weight: 600 !important; color: var(--ink-3) !important; }
+html.lp-fbpage #ElevContentContainer .ls-section-subgroup-heading * { color: inherit !important; font-size: inherit !important; font-weight: inherit !important; margin: 0 !important; }
+html.lp-fbpage #ElevContentContainer .homeworkContainer { margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
+html.lp-fbpage #ElevContentContainer .homeworkContainer :is(h1, h2, h3) { font-size: 16px !important; font-weight: 700 !important; margin: 14px 0 4px !important; color: var(--ink) !important; }
+html.lp-fbpage #ElevContentContainer .homeworkContainer :is(p, li) { color: var(--ink) !important; }
+html.lp-fbpage #ElevContentContainer .homeworkContainer a { color: var(--accent) !important; }
+
+/* skrivetilstand: Lectios værktøjslinje bliver en rolig bar der følger med ned */
+html.lp-fbedit [id$="tocAndToolbar_toolbaroutercontainer"] {
+  display: block !important; position: sticky !important; top: 10px; z-index: 30; margin: 0 0 12px !important; padding: 0 !important;
+  background: transparent !important; border: 0 !important; width: auto !important; max-width: none !important; height: auto !important;
+}
+html.lp-fbpage .ls-texteditor-toolbarContainer, html.lp-fbpage [id$="tocAndToolbar_toolbarcontent"] { padding: 0 !important; margin: 0 !important; background: transparent !important; border: 0 !important; width: auto !important; max-width: none !important; }
+html.lp-fbpage .cke_chrome { border: 0 !important; box-shadow: none !important; padding: 0 !important; background: transparent !important; }
+html.lp-fbpage .cke_inner { background: transparent !important; }
+html.lp-fbpage .cke_top {
+  background: var(--surface) !important; background-image: none !important; border: 1px solid var(--rule) !important; border-radius: 12px !important;
+  padding: 6px 8px 2px !important; box-shadow: 0 6px 18px rgba(0, 0, 0, .06) !important;
+}
+html.lp-fbpage .cke_toolgroup { background: transparent !important; background-image: none !important; border: 0 !important; box-shadow: none !important; }
+html.lp-fbpage a.cke_button { border-radius: 6px !important; border: 0 !important; background: transparent !important; background-image: none !important; box-shadow: none !important; }
+html.lp-fbpage a.cke_button:hover, html.lp-fbpage a.cke_button_on { background: var(--sunk) !important; }
+html.lp-on.lp-fbpage .cke_top :is(a.cke_button, a.cke_button *, .cke_combo_text, .cke_toolbar > span) { color: var(--ink-2) !important; text-shadow: none !important; }
+html.lp-fbpage a.cke_button_disabled { opacity: .4 !important; }
+html.lp-fbpage .cke_toolbar_separator { background: var(--rule) !important; }
+html.lp-fbpage a.cke_combo_button { background: var(--sunk) !important; background-image: none !important; border: 1px solid var(--rule) !important; border-radius: 6px !important; box-shadow: none !important; }
+html.lp-fbpage a.cke_button__lectiosave { background: var(--accent) !important; }
+html.lp-fbpage a.cke_button__lectiosave:hover { background: var(--accent) !important; filter: brightness(1.1); }
+html.lp-on.lp-fbpage .cke_top :is(a.cke_button__lectiosave, a.cke_button__lectiosave *) { color: var(--surface) !important; font-weight: 600; }
+html.lp-fbpage .cke_contents { height: auto !important; border: 0 !important; }
+html.lp-fbpage .cke_wysiwyg_div {
+  min-height: 300px; background: var(--sunk) !important; color: var(--ink) !important; border: 1px solid var(--rule) !important; border-radius: 10px !important;
+  padding: 14px 18px !important; font: 15px/1.6 var(--font) !important;
+}
+html.lp-fbpage .cke_wysiwyg_div:focus { outline: 2px solid var(--accent) !important; outline-offset: -1px; }
