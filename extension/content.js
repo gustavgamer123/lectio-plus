@@ -1096,14 +1096,12 @@
     const wp = weekParam(weekDate);
     const isCurrent = wp === weekParam(now);
     const { w } = isoWeek(weekDate);
-    app.innerHTML = `<div class="lp-week-head">
-        <div><h1>Uge ${w}</h1><p class="lp-date">${(() => { const mo = mondayOf(weekDate); const fr = new Date(mo.getTime() + 4 * 864e5); return `${mo.getDate()}. ${MONTHS[mo.getMonth()]} til ${fr.getDate()}. ${MONTHS[fr.getMonth()]}`; })()}</p></div>
-        <div class="lp-week-nav">
-          <button type="button" class="lp-btn" data-wk="-1" title="Forrige uge (Alt+venstre)" aria-label="Forrige uge">${ICONS.left}</button>
+    const mo = mondayOf(weekDate); const fr = new Date(mo.getTime() + 4 * 864e5);
+    app.innerHTML = `${pageHead('Skema', `Uge ${w}, ${mo.getDate()}. ${MONTHS[mo.getMonth()]} til ${fr.getDate()}. ${MONTHS[fr.getMonth()]}`,
+        `<button type="button" class="lp-btn" data-wk="-1" title="Forrige uge (Alt+venstre)" aria-label="Forrige uge">${ICONS.left}</button>
           <button type="button" class="lp-btn${isCurrent ? ' is-disabled' : ''}" data-wk="0">I dag</button>
           <button type="button" class="lp-btn" data-wk="1" title="Næste uge (Alt+højre)" aria-label="Næste uge">${ICONS.right}</button>
-          <a class="lp-btn lp-btn-ghost" href="${BASE}SkemaNy.aspx?week=${wp}&lp=orig">Lectios visning</a>
-        </div></div>
+          <a class="lp-btn lp-btn-ghost" href="${BASE}SkemaNy.aspx?week=${wp}&lp=orig">Lectios visning</a>`)}
       <div id="lp-week" class="lp-card lp-week-card">${skeleton(8)}</div>`;
     app.querySelectorAll('[data-wk]').forEach((b) => b.addEventListener('click', () => {
       const d = +b.dataset.wk;
@@ -1227,10 +1225,34 @@
 
   /* ---------------- egne visninger: opgaver, lektier, fravær, karakterer ---------------- */
   const origLink = () => { const u = new URL(location.href); u.searchParams.set('lp', 'orig'); return u.href; };
-  const viewHead = (title, sub, extra = '') => `<header class="lp-vhead">
-      <div><h1>${esc(title)}</h1>${sub ? `<p class="lp-date">${sub}</p>` : ''}</div>
-      <div class="lp-vhead-actions">${extra}<a class="lp-btn lp-btn-ghost" href="${esc(origLink())}">Lectios visning</a></div>
-    </header>${subTabs()}`;
+  // Fælles sidehoved for alle sider: titel, handlinger til højre, faner og evt. en undertekst.
+  function groupTitle() {
+    const p = PAGE;
+    if (p.startsWith('subnav/fravaer')) return 'Fravær';
+    if (p.startsWith('grades/')) return 'Karakterer';
+    if (/^(studieplan|studieretning|fagvalg\/|teacherstudybook)/.test(p)) return 'Studieplan';
+    if (p.startsWith('indstillinger/') || p === 'minbutik.aspx') return 'Profil';
+    if (p.startsWith('aktivitet/')) return 'Lektion';
+    return '';
+  }
+  const pageHead = (title, sub, actions = '') => `<header class="lp-vhead"><h1>${esc(title)}</h1>${actions ? `<div class="lp-vhead-actions">${actions}</div>` : ''}</header>${subTabs()}${sub ? `<p class="lp-viewsub">${sub}</p>` : ''}`;
+  const viewHead = (title, sub, extra = '') => pageHead(groupTitle() || title, sub, `${extra}<a class="lp-btn lp-btn-ghost" href="${esc(origLink())}">Lectios visning</a>`);
+  // Lectios egne sider får samme sidehoved som de nye sider.
+  function buildPageShell() {
+    const cc = document.querySelector('.outerContentFrame > .ls-content-container');
+    if (!cc || document.getElementById('lp-shell-head')) return;
+    const t = document.getElementById('s_m_HeaderContent_MainTitle') || document.querySelector('[id$="HeaderContent_MainTitle"], .maintitle');
+    let title = (t ? t.textContent : '').trim();
+    const m = title.match(TITLE_RE);
+    if (m) title = m[4].trim();
+    if (!title) { const dm = document.title.match(TITLE_RE); title = (dm ? dm[4] : document.title).split(' - ')[0].trim(); }
+    title = groupTitle() || title.replace(/\s+oversigt$/i, '');
+    const head = document.createElement('div');
+    head.id = 'lp-shell-head';
+    head.innerHTML = pageHead(title, '');
+    cc.prepend(head);
+    document.documentElement.classList.add('lp-shell');
+  }
   // Lectios egne underfaner (fx Karaktermeddelelse og Fraværsårsager) vises også i de nye visninger.
   function subTabs() {
     const seen = new Set();
@@ -1440,14 +1462,8 @@
     const idOf = (m) => ((m.href || '').match(/[?&]id=(\d+)/) || [])[1];
     app.classList.add('lp-msgview');
     app.innerHTML = `
-      <header class="lp-vhead">
-        <div><h1>Beskeder</h1><p class="lp-date">${esc(cur ? cur.title : 'Indbakke')}, ${list.length} ${list.length === 1 ? 'tråd' : 'tråde'}</p></div>
-        <div class="lp-vhead-actions">
-          ${allRead ? '<button type="button" class="lp-btn" data-act="allread">Markér alle som læst</button>' : ''}
-          ${newBtn ? '<button type="button" class="lp-btn lp-btn-main" data-act="new">Ny besked</button>' : ''}
-          <a class="lp-btn lp-btn-ghost" href="${esc(origLink())}">Lectios visning</a>
-        </div>
-      </header>
+      ${pageHead('Beskeder', `${esc(cur ? cur.title : 'Indbakke')}, ${list.length} ${list.length === 1 ? 'tråd' : 'tråde'}`,
+        `${allRead ? '<button type="button" class="lp-btn" data-act="allread">Markér alle som læst</button>' : ''}${newBtn ? '<button type="button" class="lp-btn lp-btn-main" data-act="new">Ny besked</button>' : ''}<a class="lp-btn lp-btn-ghost" href="${esc(origLink())}">Lectios visning</a>`)}
       <div class="lp-mfolders">
         ${main.map((f) => `<button type="button" class="lp-fchip${f.selected ? ' is-on' : ''}" data-f="${f.i}"${f.selected ? ' aria-current="true"' : ''}>${esc(f.title.replace(/^Alle /, '').replace(/^./, (c) => c.toUpperCase()))}</button>`).join('')}
         ${rest.length ? `<select class="lp-fselect" aria-label="Andre mapper"><option value="">${rest.some((f) => f.selected) ? '' : 'Hold og grupper'}</option>${rest.map((f) => `<option value="${f.i}"${f.selected ? ' selected' : ''}>${'  '.repeat(Math.min(3, Math.round(f.indent / 16)))}${esc(f.title)}</option>`).join('')}</select>` : ''}
@@ -1660,7 +1676,7 @@
     }
     return null;
   }
-  const OWN_UI = '#lp-side, #lp-app, #lp-drawer, #lp-palette, #lp-topbar, #lp-pill, #lp-scrim, #lp-afl';
+  const OWN_UI = '#lp-side, #lp-app, #lp-drawer, #lp-palette, #lp-topbar, #lp-pill, #lp-scrim, #lp-afl, #lp-shell-head';
   // Finder lyse flader og mørk tekst i Lectios egne sider og farver dem om i mørk tilstand.
   function darkFix(root) {
     const html = document.documentElement;
@@ -1742,7 +1758,7 @@
   }
 
   async function init() {
-    try { localStorage.removeItem('lp-test-code'); localStorage.removeItem('lp-dev-code'); } catch (e) { /* oprydning efter test */ }
+    try { localStorage.removeItem('lp-test-code'); localStorage.removeItem('lp-dev-code'); localStorage.removeItem('lpx-run'); } catch (e) { /* oprydning efter test */ }
     settings = await loadSettings();
     saveBoot();
     applyTheme();
@@ -1813,6 +1829,7 @@
       if (PAGE === 'opgaverelev.aspx') enhanceAssignments();
       if (PAGE.startsWith('beskeder')) enhanceMessages();
       if (PAGE === 'elevaflevering.aspx') enhanceAssignmentPage();
+      buildPageShell();
     }
     if (takeover !== 'dashboard') refreshStale();
   }

@@ -958,3 +958,52 @@ html.lp-on .ls-card-filled { background: transparent !important; border: 0 !impo
 .lp-mlist, .lp-mread, .lp-dr-body { scrollbar-width: thin; }
 html.lp-aflpage .ls-elevaflevering-root section.lf-island { width: 100% !important; max-width: none !important; flex: none !important; }
 html.lp-aflpage .lp-afl-students.lp-afl-redundant { display: none !important; }
+
+/* =====================================================================
+   1.6: samme skal på alle sider
+   ===================================================================== */
+html.lp-on { --page-max: 1760px; --page-pad: clamp(16px, 2.6vw, 48px); --page-top: clamp(20px, 2.4vw, 40px); }
+
+/* samme bredde og placering overalt */
+#lp-app, #lp-app.lp-dash, #lp-app.lp-msgview, #lp-app:has(.lp-spgrid) { box-sizing: border-box; max-width: var(--page-max) !important; margin: 0 auto !important; padding: var(--page-top) var(--page-pad) 64px !important; }
+html.lp-on .outerContentFrame { padding: 0 0 64px !important; }
+html.lp-on .outerContentFrame > .ls-content-container { box-sizing: border-box; width: auto !important; max-width: var(--page-max) !important; margin-inline: auto !important; padding: var(--page-top) var(--page-pad) 0 !important; }
+html.lp-shell .ls-master-pageheader { display: none !important; }
+
+/* samme sidehoved overalt */
+.lp-vhead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; margin: 0 0 16px; font-family: var(--font); }
+#lp-app .lp-vhead h1, #lp-shell-head .lp-vhead h1 { font-size: clamp(28px, 2.2vw, 36px) !important; font-weight: 700 !important; letter-spacing: -.025em; line-height: 1.15; margin: 0 !important; color: var(--ink) !important; font-family: var(--font); }
+.lp-vhead-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.lp-viewsub { margin: -4px 0 18px !important; color: var(--ink-2); font-size: 15px; font-family: var(--font); }
+.lp-vhead + .lp-viewsub { margin-top: -10px !important; }
+.lp-tabs { margin: 0 0 22px !important; font-family: var(--font); }
+.lp-tabs + .lp-viewsub { margin-top: -8px !important; }
+.lp-tabs a:hover { text-decoration: none !important; }
+#lp-shell-head { font-family: var(--font); color: var(--ink); }
+#lp-shell-head .lp-btn { text-decoration: none !important; }
+
+/* kort og Lectios kasser ser ens ud */
+.lp-card, .lp-sheet, html.lp-on section.lf-island { border-radius: 16px !important; border: 1px solid var(--rule) !important; background: var(--surface) !important; }
+.lp-card { padding: 18px 22px !important; }
+.lp-card.lp-week-card { padding: 8px 12px 8px 4px !important; }
+.lp-sheet { padding: 4px 22px 18px !important; }
+html.lp-on section.lf-island { margin: 0 0 20px !important; }
+html.lp-on .ls-std-island-layout-ltr > section.lf-island, html.lp-on .ls-std-island-layout-col > section.lf-island { margin: 0 !important; }
+html.lp-on .ls-std-island-layout-ltr, html.lp-on .ls-std-island-layout-col { gap: 20px !important; }
+html.lp-on section.lf-island .islandHeaderContainer { border-bottom: 0 !important; padding: 18px 22px 0 !important; }
+html.lp-on section.lf-island .islandHeader { font-size: 17px !important; font-weight: 700 !important; }
+html.lp-on section.lf-island .islandContent { padding: 10px 22px 18px !important; }
+.lp-card-head h2, .lp-group h2 { font-size: 17px !important; font-weight: 700 !important; }
+
+/* tabeller i kasser flugter med overskriften ligesom i de nye sider */
+html.lp-on section.lf-island .islandContent table :is(td, th):first-child { padding-left: 0 !important; }
+html.lp-on section.lf-island .islandContent table :is(td, th):last-child { padding-right: 0 !important; }
+html.lp-on section.lf-island .islandContent table th { border-bottom: 1px solid var(--rule) !important; }
+
+/* detaljesider flugter med titlen */
+.lp-afl, html.lp-aflpage .ls-elevaflevering-root { max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; }
+.lp-afl { margin-bottom: 20px !important; }
+html.lp-on #masterContent, html.lp-on .ls-master-container1, html.lp-on .ls-master-container2, html.lp-on .outerContentFrame { width: auto !important; max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; }
+html.lp-on [id$="helptipDiv"] { display: none !important; }
+html.lp-on #masterContent, html.lp-on .ls-master-container1, html.lp-on .ls-master-container2 { display: block !important; }
+html.lp-on { scrollbar-gutter: stable; }
