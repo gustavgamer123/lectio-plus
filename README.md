@@ -18,7 +18,11 @@ Et roligere og mere overskueligt Lectio. Se [hjemmesiden](https://gustavgamer123
 
 Udvidelsen har ingen server og sender ingen data nogen steder hen. Læs hele [privatlivspolitikken](https://gustavgamer123.github.io/lectio-plus/privatliv/).
 
-## Installér fra koden
+## Installér
+
+Hent den gratis i [Chrome Web Store](https://chromewebstore.google.com/detail/lectio+/lbepaknpejokimbpdockkabmpcphcknm).
+
+### Fra koden
 
 1. Download repoet og åbn `chrome://extensions`
 2. Slå Udviklertilstand til
