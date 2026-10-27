@@ -1235,7 +1235,9 @@
     if (p.startsWith('aktivitet/')) return 'Lektion';
     return '';
   }
-  const pageHead = (title, sub, actions = '') => `<header class="lp-vhead"><h1>${esc(title)}</h1>${actions ? `<div class="lp-vhead-actions">${actions}</div>` : ''}</header>${subTabs()}${sub ? `<p class="lp-viewsub">${sub}</p>` : ''}`;
+  let shellActions = '';
+  let shellTabs = '';
+  const pageHead = (title, sub, actions = '') => `<header class="lp-vhead"><h1>${esc(title)}</h1>${actions ? `<div class="lp-vhead-actions">${actions}</div>` : ''}</header>${shellTabs || subTabs()}${sub ? `<p class="lp-viewsub">${sub}</p>` : ''}`;
   const viewHead = (title, sub, extra = '') => pageHead(groupTitle() || title, sub, `${extra}<a class="lp-btn lp-btn-ghost" href="${esc(origLink())}">Lectios visning</a>`);
   // Lectios egne sider får samme sidehoved som de nye sider.
   function buildPageShell() {
@@ -1249,8 +1251,9 @@
     title = groupTitle() || title.replace(/\s+oversigt$/i, '');
     const head = document.createElement('div');
     head.id = 'lp-shell-head';
-    head.innerHTML = pageHead(title, '');
+    head.innerHTML = pageHead(title, '', shellActions);
     cc.prepend(head);
+    head.querySelectorAll('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy)?.click()));
     document.documentElement.classList.add('lp-shell');
   }
   // Lectios egne underfaner (fx Karaktermeddelelse og Fraværsårsager) vises også i de nye visninger.
@@ -1600,6 +1603,54 @@
     }
   }
 
+  /* ---------------- lektionsside ---------------- */
+  function enhanceActivityPage() {
+    const content = document.getElementById('homeworkContentContainer');
+    const host = document.querySelector('#contenttable, .ls-content');
+    if (!content || !host || document.getElementById('lp-act-hero')) return;
+    const brik = content.querySelector('[id$="actHeader"] a.s2skemabrik') || document.querySelector('a.s2skemabrik[data-tooltip]');
+    const l = brik ? parseTip(brik.getAttribute('data-tooltip') || '') : {};
+    if (brik) { l.changed = brik.classList.contains('s2changed') || l.status === 'changed'; l.cancelled = brik.classList.contains('s2cancelled') || l.status === 'cancelled'; }
+    const noteTa = content.querySelector('textarea.activity-note');
+    const note = noteTa ? (noteTa.value || noteTa.textContent || '').trim() : '';
+    const forl = [...document.querySelectorAll('a[href*="forloeb_vis"]')].map((a) => ({ t: a.textContent.trim(), h: a.href })).filter((x) => x.t);
+    const subj = l.subject;
+    const when = l.start ? `${cap(DAYS[l.start.getDay()])} ${l.start.getDate()}. ${MONTHS[l.start.getMonth()]}${l.allDay ? ', hele dagen' : `, ${hm(l.start)} til ${hm(l.end)}`}` : '';
+    const fact = (label, val) => (val ? `<div><dt>${label}</dt><dd>${val}</dd></div>` : '');
+    const flag = l.cancelled ? '<span class="lp-flag is-danger">aflyst</span>' : l.changed ? '<span class="lp-flag is-warn">ændret</span>' : '';
+    const hero = document.createElement('section');
+    hero.id = 'lp-act-hero';
+    hero.className = 'lp-afl';
+    hero.style.setProperty('--h', hueFor(subj?.code || l.title));
+    hero.innerHTML = `
+      <p class="lp-afl-subj">${subjDot(subj?.code || l.title)}${esc(subj?.name || 'Aktivitet')}${l.hold && subj ? `<small>${esc(l.hold)}</small>` : ''}${flag}</p>
+      <h1>${esc(l.title || subj?.name || 'Lektion')}</h1>
+      <dl class="lp-afl-facts">
+        ${fact('Tid', esc(when))}
+        ${fact('Lokale', esc(l.room || ''))}
+        ${fact(/,/.test(l.teacher || '') ? 'Lærere' : 'Lærer', esc(l.teacher || ''))}
+        ${fact('Hold', esc(l.hold || ''))}
+        ${forl.length ? fact('Forløb', `<span class="lp-flist">${forl.map((f) => `<a href="${esc(f.h)}">${esc(f.t)}</a>`).join('')}</span>`) : ''}
+      </dl>
+      ${note ? `<div class="lp-afl-desc"><h2>Note fra læreren</h2><p class="lp-pre">${esc(note)}</p></div>` : ''}`;
+    host.prepend(hero);
+    document.documentElement.classList.add('lp-actpage');
+    // navigation og faner flyttes op i sidehovedet
+    const btn = (id, label, icon) => (document.getElementById('s_m_Content_Content_' + id) ? `<button type="button" class="lp-btn" data-proxy="s_m_Content_Content_${id}" title="${label}" aria-label="${label}">${icon}</button>` : '');
+    const holdLink = document.getElementById('s_m_Content_Content_holdActLink');
+    shellActions = `${btn('ctl02', 'Min forrige lektion', ICONS.left)}${btn('ctl03', 'Min næste lektion', ICONS.right)}${holdLink ? `<a class="lp-btn lp-btn-ghost" href="${esc(holdLink.href)}">Holdets lektioner</a>` : ''}`;
+    const tabs = [...document.querySelectorAll('.lectioTabToolbar a')].map((a) => ({ t: a.textContent.trim(), h: a.getAttribute('href') || '#', on: !a.getAttribute('href') || a.getAttribute('href') === '#' }));
+    if (tabs.length > 1) shellTabs = `<nav class="lp-tabs" aria-label="Undersider">${tabs.map((x) => `<a href="${esc(x.on ? '#' : abs(x.h) || x.h)}"${x.on ? ' class="is-on" aria-current="page"' : ''}>${esc(x.t)}</a>`).join('')}</nav>`;
+    // indholdskortet får en overskrift som de andre kort
+    if (!content.querySelector('.lp-act-cardhead')) {
+      const h = document.createElement('div');
+      h.className = 'lp-act-cardhead';
+      h.innerHTML = '<h2>Lektier og materialer</h2>';
+      content.prepend(h);
+    }
+    if (!content.textContent.replace(/Lektier og materialer/, '').trim()) content.insertAdjacentHTML('beforeend', '<p class="lp-empty">Ingen lektier eller materialer til denne lektion.</p>');
+  }
+
   /* ---------------- studieplan: forløb pr. hold ---------------- */
   function parseStudyPlan(doc) {
     const t = doc.querySelector('[id$="spUge_theTable"]');
@@ -1676,7 +1727,7 @@
     }
     return null;
   }
-  const OWN_UI = '#lp-side, #lp-app, #lp-drawer, #lp-palette, #lp-topbar, #lp-pill, #lp-scrim, #lp-afl, #lp-shell-head';
+  const OWN_UI = '#lp-side, #lp-app, #lp-drawer, #lp-palette, #lp-topbar, #lp-pill, #lp-scrim, #lp-afl, #lp-act-hero, #lp-shell-head';
   // Finder lyse flader og mørk tekst i Lectios egne sider og farver dem om i mørk tilstand.
   function darkFix(root) {
     const html = document.documentElement;
@@ -1758,7 +1809,7 @@
   }
 
   async function init() {
-    try { localStorage.removeItem('lp-test-code'); localStorage.removeItem('lp-dev-code'); localStorage.removeItem('lpx-run'); } catch (e) { /* oprydning efter test */ }
+    try { localStorage.removeItem('lp-test-code'); localStorage.removeItem('lp-dev-code'); localStorage.removeItem('lpx-run'); localStorage.removeItem('lpq'); } catch (e) { /* oprydning efter test */ }
     settings = await loadSettings();
     saveBoot();
     applyTheme();
@@ -1829,6 +1880,7 @@
       if (PAGE === 'opgaverelev.aspx') enhanceAssignments();
       if (PAGE.startsWith('beskeder')) enhanceMessages();
       if (PAGE === 'elevaflevering.aspx') enhanceAssignmentPage();
+      if (PAGE === 'aktivitet/aktivitetforside2.aspx') enhanceActivityPage();
       buildPageShell();
     }
     if (takeover !== 'dashboard') refreshStale();

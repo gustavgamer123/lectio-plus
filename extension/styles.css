@@ -1007,3 +1007,27 @@ html.lp-on #masterContent, html.lp-on .ls-master-container1, html.lp-on .ls-mast
 html.lp-on [id$="helptipDiv"] { display: none !important; }
 html.lp-on #masterContent, html.lp-on .ls-master-container1, html.lp-on .ls-master-container2 { display: block !important; }
 html.lp-on { scrollbar-gutter: stable; }
+
+/* lektionsside i samme stil som opgaveaflevering */
+html.lp-actpage .ls-std-toolbar-filled, html.lp-actpage nav.ls-std-rowblock, html.lp-actpage .ls-std-toolbar,
+html.lp-actpage .lectioTabToolbar, html.lp-actpage .ls-tocContainer-outer, html.lp-actpage [id$="tocAndToolbar_toolbaroutercontainer"],
+html.lp-actpage [id$="actHeader"] { display: none !important; }
+html.lp-actpage .buttonlink:has(a[href*="forloeb_vis"]), html.lp-actpage :is(div, span):has(> .buttonlink a[href*="forloeb_vis"]) { display: none !important; }
+html.lp-actpage .ls-tocandcontentparent, html.lp-actpage .ls-texteditor-container, html.lp-actpage .ls-tocContent-outer, html.lp-actpage .ls-texteditor-paper-container { display: block !important; width: auto !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
+html.lp-actpage #homeworkContentContainer { max-width: none !important; margin: 0 !important; padding: 18px 22px !important; border-radius: 16px !important; font-size: 15px; line-height: 1.6; min-height: 0 !important; height: auto !important; }
+.lp-act-cardhead h2 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--ink) !important; font-family: var(--font); }
+html.lp-actpage #homeworkContentContainer .ls-paper-section-heading { font-size: 15px !important; font-weight: 700 !important; margin: 16px 0 6px !important; color: var(--ink) !important; }
+html.lp-actpage #homeworkContentContainer hr { border: 0 !important; border-top: 1px solid var(--rule) !important; margin: 12px 0 !important; }
+html.lp-actpage #homeworkContentContainer article.lc-display-fragment { margin: 6px 0 !important; }
+html.lp-actpage #homeworkContentContainer article.lc-display-fragment > h1 { display: flex; align-items: center; gap: 8px; margin: 0 !important; padding: 9px 12px !important; border-radius: 8px; background: var(--sunk) !important; font-size: 15px !important; font-weight: 500 !important; }
+html.lp-actpage #homeworkContentContainer article.lc-display-fragment > h1 a { color: var(--accent) !important; }
+html.lp-actpage #homeworkContentContainer article.lc-display-fragment img { max-height: 18px; width: auto; }
+.lp-afl-subj .lp-flag { margin-left: 4px; }
+.lp-afl-facts dd a { color: var(--accent) !important; }
+.lp-sep-dot { color: var(--ink-3); }
+html.lp-on .outerContentFrame .ls-content { display: block !important; width: auto !important; }
+#lp-shell-head svg { width: 18px; height: 18px; flex: none; }
+.lp-afl-facts dd > .lp-flist a + a::before { content: ", "; color: var(--ink-3); }
+html.lp-actpage #PrintAktivititetArea, html.lp-actpage .ls-toccontent-container, html.lp-actpage .ls-tabs4, html.lp-actpage .lectioTabContent,
+html.lp-actpage .ls-texteditor-container, html.lp-actpage .ls-tocandcontentparent, html.lp-actpage .ls-tocContent-outer,
+html.lp-actpage .ls-texteditor-paper-container, html.lp-actpage #homeworkContentContainer { display: block !important; width: auto !important; max-width: none !important; min-width: 0 !important; float: none !important; }
