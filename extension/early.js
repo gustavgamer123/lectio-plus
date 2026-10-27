@@ -13,7 +13,9 @@
     const views = ['opgaverelev.aspx', 'material_lektieoversigt.aspx', 'subnav/fravaerelev.aspx', 'grades/grade_report.aspx'];
     const takeover = (boot.dashboard && p === 'forside.aspx' && !q) ||
         (boot.skema && p === 'skemany.aspx' && (!q || /^\?week=\d{6}$/i.test(q))) ||
-        (boot.views && !q && views.includes(p));
+        (boot.views && !q && views.includes(p)) ||
+        (boot.views && p === 'beskeder2.aspx' && (!q || /^\?mappeid=-?\d+$/i.test(q))) ||
+        (boot.views && p === 'studieplan.aspx' && /^\?displaytype=ugeteksttabel$/i.test(q));
     const apply = (html) => {
       html.setAttribute('data-lp-theme', dark ? 'dark' : 'light');
       html.classList.add('lp-on', 'lp-boot');
