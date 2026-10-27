@@ -11,7 +11,7 @@
   const BASE = `/lectio/${SCHOOL}/`;
   const PAGE = location.pathname.slice(BASE.length).toLowerCase();
   const logoutLink = document.querySelector('a[href*="logout.aspx"]');
-  if (!logoutLink) return; // ikke logget ind
+  if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
 
   /* ---------------- indstillinger ---------------- */
   const DEFAULTS = { enabled: true, theme: 'auto', dashboard: true, skema: true, views: true, hideDone: false };
@@ -109,18 +109,115 @@
       .replace(/^(?:sms|bookmark|chat|description|attach_file|mail|check_circle|schedule|event)+/i, '').trim();
   }
 
-  /* ---------------- hentning ---------------- */
+  /* ---------------- hentning, kø og cache ---------------- */
+  // Lectio behandler kun én forespørgsel ad gangen pr. bruger. Derfor hentes alt i en kø
+  // og gemmes i sessionStorage, så sider vises med det samme fra cache.
   const memo = {};
   const INITIAL = (location.pathname.slice(BASE.length) + location.search).toLowerCase();
+  const pageCtrl = new AbortController();
+  addEventListener('pagehide', () => pageCtrl.abort());
+  let queue = Promise.resolve();
   function fetchDoc(path) {
     if (path.toLowerCase() === INITIAL) return Promise.resolve(document);
     if (!memo[path]) {
-      memo[path] = fetch(BASE + path, { credentials: 'include' })
-        .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-        .then((t) => new DOMParser().parseFromString(t, 'text/html'))
-        .catch((e) => { delete memo[path]; throw e; });
+      const run = () => {
+        if (pageCtrl.signal.aborted) throw new Error('afbrudt');
+        return fetch(BASE + path, { credentials: 'include', signal: pageCtrl.signal })
+          .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+          .then((t) => new DOMParser().parseFromString(t, 'text/html'));
+      };
+      const p = queue.then(run, run);
+      queue = p.catch(() => {});
+      memo[path] = p.catch((e) => { delete memo[path]; throw e; });
     }
     return memo[path];
+  }
+  const idle = (fn, timeout = 2000) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout }) : setTimeout(fn, 300));
+
+  const CACHE_KEY = 'lp-cache:' + SCHOOL;
+  const ISO_RE = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/;
+  let cache = {};
+  try { cache = JSON.parse(sessionStorage.getItem(CACHE_KEY) || '{}', (k, v) => (typeof v === 'string' && ISO_RE.test(v) ? new Date(v) : v)) || {}; } catch (e) { cache = {}; }
+  let cacheTimer = null;
+  function saveCache() {
+    clearTimeout(cacheTimer);
+    cacheTimer = setTimeout(() => {
+      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache)); }
+      catch (e) { Object.keys(cache).filter((k) => k.startsWith('act:')).forEach((k) => delete cache[k]); try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch (e2) { /* fuld */ } }
+    }, 60);
+  }
+  function cachePut(key, data) {
+    cache[key] = { t: Date.now(), d: data };
+    if (key.startsWith('act:')) {
+      const acts = Object.keys(cache).filter((k) => k.startsWith('act:')).sort((a, b) => cache[a].t - cache[b].t);
+      while (acts.length > 40) delete cache[acts.shift()];
+    }
+    saveCache();
+    if (/^(msgs|tasks|hw)$/.test(key) && typeof updateBadges === 'function') updateBadges();
+    if (key === 'front' && typeof renderHoldGroup === 'function') renderHoldGroup();
+  }
+  const isFresh = (key, min) => cache[key] && Date.now() - cache[key].t < min * 6e4;
+
+  const TTL = { skema: 10, hw: 10, tasks: 10, msgs: 3, abs: 60, grades: 60, front: 30 }; // minutter
+  const SOURCES = {
+    hw: { path: 'material_lektieoversigt.aspx', parse: (d) => parseHomework(d) },
+    tasks: { path: 'OpgaverElev.aspx', parse: (d) => parseAssignments(d) },
+    msgs: { path: 'beskeder2.aspx', parse: (d) => parseMessages(d) },
+    abs: { path: 'subnav/fravaerelev.aspx', parse: (d) => parseAbsence(d) },
+    grades: { path: 'grades/grade_report.aspx', parse: (d) => parseGrades(d) },
+    front: { path: 'forside.aspx', parse: (d) => parseFront(d) }
+  };
+  // Viser cachede data med det samme og henter kun nyt hvis de er for gamle.
+  function load(key, fetcher, ttlMin, onData, onError) {
+    const c = cache[key];
+    if (c) { try { onData(c.d, true); } catch (e) { console.warn('[Lectio+]', e); } }
+    if (c && Date.now() - c.t < ttlMin * 6e4) return;
+    fetcher().then((d) => { cachePut(key, d); onData(d, false); })
+      .catch((e) => { if (!c && onError && !pageCtrl.signal.aborted) onError(e); });
+  }
+  const loadSrc = (key, onData, onError) => load(key, () => fetchDoc(SOURCES[key].path).then(SOURCES[key].parse), TTL[key], onData, onError);
+  const skemaKey = (d) => 'skema:' + weekParam(d);
+  const loadWeek = (d, onData, onError) => load(skemaKey(d), () => fetchDoc('SkemaNy.aspx?week=' + weekParam(d)).then((doc) => {
+    const s = parseSkema(doc); if (!s) throw new Error('Skemaet kunne ikke læses'); return s;
+  }), TTL.skema, onData, onError);
+
+  /* sikker kopi af Lectio-indhold: kun tekst, links, lister og billeder */
+  const KEEP = new Set(['A', 'BR', 'B', 'STRONG', 'I', 'EM', 'U', 'SPAN', 'P', 'DIV', 'UL', 'OL', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'ARTICLE', 'SECTION', 'HR', 'IMG', 'TABLE', 'TBODY', 'THEAD', 'TR', 'TD', 'TH', 'BLOCKQUOTE', 'PRE', 'CODE', 'SUP', 'SUB']);
+  const DROP = /^(SCRIPT|STYLE|LINK|META|INPUT|TEXTAREA|SELECT|BUTTON|IFRAME|OBJECT|EMBED|NOSCRIPT|TEMPLATE|MENUTEMPLATE|DIALOG|FORM|SVG)$/;
+  function safeHtml(src, base) {
+    const tpl = document.createElement('template');
+    const walk = (node, parent) => {
+      for (const ch of node.childNodes) {
+        if (ch.nodeType === 3) { parent.appendChild(document.createTextNode(ch.textContent)); continue; }
+        if (ch.nodeType !== 1 || DROP.test(ch.tagName)) continue;
+        if (ch.matches('[class*="fonticon"], .lf-excel-exclude, .OnlyMobile, .ls-hidden-bigscreen')) continue;
+        const tag = ch.tagName;
+        if (!KEEP.has(tag)) { walk(ch, parent); continue; }
+        let el;
+        if (/^H\d$/.test(tag)) {
+          if (ch.classList.contains('ls-paper-section-heading')) { el = document.createElement('h4'); el.className = 'lp-c-head'; }
+          else if (ch.closest('article')) { el = document.createElement('p'); el.className = 'lp-c-file'; }
+          else el = document.createElement('h5');
+        } else el = document.createElement(tag.toLowerCase());
+        if (tag === 'A') {
+          const h = ch.getAttribute('href');
+          let u = null;
+          try { if (h && h !== '#' && !/^\s*javascript:/i.test(h)) u = new URL(h, base); } catch (e) { u = null; }
+          if (u) { el.href = u.href; if (u.host !== location.host) { el.target = '_blank'; el.rel = 'noopener'; } }
+        }
+        if (tag === 'IMG') {
+          const s = ch.getAttribute('src');
+          try { if (!s) continue; el.src = new URL(s, base).href; } catch (e) { continue; }
+          el.alt = ch.getAttribute('alt') || ''; el.loading = 'lazy';
+        }
+        if ((tag === 'TD' || tag === 'TH') && ch.getAttribute('colspan')) el.colSpan = +ch.getAttribute('colspan') || 1;
+        if (ch.getAttribute('title')) el.title = ch.getAttribute('title');
+        parent.appendChild(el);
+        walk(ch, el);
+      }
+    };
+    walk(src, tpl.content);
+    return tpl.innerHTML;
   }
 
   /* ---------------- parsere ---------------- */
@@ -350,44 +447,96 @@
   };
 
   /* ---------------- navigation ---------------- */
-  const NAV = [
+  const NAV_MAIN = [
     { key: 'forside', label: 'Overblik', icon: 'home', path: 'forside.aspx', words: 'forside hjem dashboard' },
     { key: 'skema', label: 'Skema', icon: 'cal', path: 'SkemaNy.aspx', words: 'skema uge timer moduler' },
     { key: 'lektier', label: 'Lektier', icon: 'book', path: 'material_lektieoversigt.aspx', words: 'lektier' },
     { key: 'opgaver', label: 'Opgaver', icon: 'task', path: 'OpgaverElev.aspx', words: 'opgaver afleveringer frister' },
     { key: 'beskeder', label: 'Beskeder', icon: 'mail', path: 'beskeder2.aspx', words: 'beskeder indbakke mail' },
     { key: 'fravaer', label: 'Fravær', icon: 'absence', path: 'subnav/fravaerelev.aspx', words: 'fravær fravaer procent' },
-    { key: 'karakterer', label: 'Karakterer', icon: 'star', path: 'grades/grade_report.aspx', words: 'karakterer karakter snit' },
-    { sep: true },
-    { key: 'studieplan', label: 'Studieplan', icon: 'plan', path: 'studieplan.aspx?displaytype=ugeteksttabel', words: 'studieplan forløb' },
-    { key: 'dokumenter', label: 'Dokumenter', icon: 'doc', path: 'DokumentOversigt.aspx', words: 'dokumenter filer' },
-    { key: 'boger', label: 'Bøger', icon: 'books', path: 'BD/UserReservations.aspx', words: 'bøger boger' },
-    { key: 'sporgeskema', label: 'Spørgeskemaer', icon: 'survey', path: 'spoergeskema/spoergeskema_rapport.aspx', words: 'spørgeskema' },
-    { key: 'studiekort', label: 'Studiekort', icon: 'card', path: 'digitaltStudiekort.aspx', words: 'studiekort id' },
-    { key: 'fravaersaarsager', label: 'Fraværsårsager', icon: 'absence', path: 'subnav/fravaerelev_fravaersaarsager.aspx', words: 'fraværsårsager årsag', hidden: true },
-    { key: 'profil', label: 'Profil', icon: 'user', path: 'indstillinger/studentIndstillinger.aspx', words: 'profil indstillinger' },
-    { key: 'hovedmenu', label: 'Hovedmenu', icon: 'layers', path: 'default.aspx', words: 'hovedmenu alt menu', hidden: true }
+    { key: 'karakterer', label: 'Karakterer', icon: 'star', path: 'grades/grade_report.aspx', words: 'karakterer karakter snit' }
   ];
+  const NAV_SECOND = [
+    { key: 'studieplan', label: 'Studieplan', icon: 'plan', path: 'studieplan.aspx?displaytype=ugeteksttabel', words: 'studieplan forløb kalender' },
+    { key: 'dokumenter', label: 'Dokumenter', icon: 'doc', path: 'DokumentOversigt.aspx', words: 'dokumenter filer' }
+  ];
+  const NAV_MORE = [
+    { group: 'Skema og kalender', items: [
+      { key: 'dagsaendringer', label: 'Dagsændringer', path: 'SkemaDagsaendringer.aspx', words: 'ændringer aflyst i dag' },
+      { key: 'ugeaendringer', label: 'Ugeændringer', path: 'SkemaUgeaendringer.aspx', words: 'ændringer uge' },
+      { key: 'kalender', label: 'Månedskalender', path: 'kalender.aspx', words: 'kalender måned begivenheder' },
+      { key: 'findskema', label: 'Find skema', path: 'FindSkema.aspx?type=laerer', words: 'find skema lærer lokale klasse elev' }
+    ] },
+    { group: 'Studie', items: [
+      { key: 'uvb', label: 'Undervisningsbeskrivelse', path: 'studieplan/undervisningsbeskrivelse.aspx', words: 'undervisningsbeskrivelse forløb' },
+      { key: 'kontaktbog', label: 'Kontaktbøger', path: 'teacherstudybook.aspx?type=contactbooks', words: 'kontaktbog' },
+      { key: 'studieretning', label: 'Studieretning', path: 'studieretningElevValg.aspx', words: 'studieretning' },
+      { key: 'valgfag', label: 'Valgfag', path: 'studieretningValgfag.aspx', words: 'valgfag ønsker' },
+      { key: 'fagvalg', label: 'Fagvalg', path: 'fagvalg/fagvalgoversigt.aspx', words: 'fagvalg' },
+      { key: 'karakterblad', label: 'Karaktermeddelelse', path: 'grades/grade_karakterblad.aspx', words: 'karaktermeddelelse karakterblad' },
+      { key: 'fravaersaarsager', label: 'Fraværsårsager', path: 'subnav/fravaerelev_fravaersaarsager.aspx', words: 'fraværsårsager årsag' }
+    ] },
+    { group: 'Dig', items: [
+      { key: 'boger', label: 'Bøger', path: 'BD/UserReservations.aspx', words: 'bøger boger lån' },
+      { key: 'sporgeskema', label: 'Spørgeskemaer', path: 'spoergeskema/spoergeskema_rapport.aspx', words: 'spørgeskema' },
+      { key: 'sps', label: 'SPS', path: 'Elev_SPS.aspx', words: 'sps støtte' },
+      { key: 'studiekort', label: 'Studiekort', path: 'digitaltStudiekort.aspx', words: 'studiekort id' },
+      { key: 'profil', label: 'Profil', path: 'indstillinger/studentIndstillinger.aspx', words: 'profil indstillinger' },
+      { key: 'betalinger', label: 'Betalinger', path: 'MinButik.aspx', words: 'betalinger butik' },
+      { key: 'adgangslog', label: 'Log', path: 'indstillinger/AdgangIndstillinger.aspx', words: 'log adgang login' }
+    ] },
+    { group: 'Lectio', items: [
+      { key: 'hovedmenu', label: 'Hovedmenu', path: 'default.aspx', words: 'hovedmenu alt menu' },
+      { key: 'kontakt', label: 'Kontakt', path: 'default.aspx?menu=kontakt', words: 'kontakt skolen' },
+      { key: 'hjaelp', label: 'Hjælp', path: 'help/mainhelp.aspx', words: 'hjælp help' }
+    ] }
+  ];
+  const PAL_ONLY = [
+    { label: 'Find skema for elev', path: 'FindSkema.aspx?type=elev', words: 'find elev skema' },
+    { label: 'Find skema for lærer', path: 'FindSkema.aspx?type=laerer', words: 'find lærer skema' },
+    { label: 'Find skema for klasse', path: 'FindSkema.aspx?type=stamklasse', words: 'find klasse skema' },
+    { label: 'Find skema for lokale', path: 'FindSkema.aspx?type=lokale', words: 'find lokale rum skema' },
+    { label: 'Find skema for hold', path: 'FindSkema.aspx?type=hold', words: 'find hold skema' },
+    { label: 'Find skema for ressource', path: 'FindSkema.aspx?type=ressource', words: 'find ressource skema' },
+    { label: 'Avanceret skema', path: 'FindSkemaAdv.aspx', words: 'avanceret skema' },
+    { label: 'Undervisningsbeskrivelser for skolen', path: 'studieplan/uvb_list_off.aspx', words: 'undervisningsbeskrivelser' }
+  ];
+  const MORE_ITEMS = NAV_MORE.flatMap((g) => g.items);
+  const pathOnly = (p) => p.split('?')[0].toLowerCase();
   function activeKey() {
     const p = PAGE;
+    const exact = NAV_MAIN.concat(NAV_SECOND, MORE_ITEMS).find((n) => pathOnly(n.path) === p && (!n.path.includes('?') || n.key === 'studieplan' || location.search.toLowerCase().includes(n.path.split('?')[1].toLowerCase())));
+    if (exact) return exact.key;
     if (p.startsWith('forside')) return 'forside';
     if (p.startsWith('skemany') || p.startsWith('skema/') || p.startsWith('aktivitet/')) return 'skema';
+    if (p.startsWith('findskema')) return 'findskema';
     if (p.startsWith('material_lektie')) return 'lektier';
     if (p.startsWith('opgave') || p.startsWith('elevaflevering') || p.startsWith('elev_aflevering')) return 'opgaver';
     if (p.startsWith('beskeder')) return 'beskeder';
-    if (p.startsWith('subnav/fravaer')) return p.includes('aarsager') ? 'fravaer' : 'fravaer';
+    if (p.startsWith('subnav/fravaer')) return 'fravaer';
     if (p.startsWith('grades')) return 'karakterer';
-    if (p.startsWith('studieplan')) return 'studieplan';
+    if (p.startsWith('studieplan') || p.startsWith('studieretning') || p.startsWith('fagvalg')) return 'studieplan';
     if (p.startsWith('dokument')) return 'dokumenter';
     if (p.startsWith('bd/')) return 'boger';
     if (p.startsWith('spoergeskema')) return 'sporgeskema';
-    if (p.startsWith('digitaltstudiekort')) return 'studiekort';
     if (p.startsWith('indstillinger')) return 'profil';
     return null;
   }
 
-  const userTitle = document.title.match(/^(?:Eleven|Læreren)\s+(.+?),\s*([^\s-]+)/);
-  const USER = { name: userTitle ? userTitle[1] : '', first: userTitle ? userTitle[1].split(' ')[0] : '', cls: userTitle ? userTitle[2] : '' };
+  const TITLE_RE = /^(?:Eleven|Læreren)\s+(.+?)(?:,\s*([^\s,]+)|\s\(([^)]*)\))\s+-\s+(.+)$/s;
+  let USER = null;
+  {
+    const m = document.title.match(TITLE_RE);
+    if (m) USER = { name: m[1].trim(), cls: (m[2] || (m[3] || '').split(/\s+/)[0] || '').trim() };
+    try {
+      if (USER) sessionStorage.setItem('lp-user:' + SCHOOL, JSON.stringify(USER));
+      else USER = JSON.parse(sessionStorage.getItem('lp-user:' + SCHOOL) || 'null');
+    } catch (e) { /* ignorer */ }
+    USER = USER || { name: '', cls: '' };
+    USER.first = USER.name.split(' ')[0];
+    if (USER.name && cache.__user && cache.__user !== USER.name) cache = {};
+    if (USER.name) cache.__user = USER.name;
+  }
   const schoolName = (document.title.split(' - ').pop() || 'Lectio').trim();
 
   /* ---------------- tema ---------------- */
@@ -401,10 +550,13 @@
   mq.addEventListener?.('change', applyTheme);
 
   /* ---------------- sidebar ---------------- */
+  const sideOpen = (() => { try { return JSON.parse(localStorage.getItem('lp-side-open') || '{}'); } catch (e) { return {}; } })();
+  function rememberOpen(id, open) { sideOpen[id] = open; try { localStorage.setItem('lp-side-open', JSON.stringify(sideOpen)); } catch (e) { /* ignorer */ } }
   function buildSidebar() {
     const ak = activeKey();
-    const items = NAV.filter((n) => !n.hidden).map((n) => n.sep ? '<div class="lp-nav-sep"></div>' :
-      `<a class="lp-nav-item${n.key === ak ? ' is-active' : ''}" href="${BASE + n.path}" data-key="${n.key}">${ICONS[n.icon]}<span>${esc(n.label)}</span><b class="lp-badge" data-badge="${n.key}" hidden></b></a>`).join('');
+    const item = (n) => `<a class="lp-nav-item${n.key === ak ? ' is-active' : ''}" href="${BASE + n.path}" data-key="${n.key}"${n.key === ak ? ' aria-current="page"' : ''}>${ICONS[n.icon]}<span>${esc(n.label)}</span><b class="lp-badge" data-badge="${n.key}" hidden></b></a>`;
+    const moreActive = MORE_ITEMS.some((n) => n.key === ak);
+    const more = NAV_MORE.map((g) => `<p class="lp-more-group">${esc(g.group)}</p>${g.items.map((n) => `<a class="lp-more-item${n.key === ak ? ' is-active' : ''}" href="${BASE + n.path}"${n.key === ak ? ' aria-current="page"' : ''}>${esc(n.label)}</a>`).join('')}`).join('');
     const side = document.createElement('aside');
     side.id = 'lp-side';
     side.innerHTML = `
@@ -412,20 +564,26 @@
         <div class="lp-brand-txt"><strong>Lectio<span>+</span></strong><small>${esc(schoolName)}</small></div>
       </div>
       <button class="lp-search-btn" type="button">${ICONS.search}<span>Søg</span><kbd>Ctrl K</kbd></button>
-      <nav class="lp-nav">${items}</nav>
+      <nav class="lp-nav" aria-label="Lectio">
+        ${NAV_MAIN.map(item).join('')}
+        <div class="lp-nav-sep"></div>
+        ${NAV_SECOND.map(item).join('')}
+        <details class="lp-more" data-id="hold" hidden><summary>${ICONS.layers}<span>Mine hold</span></summary><div class="lp-more-list" id="lp-hold-list"></div></details>
+        <details class="lp-more" data-id="more"${moreActive || sideOpen.more ? ' open' : ''}><summary>${ICONS.menu}<span>Mere</span></summary><div class="lp-more-list">${more}</div></details>
+      </nav>
       <div class="lp-side-foot">
-        <div class="lp-me"><div class="lp-avatar">${esc((USER.first || '?')[0])}</div><div><strong>${esc(USER.name)}</strong><small>${esc(USER.cls)}</small></div></div>
+        <div class="lp-me"><div><strong>${esc(USER.name || 'Lectio')}</strong><small>${esc(USER.cls)}</small></div></div>
         <div class="lp-foot-actions">
-          <button type="button" class="lp-icon-btn" data-act="theme" title="Skift tema">${ICONS.moon}</button>
-          <button type="button" class="lp-icon-btn" data-act="original" title="Vis original Lectio">${ICONS.layers}</button>
-          <a class="lp-icon-btn" href="${esc(logoutLink.getAttribute('href'))}" title="Log ud">${ICONS.out}</a>
+          <button type="button" class="lp-icon-btn" data-act="theme" title="Skift tema" aria-label="Skift tema">${ICONS.moon}</button>
+          <button type="button" class="lp-icon-btn" data-act="original" title="Vis Lectios egen visning" aria-label="Vis Lectios egen visning">${ICONS.layers}</button>
+          <a class="lp-icon-btn" href="${esc(logoutLink.getAttribute('href'))}" title="Log ud" aria-label="Log ud">${ICONS.out}</a>
         </div>
       </div>`;
     document.body.appendChild(side);
 
     const top = document.createElement('div');
     top.id = 'lp-topbar';
-    top.innerHTML = `<button type="button" class="lp-icon-btn" data-act="menu">${ICONS.menu}</button><strong>Lectio<span>+</span></strong><button type="button" class="lp-icon-btn" data-act="search">${ICONS.search}</button>`;
+    top.innerHTML = `<button type="button" class="lp-icon-btn" data-act="menu" aria-label="Menu">${ICONS.menu}</button><strong>Lectio<span>+</span></strong><button type="button" class="lp-icon-btn" data-act="search" aria-label="Søg">${ICONS.search}</button>`;
     document.body.appendChild(top);
 
     const scrim = document.createElement('div');
@@ -436,34 +594,70 @@
     top.querySelector('[data-act=search]').addEventListener('click', openPalette);
     top.querySelector('[data-act=menu]').addEventListener('click', () => document.documentElement.classList.toggle('lp-menu-open'));
     scrim.addEventListener('click', () => document.documentElement.classList.remove('lp-menu-open'));
+    side.querySelectorAll('details.lp-more').forEach((d) => d.addEventListener('toggle', () => rememberOpen(d.dataset.id, d.open)));
     side.querySelector('[data-act=theme]').addEventListener('click', () => {
       const cur = document.documentElement.getAttribute('data-lp-theme');
       settings.theme = cur === 'dark' ? 'light' : 'dark';
       saveSetting('theme', settings.theme);
+      saveBoot();
       applyTheme();
     });
     side.querySelector('[data-act=original]').addEventListener('click', () => {
       sessionStorage.setItem('lp-original', '1');
       location.reload();
     });
+    renderHoldGroup();
+    updateBadges();
+  }
+  function renderHoldGroup() {
+    const box = document.getElementById('lp-hold-list');
+    const hold = cache.front?.d?.hold || [];
+    if (!box || !hold.length) return;
+    const here = location.href.split('#')[0];
+    box.innerHTML = hold.map((h) => `<a class="lp-more-item${h.href === here ? ' is-active' : ''}" href="${esc(h.href)}">${subjDot(subjectFrom(h.name)?.code || h.name)}${esc(h.name)}</a>`).join('');
+    const det = box.closest('details');
+    det.hidden = false;
+    if (sideOpen.hold || hold.some((h) => h.href === here)) det.open = true;
   }
   function setBadge(key, n) {
     const b = document.querySelector(`[data-badge="${key}"]`);
     if (!b) return;
     if (n > 0) { b.textContent = n > 99 ? '99+' : n; b.hidden = false; } else b.hidden = true;
   }
+  function updateBadges() {
+    const now = new Date();
+    const today = startOfDay(now);
+    if (cache.msgs) setBadge('beskeder', cache.msgs.d.filter((x) => x.unread).length);
+    if (cache.tasks) setBadge('opgaver', cache.tasks.d.filter((t) => !/afleveret/i.test(t.status) && t.due && ((t.due > now && (t.due - now) / 864e5 < 7) || (t.due < now && /mangler/i.test(t.status)))).length);
+    if (cache.hw) setBadge('lektier', cache.hw.d.filter((x) => x.date && x.date >= today && (x.date - today) / 864e5 <= 1).length);
+  }
 
-  /* ---------------- kommandopalet ---------------- */
-  let paletteExtra = [];
+  /* ---------------- søgning (Ctrl+K) ---------------- */
+  let paletteItems = [];
+  function paletteData() {
+    const out = [];
+    const now = new Date();
+    const page = (n, icon) => ({ group: 'Sider', label: n.label, sub: '', icon: n.icon || icon, href: BASE + n.path, words: n.words });
+    NAV_MAIN.concat(NAV_SECOND).forEach((n) => out.push(page(n)));
+    MORE_ITEMS.forEach((n) => out.push(page(n, 'right')));
+    PAL_ONLY.forEach((n) => out.push(page(n, 'search')));
+    (cache.front?.d?.hold || []).forEach((h) => out.push({ group: 'Hold', label: h.name, sub: subjectFrom(h.name)?.name || '', icon: 'layers', href: h.href, words: 'hold' }));
+    const wk = cache[skemaKey(now)]?.d;
+    if (wk) wk.lessons.forEach((l) => out.push({ group: 'Skema denne uge', label: l.subject?.name || l.title || 'Aktivitet', sub: `${l.start ? dayLabel(l.start, now) + (l.allDay ? '' : ' ' + hm(l.start)) : ''} ${l.room || ''}`.trim(), icon: 'cal', href: l.href || BASE + 'SkemaNy.aspx', words: `${l.hold} ${l.teacher} ${l.title}`, lesson: l, list: wk.lessons }));
+    (cache.tasks?.d || []).forEach((t) => out.push({ group: 'Opgaver', label: t.title, sub: `${t.subject?.name || t.hold}, ${t.status.toLowerCase()}`, icon: 'task', href: t.href || BASE + 'OpgaverElev.aspx', words: t.hold }));
+    (cache.hw?.d || []).forEach((x) => out.push({ group: 'Lektier', label: x.text.split('\n')[0].slice(0, 90), sub: `${x.dateTxt} ${x.subject?.name || ''}`, icon: 'book', href: x.href || BASE + 'material_lektieoversigt.aspx', words: x.text }));
+    (cache.msgs?.d || []).forEach((x) => out.push({ group: 'Beskeder', label: x.subject, sub: x.from, icon: 'mail', href: x.href || BASE + 'beskeder2.aspx' }));
+    return out;
+  }
   function openPalette() {
     document.documentElement.classList.remove('lp-menu-open');
     let pal = document.getElementById('lp-palette');
     if (!pal) {
       pal = document.createElement('div');
       pal.id = 'lp-palette';
-      pal.innerHTML = `<div class="lp-pal-box" role="dialog" aria-label="Søg">
-        <div class="lp-pal-in">${ICONS.search}<input type="text" placeholder="Søg efter side, fag, opgave eller lektie..." autocomplete="off" spellcheck="false"><kbd>Esc</kbd></div>
-        <div class="lp-pal-list"></div></div>`;
+      pal.innerHTML = `<div class="lp-pal-box" role="dialog" aria-label="Søg i Lectio">
+        <div class="lp-pal-in">${ICONS.search}<input type="text" placeholder="Søg efter side, hold, fag, opgave eller lektie" autocomplete="off" spellcheck="false" aria-label="Søg"><kbd>Esc</kbd></div>
+        <div class="lp-pal-list" role="listbox"></div></div>`;
       document.body.appendChild(pal);
       pal.addEventListener('mousedown', (e) => { if (e.target === pal) closePalette(); });
       const input = pal.querySelector('input');
@@ -479,65 +673,157 @@
         items.forEach((x, j) => x.classList.toggle('is-sel', j === i));
         items[i]?.scrollIntoView({ block: 'nearest' });
       });
+      pal.querySelector('.lp-pal-list').addEventListener('click', (e) => {
+        const a = e.target.closest('.lp-pal-item');
+        if (!a) return;
+        const it = paletteItems[+a.dataset.i];
+        if (it && it.lesson && !(e.ctrlKey || e.metaKey)) { e.preventDefault(); closePalette(); openLesson(it.lesson, it.list); }
+      });
     }
     pal.classList.add('is-open');
     const input = pal.querySelector('input');
     input.value = '';
     renderPalette('');
-    setTimeout(() => input.focus(), 10);
+    input.focus();
   }
   function closePalette() { document.getElementById('lp-palette')?.classList.remove('is-open'); }
   function renderPalette(q) {
     const pal = document.getElementById('lp-palette');
-    const base = NAV.filter((n) => !n.sep).map((n) => ({ group: 'Sider', label: n.label, sub: '', icon: n.icon, href: BASE + n.path, words: n.words }));
-    const all = base.concat(paletteExtra);
     const terms = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
-    const hits = all.filter((it) => {
+    const all = paletteData();
+    paletteItems = (terms.length ? all.filter((it) => {
       const hay = `${it.label} ${it.sub} ${it.words || ''} ${it.group}`.toLowerCase();
       return terms.every((t) => hay.includes(t));
-    }).slice(0, 40);
+    }) : all.filter((it) => it.group === 'Sider').slice(0, 9)).slice(0, 40);
     let lastGroup = null;
-    pal.querySelector('.lp-pal-list').innerHTML = hits.length ? hits.map((it, i) => {
+    pal.querySelector('.lp-pal-list').innerHTML = paletteItems.length ? paletteItems.map((it, i) => {
       const g = it.group !== lastGroup ? `<div class="lp-pal-group">${esc(it.group)}</div>` : '';
       lastGroup = it.group;
-      return `${g}<a class="lp-pal-item${i === 0 ? ' is-sel' : ''}" href="${esc(it.href)}">${ICONS[it.icon] || ICONS.right}<span>${esc(it.label)}</span><small>${esc(it.sub)}</small></a>`;
-    }).join('') : '<div class="lp-empty">Ingen resultater</div>';
+      return `${g}<a class="lp-pal-item${i === 0 ? ' is-sel' : ''}" role="option" data-i="${i}" href="${esc(it.href)}">${ICONS[it.icon] || ICONS.right}<span>${esc(it.label)}</span><small>${esc(it.sub)}</small></a>`;
+    }).join('') : '<div class="lp-empty">Ingen resultater. Prøv et andet ord.</div>';
   }
   document.addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase();
+    const typing = /input|textarea|select/i.test(document.activeElement?.tagName || '') || document.activeElement?.isContentEditable;
     if ((e.ctrlKey || e.metaKey) && k === 'k') { e.preventDefault(); openPalette(); }
-    else if (k === '/' && !/input|textarea|select/i.test(document.activeElement?.tagName || '') && !document.activeElement?.isContentEditable) { e.preventDefault(); openPalette(); }
+    else if (k === '/' && !typing) { e.preventDefault(); openPalette(); }
     else if (k === 'escape') { closePalette(); closeModal(); }
+    else if (drawerState && !typing && !e.altKey && !e.ctrlKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); stepLesson(e.key === 'ArrowLeft' ? -1 : 1); }
   });
 
-  /* ---------------- modal (lektionsdetaljer) ---------------- */
-  function closeModal() { document.getElementById('lp-modal')?.remove(); }
-  function openLesson(l) {
-    closeModal();
-    const h = hueFor(l.subject?.code);
-    const md = document.createElement('div');
-    md.id = 'lp-modal';
-    const block = (title, txt) => txt ? `<section><h4>${title}</h4><p>${esc(txt.replace(/\s*\[\.\.\.\]\s*/g, ' ...'))}</p></section>` : '';
-    md.innerHTML = `<div class="lp-modal-box" style="--h:${h}">
-      <button type="button" class="lp-icon-btn lp-modal-x" aria-label="Luk">${ICONS.x}</button>
-      <div class="lp-modal-head">
-        <span class="lp-modal-subj">${subjDot(l.subject?.code)}${esc(l.subject?.name || 'Aktivitet')}</span>
-        ${l.cancelled ? '<span class="lp-flag is-danger">aflyst</span>' : l.changed ? '<span class="lp-flag is-warn">ændret</span>' : ''}
-        <h3>${esc(l.title || l.subject?.name || l.hold || 'Aktivitet')}</h3>
-        <p class="lp-muted">${l.allDay ? 'Hele dagen' : `${esc(DAYS[l.start.getDay()])} ${l.start.getDate()}/${l.start.getMonth() + 1} · ${hm(l.start)} til ${hm(l.end)}`}</p>
+  /* ---------------- lektionsvisning ---------------- */
+  let drawerState = null;
+  let drawerReturn = null;
+  function closeModal() {
+    if (!document.getElementById('lp-drawer')) return;
+    document.getElementById('lp-drawer').remove();
+    drawerState = null;
+    document.documentElement.classList.remove('lp-drawer-open');
+    if (drawerReturn && drawerReturn.isConnected) drawerReturn.focus();
+  }
+  function openLesson(l, list) {
+    if (!l) return;
+    if (!drawerState) drawerReturn = document.activeElement;
+    const seq = (list && list.length ? list : [l]).filter((x) => x && x.start).slice()
+      .sort((a, b) => (a.start - b.start) || ((b.allDay ? 1 : 0) - (a.allDay ? 1 : 0)));
+    let idx = seq.indexOf(l);
+    if (idx < 0) { seq.push(l); idx = seq.length - 1; }
+    drawerState = { seq, idx };
+    renderDrawer();
+  }
+  function stepLesson(d) {
+    if (!drawerState) return;
+    const n = drawerState.idx + d;
+    if (n < 0 || n >= drawerState.seq.length) return;
+    drawerState.idx = n;
+    renderDrawer();
+  }
+  function loadActivity(href) {
+    const id = (href.match(/absid=(\d+)/i) || [])[1] || href;
+    const key = 'act:' + id;
+    if (isFresh(key, 10)) return Promise.resolve(cache[key].d);
+    const url = new URL(href, location.href);
+    const rel = url.pathname.slice(BASE.length) + url.search;
+    return fetchDoc(rel).then((doc) => {
+      const box = doc.querySelector('#homeworkContentContainer');
+      const ta = doc.querySelector('textarea.activity-note');
+      const note = ta ? (ta.value || ta.textContent || '').trim() : '';
+      let html = '';
+      if (box) {
+        const cl = box.cloneNode(true);
+        cl.querySelectorAll('[id$="actHeader"], .ls-paper-subsection-separator').forEach((x) => x.remove());
+        if (cl.textContent.trim()) html = safeHtml(cl, url.href);
+      }
+      const d = { html, note };
+      cachePut(key, d);
+      return d;
+    });
+  }
+  function renderDrawer() {
+    const { seq, idx } = drawerState;
+    const l = seq[idx];
+    const now = new Date();
+    let dr = document.getElementById('lp-drawer');
+    if (!dr) {
+      dr = document.createElement('div');
+      dr.id = 'lp-drawer';
+      dr.innerHTML = '<div class="lp-dr-scrim"></div><aside class="lp-dr-panel" role="dialog" aria-modal="true" aria-label="Lektion" tabindex="-1"></aside>';
+      document.body.appendChild(dr);
+      dr.querySelector('.lp-dr-scrim').addEventListener('click', closeModal);
+      dr.querySelector('.lp-dr-panel').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-dr]');
+        if (!b) return;
+        if (b.dataset.dr === 'x') closeModal(); else stepLesson(+b.dataset.dr);
+      });
+      document.documentElement.classList.add('lp-drawer-open');
+    }
+    const p = dr.querySelector('.lp-dr-panel');
+    const live = !l.cancelled && !l.allDay && l.start <= now && now < l.end;
+    const flag = l.cancelled ? '<span class="lp-flag is-danger">aflyst</span>' : l.changed ? '<span class="lp-flag is-warn">ændret</span>' : live ? '<span class="lp-flag is-ok">i gang</span>' : '';
+    const when = `${cap(DAYS[l.start.getDay()])} ${l.start.getDate()}. ${MONTHS[l.start.getMonth()]}${l.allDay ? ', hele dagen' : `, ${hm(l.start)} til ${hm(l.end)}`}`;
+    const prevL = seq[idx - 1];
+    const nextL = seq[idx + 1];
+    const navLabel = (x) => (x ? `${x.subject?.name || x.title || 'Aktivitet'}, ${dayLabel(x.start, now)}${x.allDay ? '' : ' ' + hm(x.start)}` : '');
+    const tipBlock = (title, txt) => (txt ? `<section><h4 class="lp-c-head">${title}</h4><p class="lp-pre">${esc(txt.replace(/\s*\[\.\.\.\]\s*/g, ' ...'))}</p></section>` : '');
+    const fromTip = tipBlock('Note', l.note) + tipBlock('Lektier', l.homework) + tipBlock('Øvrigt indhold', l.other);
+    p.style.setProperty('--h', hueFor(l.subject?.code || l.title));
+    p.innerHTML = `
+      <header class="lp-dr-top">
+        <div class="lp-dr-nav">
+          <button type="button" class="lp-icon-btn" data-dr="-1"${prevL ? ` title="${esc(navLabel(prevL))}"` : ' disabled'} aria-label="Forrige lektion">${ICONS.left}</button>
+          <button type="button" class="lp-icon-btn" data-dr="1"${nextL ? ` title="${esc(navLabel(nextL))}"` : ' disabled'} aria-label="Næste lektion">${ICONS.right}</button>
+          <span class="lp-dr-count">${idx + 1} af ${seq.length}</span>
+        </div>
+        <button type="button" class="lp-icon-btn" data-dr="x" aria-label="Luk">${ICONS.x}</button>
+      </header>
+      <div class="lp-dr-body">
+        <p class="lp-dr-subj">${subjDot(l.subject?.code || l.title)}<span>${esc(l.subject?.name || 'Aktivitet')}</span>${flag}</p>
+        <h2>${esc(l.title || l.subject?.name || l.hold || 'Aktivitet')}</h2>
+        <p class="lp-dr-when">${esc(when)}</p>
+        ${live ? `<span class="lp-progress"><i style="width:${Math.round(((now - l.start) / (l.end - l.start)) * 100)}%"></i></span>` : ''}
+        <dl class="lp-dr-meta">
+          ${l.room ? `<div><dt>Lokale</dt><dd>${esc(l.room)}</dd></div>` : ''}
+          ${l.teacher ? `<div><dt>${/,/.test(l.teacher) ? 'Lærere' : 'Lærer'}</dt><dd>${esc(l.teacher)}</dd></div>` : ''}
+          ${l.hold ? `<div><dt>Hold</dt><dd>${esc(l.hold)}</dd></div>` : ''}
+        </dl>
+        <div class="lp-dr-content" aria-live="polite">
+          ${l.href ? `${fromTip ? `<div class="lp-dr-tip">${fromTip}</div>` : ''}<p class="lp-dr-loading">Henter hele indholdet fra Lectio</p>` : (fromTip || '<p class="lp-empty">Ingen lektier eller noter.</p>')}
+        </div>
       </div>
-      <div class="lp-meta">
-        ${l.room ? `<div>${ICONS.pin}<span>${esc(l.room)}</span></div>` : ''}
-        ${l.teacher ? `<div>${ICONS.user}<span>${esc(l.teacher)}</span></div>` : ''}
-        ${l.hold ? `<div>${ICONS.layers}<span>${esc(l.hold)}</span></div>` : ''}
-      </div>
-      ${block('Lektier', l.homework)}${block('Note', l.note)}${block('Øvrigt indhold', l.other)}
-      ${!l.homework && !l.note && !l.other ? '<p class="lp-muted lp-pad">Ingen lektier eller noter til denne aktivitet.</p>' : ''}
-      ${l.href ? `<a class="lp-btn lp-btn-primary" href="${esc(l.href)}">Åbn aktivitet i Lectio ${ICONS.ext}</a>` : ''}
-    </div>`;
-    document.body.appendChild(md);
-    md.addEventListener('mousedown', (e) => { if (e.target === md) closeModal(); });
-    md.querySelector('.lp-modal-x').addEventListener('click', closeModal);
+      ${l.href ? `<footer class="lp-dr-foot"><a class="lp-btn lp-btn-primary" href="${esc(l.href)}">Åbn lektionen i Lectio ${ICONS.ext}</a><span class="lp-dr-keys"><kbd>←</kbd> <kbd>→</kbd> skifter lektion</span></footer>` : ''}`;
+    p.focus({ preventScroll: true });
+    if (!l.href) return;
+    const content = p.querySelector('.lp-dr-content');
+    loadActivity(l.href).then((d) => {
+      if (!drawerState || drawerState.seq[drawerState.idx] !== l || !content.isConnected) return;
+      const noteHtml = d.note ? `<section><h4 class="lp-c-head">Note</h4><p class="lp-pre">${esc(d.note)}</p></section>` : '';
+      content.innerHTML = noteHtml + (d.html ? `<div class="lp-act">${d.html}</div>` : '') ||
+        '<p class="lp-empty">Ingen lektier eller noter til denne lektion.</p>';
+    }).catch(() => {
+      if (!content.isConnected) return;
+      const ld = content.querySelector('.lp-dr-loading');
+      if (ld) ld.textContent = 'Kunne ikke hente hele indholdet. Åbn lektionen i Lectio for at se det.';
+    });
   }
 
   /* ---------------- komponenter ---------------- */
@@ -573,6 +859,28 @@
   }
 
   /* ---------------- overblik (forside) ---------------- */
+  function parseFront(doc) {
+    const notices = [];
+    const hold = [];
+    doc.querySelectorAll('section.lf-island').forEach((s) => {
+      const title = (s.querySelector('.dashboardLinkHeaderText, .dashboardTextHeader')?.textContent || '').trim();
+      if (!title) return;
+      if (/^hold og grupper/i.test(title)) {
+        s.querySelectorAll('a[href]').forEach((a) => { const h = abs(a.getAttribute('href')); const n = a.textContent.trim(); if (h && n) hold.push({ name: n, href: h }); });
+        return;
+      }
+      if (/^(lektier|opgaveaflevering|beskeder|i dag|i morgen|skema)/i.test(title)) return;
+      const link = abs(s.querySelector('a.dashboardItemTitle')?.getAttribute('href'));
+      const rows = [...s.querySelectorAll('table.dashboard tr')].map((tr) => {
+        const info = tr.querySelector('td.infoCol') || tr.cells[0];
+        const time = tr.querySelector('td.timeCol');
+        return { html: info ? safeHtml(info, location.origin + BASE) : '', time: time ? time.textContent.trim() : '', attention: !!(time && time.classList.contains('attention')) };
+      }).filter((r) => r.html.replace(/<[^>]+>/g, '').trim());
+      if (rows.length) notices.push({ title, link, rows });
+    });
+    return { notices, hold };
+  }
+
   async function renderDashboard(app) {
     const now = new Date();
     const hour = now.getHours();
@@ -590,6 +898,7 @@
         <div class="lp-col-main">
           <div id="lp-agenda">${section('Det næste stykke tid', null, skeleton(5))}</div>
           <div id="lp-msgs">${section('Beskeder', BASE + 'beskeder2.aspx', skeleton(3))}</div>
+          <div id="lp-front"></div>
           <div id="lp-stats" class="lp-stats"></div>
         </div>
       </div>`;
@@ -600,15 +909,39 @@
       if (status.missing) parts.push(`<a class="is-danger" href="${BASE}OpgaverElev.aspx">${status.missing} ${status.missing === 1 ? 'aflevering mangler' : 'afleveringer mangler'}</a>`);
       if (status.soon) parts.push(`<a href="${BASE}OpgaverElev.aspx">${status.soon} ${status.soon === 1 ? 'aflevering' : 'afleveringer'} inden for en uge</a>`);
       if (status.unread) parts.push(`<a href="${BASE}beskeder2.aspx">${status.unread} ${status.unread === 1 ? 'ulæst besked' : 'ulæste beskeder'}</a>`);
+      (status.deadlines || []).forEach((d) => parts.push(`<a class="is-warn" href="${esc(d.link || '#lp-front')}">${esc(d.title)}, frist ${esc(d.time)}</a>`));
       const el = document.getElementById('lp-status');
       if (el) el.innerHTML = parts.join('<span class="lp-sep"></span>');
     };
+
+    // fra skolen: læses direkte fra forsiden uden ekstra forespørgsel
+    try {
+      const front = parseFront(document);
+      cachePut('front', front);
+      status.deadlines = front.notices.flatMap((n) => n.rows.filter((r) => r.attention).map((r) => ({ title: n.title, time: r.time, link: n.link })));
+      writeStatus();
+      if (front.notices.length) {
+        document.getElementById('lp-front').innerHTML = section('Fra skolen', null, front.notices.map((n) => `
+          <div class="lp-notice">
+            <h3>${n.link ? `<a href="${esc(n.link)}">${esc(n.title)}</a>` : esc(n.title)}</h3>
+            ${n.rows.map((r) => `<div class="lp-nrow"><div class="lp-ntext">${r.html}</div>${r.time ? `<span class="lp-ntime${r.attention ? ' is-warn' : ''}">${esc(r.time)}</span>` : ''}</div>`).join('')}
+          </div>`).join(''));
+        document.querySelectorAll('#lp-front .lp-ntext').forEach((el) => {
+          if (el.scrollHeight > el.clientHeight + 4) {
+            const b = document.createElement('button');
+            b.type = 'button'; b.className = 'lp-more-btn'; b.textContent = 'Læs mere';
+            b.addEventListener('click', () => { const o = el.classList.toggle('is-open'); b.textContent = o ? 'Vis mindre' : 'Læs mere'; });
+            el.after(b);
+          }
+        });
+      }
+    } catch (e) { console.warn('[Lectio+]', e); }
 
     const agenda = { tasks: null, hw: null };
     const renderAgenda = () => {
       if (agenda.tasks === null || agenda.hw === null) return;
       const box = document.getElementById('lp-agenda');
-      if (agenda.err) { box.innerHTML = section('Det næste stykke tid', null, errBox(agenda.err)); return; }
+      if (agenda.err && !agenda.tasks.length && !agenda.hw.length) { box.innerHTML = section('Det næste stykke tid', null, errBox(agenda.err)); return; }
       const today = startOfDay(now);
       const limit = new Date(today.getTime() + 14 * 864e5);
       const missing = agenda.tasks.filter((t) => !/afleveret/i.test(t.status) && t.due && t.due < now && /mangler/i.test(t.status));
@@ -636,101 +969,86 @@
       box.innerHTML = section('Det næste stykke tid', null, html);
     };
 
-    // skema
-    (async () => {
-      try {
-        let sk = parseSkema(await fetchDoc('SkemaNy.aspx'));
-        let lessons = sk ? sk.lessons.filter((l) => !l.allDay && l.start) : [];
-        let allDay = sk ? sk.lessons.filter((l) => l.allDay) : [];
-        const remainingToday = lessons.filter((l) => sameDay(l.start, now) && l.end > now);
-        let targetDay = null;
-        if (remainingToday.length) targetDay = startOfDay(now);
-        else {
-          const future = lessons.filter((l) => startOfDay(l.start) > startOfDay(now));
-          if (future.length) targetDay = startOfDay(future[0].start);
-          else {
-            const nxt = new Date(mondayOf(now)); nxt.setDate(nxt.getDate() + 7);
-            const sk2 = parseSkema(await fetchDoc('SkemaNy.aspx?week=' + weekParam(nxt)));
-            if (sk2) {
-              const l2 = sk2.lessons.filter((l) => !l.allDay && l.start);
-              lessons = lessons.concat(l2); allDay = allDay.concat(sk2.lessons.filter((l) => l.allDay));
-              if (l2.length) targetDay = startOfDay(l2[0].start);
-            }
-          }
+    // skema: denne uge og evt. næste uge
+    const weeks = { cur: null, next: null, askedNext: false };
+    const drawSchedule = () => {
+      if (!weeks.cur) return;
+      let lessons = weeks.cur.lessons.filter((l) => !l.allDay && l.start);
+      let allDay = weeks.cur.lessons.filter((l) => l.allDay && l.start);
+      if (weeks.next) { lessons = lessons.concat(weeks.next.lessons.filter((l) => !l.allDay && l.start)); allDay = allDay.concat(weeks.next.lessons.filter((l) => l.allDay && l.start)); }
+      const remainingToday = lessons.filter((l) => sameDay(l.start, now) && l.end > now);
+      let targetDay = null;
+      if (remainingToday.length) targetDay = startOfDay(now);
+      else {
+        const future = lessons.filter((l) => startOfDay(l.start) > startOfDay(now));
+        if (future.length) targetDay = startOfDay(future[0].start);
+        else if (!weeks.askedNext) {
+          weeks.askedNext = true;
+          const nxt = new Date(mondayOf(now)); nxt.setDate(nxt.getDate() + 7);
+          loadWeek(nxt, (sk) => { weeks.next = sk; drawSchedule(); });
         }
-        const dayLessons = targetDay ? lessons.filter((l) => sameDay(l.start, targetDay)) : [];
-        const dayAll = targetDay ? allDay.filter((l) => l.start && sameDay(l.start, targetDay)) : [];
-        const isToday = targetDay && sameDay(targetDay, now);
-        const title = !targetDay ? 'Skema' : isToday ? 'I dag' : `${cap(dayLabel(targetDay, now))}, ${DAYS[targetDay.getDay()]} ${targetDay.getDate()}/${targetDay.getMonth() + 1}`;
-        const all = dayLessons.concat(dayAll);
-        let body = dayAll.map((l) => `<button type="button" class="lp-event" data-li="${all.indexOf(l)}">${esc(l.title || 'Begivenhed')}<small>hele dagen</small></button>`).join('');
-        body += dayLessons.length ? `<div class="lp-rows">${dayLessons.map((l) => lessonRow(l, now, all.indexOf(l))).join('')}</div>` : '<p class="lp-empty">Ingen moduler.</p>';
-        const box = document.getElementById('lp-day');
-        box.innerHTML = section(title, BASE + 'SkemaNy.aspx', body);
-        box.querySelectorAll('[data-li]').forEach((b) => b.addEventListener('click', () => openLesson(all[+b.dataset.li])));
-
-        const cur = dayLessons.find((l) => !l.cancelled && l.start <= now && now < l.end);
-        const next = lessons.filter((l) => !l.cancelled && l.start > now)[0];
-        const nx = document.getElementById('lp-next');
-        let h = '';
-        if (cur) {
-          const prog = Math.round(((now - cur.start) / (cur.end - cur.start)) * 100);
-          h += `<button type="button" class="lp-next-item is-now" data-n="0" style="--h:${hueFor(cur.subject?.code)}">
-            <span class="lp-next-lbl">Nu</span><strong>${esc(cur.subject?.name || cur.title)}</strong>
-            <span class="lp-next-sub">${esc(cur.room || '')}, slutter ${hm(cur.end)}</span>
-            <span class="lp-progress"><i style="width:${prog}%"></i></span></button>`;
-        }
-        if (next) {
-          const when = sameDay(next.start, now) ? `kl. ${hm(next.start)}, ${relTime(next.start, now)}` : `${dayLabel(next.start, now)} kl. ${hm(next.start)}`;
-          h += `<button type="button" class="lp-next-item" data-n="1" style="--h:${hueFor(next.subject?.code)}">
-            <span class="lp-next-lbl">${cur ? 'Bagefter' : 'Næste'}</span><strong>${esc(next.subject?.name || next.title)}</strong>
-            <span class="lp-next-sub">${esc(when)}${next.room ? ', ' + esc(next.room) : ''}</span></button>`;
-        }
-        nx.innerHTML = h || '<p class="lp-next-free">Ingen flere moduler i denne og næste uge.</p>';
-        const nl = [cur, next];
-        nx.querySelectorAll('[data-n]').forEach((b) => b.addEventListener('click', () => openLesson(nl[+b.dataset.n])));
-        paletteExtra = paletteExtra.concat(lessons.slice(0, 60).map((l) => ({ group: 'Skema', label: `${l.subject?.name || l.title}`, sub: `${dayLabel(l.start, now)} ${hm(l.start)} ${l.room || ''}`, icon: 'cal', href: l.href || BASE + 'SkemaNy.aspx', words: `${l.hold} ${l.teacher} ${l.title}` })));
-      } catch (e) {
-        document.getElementById('lp-day').innerHTML = section('I dag', BASE + 'SkemaNy.aspx', errBox(e));
-        document.getElementById('lp-next').innerHTML = '';
       }
-    })();
+      const dayLessons = targetDay ? lessons.filter((l) => sameDay(l.start, targetDay)) : [];
+      const dayAll = targetDay ? allDay.filter((l) => sameDay(l.start, targetDay)) : [];
+      const isToday = targetDay && sameDay(targetDay, now);
+      const title = !targetDay ? 'Skema' : isToday ? 'I dag' : `${cap(dayLabel(targetDay, now))}, ${DAYS[targetDay.getDay()]} ${targetDay.getDate()}/${targetDay.getMonth() + 1}`;
+      const all = dayLessons.concat(dayAll);
+      let body = dayAll.map((l) => `<button type="button" class="lp-event" data-li="${all.indexOf(l)}">${esc(l.title || 'Begivenhed')}<small>hele dagen</small></button>`).join('');
+      body += dayLessons.length ? `<div class="lp-rows">${dayLessons.map((l) => lessonRow(l, now, all.indexOf(l))).join('')}</div>` : '<p class="lp-empty">Ingen moduler.</p>';
+      const box = document.getElementById('lp-day');
+      box.innerHTML = section(title, BASE + 'SkemaNy.aspx', body);
+      box.querySelectorAll('[data-li]').forEach((b) => b.addEventListener('click', () => openLesson(all[+b.dataset.li], all)));
+
+      const cur = dayLessons.find((l) => !l.cancelled && l.start <= now && now < l.end);
+      const next = lessons.filter((l) => !l.cancelled && l.start > now)[0];
+      const nx = document.getElementById('lp-next');
+      let h = '';
+      if (cur) {
+        const prog = Math.round(((now - cur.start) / (cur.end - cur.start)) * 100);
+        h += `<button type="button" class="lp-next-item is-now" data-n="0" style="--h:${hueFor(cur.subject?.code)}">
+          <span class="lp-next-lbl">Nu</span><strong>${esc(cur.subject?.name || cur.title)}</strong>
+          <span class="lp-next-sub">${esc(cur.room || '')}, slutter ${hm(cur.end)}</span>
+          <span class="lp-progress"><i style="width:${prog}%"></i></span></button>`;
+      }
+      if (next) {
+        const when = sameDay(next.start, now) ? `kl. ${hm(next.start)}, ${relTime(next.start, now)}` : `${dayLabel(next.start, now)} kl. ${hm(next.start)}`;
+        h += `<button type="button" class="lp-next-item" data-n="1" style="--h:${hueFor(next.subject?.code)}">
+          <span class="lp-next-lbl">${cur ? 'Bagefter' : 'Næste'}</span><strong>${esc(next.subject?.name || next.title)}</strong>
+          <span class="lp-next-sub">${esc(when)}${next.room ? ', ' + esc(next.room) : ''}</span></button>`;
+      }
+      if (!h && !weeks.next && weeks.askedNext) h = skeleton(1);
+      nx.innerHTML = h || '<p class="lp-next-free">Ingen flere moduler i denne og næste uge.</p>';
+      const nl = [cur, next];
+      const seqAll = lessons.concat(allDay);
+      nx.querySelectorAll('[data-n]').forEach((b) => b.addEventListener('click', () => openLesson(nl[+b.dataset.n], seqAll)));
+    };
+    loadWeek(now, (sk) => { weeks.cur = sk; drawSchedule(); }, (e) => {
+      document.getElementById('lp-day').innerHTML = section('I dag', BASE + 'SkemaNy.aspx', errBox(e));
+      document.getElementById('lp-next').innerHTML = '';
+    });
 
     // lektier og opgaver
-    fetchDoc('material_lektieoversigt.aspx').then(parseHomework).then((hw) => {
-      agenda.hw = hw;
-      setBadge('lektier', hw.filter((x) => x.date && x.date >= startOfDay(now) && (x.date - startOfDay(now)) / 864e5 <= 1).length);
-      paletteExtra = paletteExtra.concat(hw.map((x) => ({ group: 'Lektier', label: x.text.slice(0, 80), sub: `${x.dateTxt} ${x.subject?.name || ''}`, icon: 'book', href: x.href || BASE + 'material_lektieoversigt.aspx' })));
-    }).catch((e) => { agenda.hw = []; agenda.err = e; }).finally(renderAgenda);
-
-    fetchDoc('OpgaverElev.aspx').then(parseAssignments).then((tasks) => {
+    loadSrc('hw', (hw) => { agenda.hw = hw; renderAgenda(); }, (e) => { agenda.hw = []; agenda.err = e; renderAgenda(); });
+    loadSrc('tasks', (tasks) => {
       agenda.tasks = tasks;
       const open = tasks.filter((t) => !/afleveret/i.test(t.status) && t.due);
       status.missing = open.filter((t) => t.due < now && /mangler/i.test(t.status)).length;
       status.soon = open.filter((t) => t.due > now && (t.due - now) / 864e5 < 7).length;
-      setBadge('opgaver', status.missing + status.soon);
       writeStatus();
-      paletteExtra = paletteExtra.concat(tasks.map((t) => ({ group: 'Opgaver', label: t.title, sub: `${t.hold}, ${t.status}`, icon: 'task', href: t.href || BASE + 'OpgaverElev.aspx' })));
-    }).catch((e) => { agenda.tasks = []; agenda.err = e; }).finally(renderAgenda);
+      renderAgenda();
+    }, (e) => { agenda.tasks = []; agenda.err = e; renderAgenda(); });
 
     // beskeder
-    (async () => {
-      try {
-        const msgs = parseMessages(await fetchDoc('beskeder2.aspx'));
-        const unread = msgs.filter((x) => x.unread).length;
-        const body = msgs.length ? `<div class="lp-msgs">${msgs.slice(0, 5).map((x) => `
-          <a class="lp-msg${x.unread ? ' is-unread' : ''}" href="${esc(x.href || BASE + 'beskeder2.aspx')}">
-            <span class="lp-msg-main"><strong>${esc(x.subject)}</strong><small>${esc(x.from)}</small></span>
-            <span class="lp-msg-time">${esc(x.changed)}</span>
-          </a>`).join('')}</div>` : '<p class="lp-empty">Indbakken er tom.</p>';
-        document.getElementById('lp-msgs').innerHTML = section(unread ? `Beskeder, ${unread} ulæste` : 'Beskeder', BASE + 'beskeder2.aspx', body);
-        setBadge('beskeder', unread);
-        status.unread = unread; writeStatus();
-        paletteExtra = paletteExtra.concat(msgs.map((x) => ({ group: 'Beskeder', label: x.subject, sub: x.from, icon: 'mail', href: x.href || BASE + 'beskeder2.aspx' })));
-      } catch (e) {
-        document.getElementById('lp-msgs').innerHTML = section('Beskeder', BASE + 'beskeder2.aspx', errBox(e));
-      }
-    })();
+    loadSrc('msgs', (msgs) => {
+      const unread = msgs.filter((x) => x.unread).length;
+      const body = msgs.length ? `<div class="lp-msgs">${msgs.slice(0, 5).map((x) => `
+        <a class="lp-msg${x.unread ? ' is-unread' : ''}" href="${esc(x.href || BASE + 'beskeder2.aspx')}">
+          <span class="lp-msg-main"><strong>${esc(x.subject)}</strong><small>${esc(x.from)}</small></span>
+          <span class="lp-msg-time">${esc(x.changed)}</span>
+        </a>`).join('')}</div>` : '<p class="lp-empty">Indbakken er tom.</p>';
+      document.getElementById('lp-msgs').innerHTML = section(unread ? `Beskeder, ${unread} ulæste` : 'Beskeder', BASE + 'beskeder2.aspx', body);
+      status.unread = unread; writeStatus();
+    }, (e) => { document.getElementById('lp-msgs').innerHTML = section('Beskeder', BASE + 'beskeder2.aspx', errBox(e)); });
 
     // fravær og karakterer som rolige nøgletal
     const stats = {};
@@ -745,18 +1063,26 @@
       if (stats.avg != null) items.push(`<a href="${BASE}grades/grade_report.aspx" class="lp-stat"><b>${stats.avg.toFixed(1).replace('.', ',')}</b><span>karaktersnit</span></a>`);
       el.innerHTML = items.join('');
     };
-    fetchDoc('subnav/fravaerelev.aspx').then(parseAbsence).then((a) => { if (a) { stats.abs = a; writeStats(); } }).catch(() => {});
-    fetchDoc('grades/grade_report.aspx').then(parseGrades).then((g) => {
+    loadSrc('abs', (a) => { if (a) { stats.abs = a; writeStats(); } });
+    loadSrc('grades', (g) => {
       let ws = 0; let wt = 0;
       g.forEach((x) => { const v = num(x.grade); if (v != null && x.weight && /^-?\d+$/.test(x.grade.trim())) { ws += v * x.weight; wt += x.weight; } });
       if (wt) { stats.avg = ws / wt; writeStats(); }
-    }).catch(() => {});
+    });
 
-    setTimeout(() => { if (document.getElementById('lp-app')) { Object.keys(memo).forEach((k) => { if (/skema/i.test(k)) delete memo[k]; }); paletteExtra = []; renderDashboard(app); } }, 5 * 60 * 1000);
+    // opdater "nu" og data hvert 5. minut mens siden er åben og synlig
+    setTimeout(() => {
+      if (!document.getElementById('lp-app')) return;
+      if (document.hidden) { document.addEventListener('visibilitychange', () => renderDashboard(app), { once: true }); return; }
+      Object.keys(memo).forEach((k) => delete memo[k]);
+      renderDashboard(app);
+    }, 5 * 60 * 1000);
   }
 
   /* ---------------- ugeskema ---------------- */
-  async function renderWeek(app, weekDate) {
+  let weekToken = 0;
+  function renderWeek(app, weekDate) {
+    const token = ++weekToken;
     const now = new Date();
     const wp = weekParam(weekDate);
     const isCurrent = wp === weekParam(now);
@@ -764,9 +1090,9 @@
     app.innerHTML = `<div class="lp-week-head">
         <div><h1>Uge ${w}</h1><p class="lp-date">${(() => { const mo = mondayOf(weekDate); const fr = new Date(mo.getTime() + 4 * 864e5); return `${mo.getDate()}. ${MONTHS[mo.getMonth()]} til ${fr.getDate()}. ${MONTHS[fr.getMonth()]}`; })()}</p></div>
         <div class="lp-week-nav">
-          <button type="button" class="lp-btn" data-wk="-1" title="Forrige uge (Alt+venstre)">${ICONS.left}</button>
+          <button type="button" class="lp-btn" data-wk="-1" title="Forrige uge (Alt+venstre)" aria-label="Forrige uge">${ICONS.left}</button>
           <button type="button" class="lp-btn${isCurrent ? ' is-disabled' : ''}" data-wk="0">I dag</button>
-          <button type="button" class="lp-btn" data-wk="1" title="Næste uge (Alt+højre)">${ICONS.right}</button>
+          <button type="button" class="lp-btn" data-wk="1" title="Næste uge (Alt+højre)" aria-label="Næste uge">${ICONS.right}</button>
           <a class="lp-btn lp-btn-ghost" href="${BASE}SkemaNy.aspx?week=${wp}&lp=orig">Lectios visning</a>
         </div></div>
       <div id="lp-week" class="lp-card lp-week-card">${skeleton(8)}</div>`;
@@ -776,10 +1102,8 @@
       history.replaceState(null, '', `${BASE}SkemaNy.aspx?week=${weekParam(nd)}`);
       renderWeek(app, nd);
     }));
-    try {
-      const doc = isCurrent && !/week=/i.test(INITIAL) ? document : await fetchDoc('SkemaNy.aspx?week=' + wp);
-      const sk = parseSkema(doc);
-      if (!sk) throw new Error('Skemaet kunne ikke læses');
+    const draw = (sk) => {
+      if (token !== weekToken) return;
       const timed = sk.lessons.filter((l) => !l.allDay && l.start && l.end);
       const toMin = (s) => { const [a, b] = s.split(':').map(Number); return a * 60 + b; };
       let minM = sk.modules.length ? toMin(sk.modules[0].start) : 8 * 60;
@@ -797,7 +1121,6 @@
         const isToday = d.date && sameDay(d.date, now);
         const dayAll = all.filter((l) => l.day === di && l.allDay);
         const dayTimed = timed.filter((l) => l.day === di);
-        // overlappende moduler side om side
         const lanes = [];
         dayTimed.forEach((l) => {
           let lane = lanes.findIndex((end) => end <= l.start);
@@ -813,13 +1136,13 @@
           return `<button type="button" class="lp-blk${l.cancelled ? ' is-cancelled' : ''}${l.changed ? ' is-changed' : ''}${live ? ' is-live' : ''}${l.end < now ? ' is-past' : ''}${hgt < 44 ? ' is-short' : ''}" data-li="${all.indexOf(l)}"
             style="--h:${hueFor(l.subject?.code)};top:${top}px;height:${hgt}px;left:calc(${width * l._lane}% + 3px);width:calc(${width}% - 6px)">
             <strong>${esc(l.subject?.name || l.title || 'Aktivitet')}</strong>
-            <small>${hm(l.start)}${l.room ? ", " + esc(l.room) : ""}</small>
+            <small>${hm(l.start)}${l.room ? ', ' + esc(l.room) : ''}</small>
             ${hgt > 60 && l.title && l.subject ? `<em>${esc(l.title)}</em>` : ''}
             <span class="lp-blk-icons">${l.homework ? '<i title="Lektier"></i>' : ''}</span>
           </button>`;
         }).join('');
-        const nowLine = isToday && now.getHours() * 60 + now.getMinutes() >= minM && now.getHours() * 60 + now.getMinutes() <= maxM
-          ? `<div class="lp-nowline" style="top:${(now.getHours() * 60 + now.getMinutes() - minM) * PX}px"></div>` : '';
+        const nowM = now.getHours() * 60 + now.getMinutes();
+        const nowLine = isToday && nowM >= minM && nowM <= maxM ? `<div class="lp-nowline" style="top:${(nowM - minM) * PX}px"></div>` : '';
         return `<div class="lp-day${isToday ? ' is-today' : ''}">
           <div class="lp-day-head"><span>${esc(d.name)}</span><b>${d.date ? d.date.getDate() : ''}</b></div>
           <div class="lp-day-all">${dayAll.map((l) => `<button type="button" class="lp-allday" data-li="${all.indexOf(l)}" style="--h:${hueFor(l.title)}">${esc(l.title || l.subject?.name || 'Begivenhed')}</button>`).join('')}</div>
@@ -832,11 +1155,16 @@
         <div class="lp-gutter"><div class="lp-day-head"></div><div class="lp-day-all"></div><div class="lp-day-body" style="height:${H}px">${hours.map((t) => `<span style="top:${(t - minM) * PX}px">${pad(Math.floor(t / 60))}:00</span>`).join('')}</div></div>
         ${cols}</div>
         <div class="lp-legend"><span><i class="lp-lg-ch"></i>Ændret</span><span><i class="lp-lg-ca"></i>Aflyst</span><span><i class="lp-lg-hw"></i>Har lektier</span><span>Klik på et modul for at se lektier og noter</span></div>`;
-      box.querySelectorAll('[data-li]').forEach((b) => b.addEventListener('click', () => openLesson(all[+b.dataset.li])));
-      paletteExtra = all.map((l) => ({ group: 'Denne uge', label: l.subject?.name || l.title || 'Aktivitet', sub: `${l.start ? dayLabel(l.start, now) + ' ' + (l.allDay ? '' : hm(l.start)) : ''} ${l.room || ''}`, icon: 'cal', href: l.href || location.href, words: `${l.hold} ${l.teacher} ${l.title}` }));
-    } catch (e) {
-      document.getElementById('lp-week').innerHTML = errBox(e);
-    }
+      box.querySelectorAll('[data-li]').forEach((b) => b.addEventListener('click', () => openLesson(all[+b.dataset.li], all)));
+    };
+    const fail = (e) => { if (token === weekToken) document.getElementById('lp-week').innerHTML = errBox(e); };
+    if (isCurrent && !/week=/i.test(INITIAL) && PAGE === 'skemany.aspx') {
+      const sk = parseSkema(document);
+      if (sk) { cachePut(skemaKey(now), sk); draw(sk); } else fail(new Error('Skemaet kunne ikke læses'));
+    } else loadWeek(weekDate, draw, fail);
+    // hent ugen efter i baggrunden så bladring føles øjeblikkelig
+    const nextWeek = new Date(weekDate.getTime() + 7 * 864e5);
+    if (!isFresh(skemaKey(nextWeek), TTL.skema)) idle(() => { if (token === weekToken) loadWeek(nextWeek, () => {}); }, 4000);
   }
 
   /* ---------------- forbedringer af originale sider ---------------- */
@@ -893,7 +1221,22 @@
   const viewHead = (title, sub, extra = '') => `<header class="lp-vhead">
       <div><h1>${esc(title)}</h1>${sub ? `<p class="lp-date">${sub}</p>` : ''}</div>
       <div class="lp-vhead-actions">${extra}<a class="lp-btn lp-btn-ghost" href="${esc(origLink())}">Lectios visning</a></div>
-    </header>`;
+    </header>${subTabs()}`;
+  // Lectios egne underfaner (fx Karaktermeddelelse og Fraværsårsager) vises også i de nye visninger.
+  function subTabs() {
+    const seen = new Set();
+    const items = [];
+    document.querySelectorAll('.ls-subnav-container a').forEach((a) => {
+      if (a.closest('[id$="subnavigator_generic_tr"]')) return;
+      const t = a.textContent.trim();
+      const h = abs(a.getAttribute('href'));
+      if (!t || !h || seen.has(t)) return;
+      seen.add(t); items.push({ t, h });
+    });
+    if (items.length < 2) return '';
+    const here = location.pathname.toLowerCase();
+    return `<nav class="lp-tabs" aria-label="Undersider">${items.map((i) => { const on = new URL(i.h).pathname.toLowerCase() === here; return `<a href="${esc(i.h)}"${on ? ' class="is-on" aria-current="page"' : ''}>${esc(i.t)}</a>`; }).join('')}</nav>`;
+  }
   function subjectFilter(app, items, attr = 'data-subj') {
     const subs = [...new Map(items.filter((x) => x.subject).map((x) => [x.subject.code, x.subject.name])).entries()].sort((a, b) => a[1].localeCompare(b[1], 'da'));
     if (subs.length < 2) return '';
@@ -976,7 +1319,7 @@
     const lvl = (p) => (p >= 10 ? 'is-danger' : p >= 5 ? 'is-warn' : '');
     const max = Math.max(10, ...a.rows.map((r) => Math.max(r.pct || 0, r.wPct || 0)));
     const bar = (p) => `<span class="lp-bar ${lvl(p)}"><i style="width:${Math.max(0, Math.min(100, ((p || 0) / max) * 100))}%"></i></span>`;
-    app.innerHTML = viewHead('Fravær', 'Opgjort for dette skoleår', `<a class="lp-btn" href="${BASE}subnav/fravaerelev_fravaersaarsager.aspx">Fraværsårsager</a>`) +
+    app.innerHTML = viewHead('Fravær', 'Opgjort for dette skoleår') +
       `<div class="lp-bignums">
         <div class="${lvl(a.total.pct)}"><b>${fmt(a.total.pct)}</b><span>almindeligt fravær${a.total.mods ? `, ${String(a.total.mods[0]).replace('.', ',')} af ${a.total.mods[1]} moduler` : ''}</span></div>
         <div class="${lvl(a.total.wPct)}"><b>${fmt(a.total.wPct)}</b><span>skriftligt fravær${a.total.wTime ? `, ${String(a.total.wTime[0]).replace('.', ',')} af ${String(a.total.wTime[1]).replace('.', ',')} elevtimer` : ''}</span></div>
@@ -1043,14 +1386,10 @@
 
   /* ---------------- oprydning på Lectios egne sider ---------------- */
   function tidyLectioPage() {
-    const t = document.getElementById('s_m_HeaderContent_MainTitle') || document.querySelector('.maintitle');
-    if (t && !t.dataset.lp) {
-      const m = t.textContent.trim().match(/^(?:Eleven|Læreren)\s+.+?,\s*\S+\s+-\s+(.+)$/s);
-      if (m) { t.textContent = m[1].trim(); t.dataset.lp = '1'; }
-    }
-    document.querySelectorAll('#masterContent a, #masterContent button').forEach((a) => {
-      if (/^\W*(help_outline|help)?\s*Hjælp\s*$/i.test(a.textContent.trim()) && a.getBoundingClientRect().top < 160) a.style.display = 'none';
-    });
+    const t = document.getElementById('s_m_HeaderContent_MainTitle') || document.querySelector('[id$="HeaderContent_MainTitle"], .maintitle');
+    if (!t) return;
+    const m = t.textContent.trim().match(TITLE_RE);
+    if (m) t.textContent = m[4].trim();
   }
   function lum(c) {
     let m = c.match(/^oklch\(\s*([\d.]+)(%?)[^/)]*(?:\/\s*([\d.]+)(%?))?/);
@@ -1065,57 +1404,120 @@
     }
     return null;
   }
-  function darkFix() {
-    if (document.documentElement.getAttribute('data-lp-theme') !== 'dark') return;
-    const root = document.getElementById('masterContent') || document.body;
-    root.querySelectorAll('*').forEach((el) => {
-      if (el.closest('#lp-side, #lp-app, #lp-modal, #lp-palette, #lp-topbar')) return;
+  const OWN_UI = '#lp-side, #lp-app, #lp-drawer, #lp-palette, #lp-topbar, #lp-pill, #lp-scrim';
+  // Finder lyse flader og mørk tekst i Lectios egne sider og farver dem om i mørk tilstand.
+  function darkFix(root) {
+    const html = document.documentElement;
+    if (html.getAttribute('data-lp-theme') !== 'dark' || !html.classList.contains('lp-on') || html.classList.contains('lp-takeover')) return;
+    root = root || document.getElementById('masterContent') || document.body;
+    if (!root || root.nodeType !== 1 || root.closest(OWN_UI)) return;
+    const els = [root, ...root.getElementsByTagName('*')];
+    for (const el of els) {
+      if (el.id && el.id.startsWith('lp-')) continue;
       const cs = getComputedStyle(el);
+      if (cs.display === 'none') continue;
       const b = lum(cs.backgroundColor);
       if (b != null && b > 0.72) el.classList.add('lp-dk-bg');
       const f = lum(cs.color);
       if (f != null && f < 0.4) el.classList.add(el.tagName === 'A' || el.closest('a') ? 'lp-dk-link' : 'lp-dk-fg');
-    });
+      if (parseFloat(cs.borderTopWidth) || parseFloat(cs.borderLeftWidth)) {
+        const bd = lum(parseFloat(cs.borderTopWidth) ? cs.borderTopColor : cs.borderLeftColor);
+        if (bd != null && bd > 0.6) el.classList.add('lp-dk-bd');
+      }
+    }
   }
-  let darkTimer = null;
-  function watchDark() {
-    darkFix();
-    const target = document.getElementById('masterContent');
-    if (!target) return;
-    new MutationObserver(() => { clearTimeout(darkTimer); darkTimer = setTimeout(() => { tidyLectioPage(); if (PAGE.startsWith('beskeder')) enhanceMessages(); darkFix(); }, 250); })
-      .observe(target, { childList: true, subtree: true });
+  // Holder øje med det Lectio selv ændrer på siden og retter kun de nye dele.
+  function watchPage() {
+    const target = document.getElementById('masterContent') || document.body;
+    const pending = new Set();
+    let timer = null;
+    new MutationObserver((muts) => {
+      let header = false;
+      for (const m of muts) {
+        if (m.target.nodeType === 1 && m.target.closest('.ls-master-pageheader')) header = true;
+        for (const n of m.addedNodes) if (n.nodeType === 1 && !n.closest(OWN_UI)) pending.add(n);
+      }
+      if (header) tidyLectioPage();
+      if (!pending.size) return;
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const nodes = [...pending];
+        pending.clear();
+        if (PAGE.startsWith('beskeder')) enhanceMessages();
+        idle(() => nodes.forEach((n) => { if (n.isConnected) darkFix(n); }), 500);
+      }, 120);
+    }).observe(target, { childList: true, subtree: true });
   }
 
   /* ---------------- start ---------------- */
+  function saveBoot() {
+    try { localStorage.setItem('lp-boot', JSON.stringify({ enabled: settings.enabled, theme: settings.theme, dashboard: settings.dashboard, skema: settings.skema, views: settings.views })); } catch (e) { /* ignorer */ }
+  }
+  // Gemmer data fra den side man står på, så andre sider ikke skal hente dem igen.
+  function primeCache(params) {
+    const q = [...params.keys()];
+    try {
+      if (PAGE === 'opgaverelev.aspx' && !q.length) cachePut('tasks', parseAssignments(document));
+      if (PAGE === 'material_lektieoversigt.aspx' && !q.length) cachePut('hw', parseHomework(document));
+      if (PAGE === 'beskeder2.aspx' && (!q.length || params.get('mappeid') === '-70')) { const m = parseMessages(document); if (m.length) cachePut('msgs', m); }
+      if (PAGE === 'subnav/fravaerelev.aspx' && !q.length) { const a = parseAbsence(document); if (a) cachePut('abs', a); }
+      if (PAGE === 'grades/grade_report.aspx' && !q.length) { const g = parseGrades(document); if (g.length) cachePut('grades', g); }
+      if (PAGE === 'skemany.aspx' && q.every((k) => k === 'week')) {
+        const sk = parseSkema(document);
+        const wk = params.get('week');
+        if (sk) cachePut(wk && /^\d{6}$/.test(wk) ? 'skema:' + wk : skemaKey(new Date()), sk);
+      }
+      if (PAGE === 'forside.aspx' && !q.length) cachePut('front', parseFront(document));
+    } catch (e) { console.warn('[Lectio+]', e); }
+  }
+  // Holder badges friske uden at belaste Lectio: højst én lille hentning pr. side.
+  function refreshStale() {
+    const k = ['msgs', 'tasks', 'hw', 'front'].find((key) => !isFresh(key, TTL[key] * 2));
+    if (!k) return;
+    const go = () => idle(() => fetchDoc(SOURCES[k].path).then(SOURCES[k].parse).then((d) => cachePut(k, d)).catch(() => {}), 3000);
+    if (document.readyState === 'complete') setTimeout(go, 1200); else addEventListener('load', () => setTimeout(go, 1200), { once: true });
+  }
+
   async function init() {
+    try { localStorage.removeItem('lp-test-code'); } catch (e) { /* oprydning efter test */ }
     settings = await loadSettings();
+    saveBoot();
     applyTheme();
-    if (!settings.enabled) return;
+    const html = document.documentElement;
     const params = new URLSearchParams(location.search);
+    if (!settings.enabled) { html.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; }
     if (sessionStorage.getItem('lp-original') === '1' || params.get('lp') === 'orig') {
-      if (params.get('lp') === 'orig') { document.documentElement.classList.add('lp-lite'); }
+      html.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
+      if (params.get('lp') === 'orig') html.classList.add('lp-lite');
       originalPill();
       return;
     }
-    document.documentElement.classList.add('lp-on');
-    buildSidebar();
-    tidyLectioPage();
-    watchDark();
+    html.classList.add('lp-on');
+    document.addEventListener('click', (e) => {
+      if (e.target.closest && e.target.closest('a[href*="logout.aspx"]')) { try { sessionStorage.removeItem(CACHE_KEY); sessionStorage.removeItem('lp-user:' + SCHOOL); } catch (er) { /* ignorer */ } }
+    }, true);
 
     const onlyWeek = [...params.keys()].every((k) => k === 'week');
-    let takeover = null;
-    if (settings.dashboard && PAGE === 'forside.aspx' && [...params.keys()].length === 0) takeover = 'dashboard';
-    if (settings.skema && PAGE === 'skemany.aspx' && onlyWeek && document.querySelector('table.s2skema')) takeover = 'skema';
     const noParams = [...params.keys()].length === 0;
+    let takeover = null;
+    if (settings.dashboard && PAGE === 'forside.aspx' && noParams) takeover = 'dashboard';
+    if (settings.skema && PAGE === 'skemany.aspx' && onlyWeek && document.querySelector('table.s2skema')) takeover = 'skema';
     if (settings.views && noParams) {
       if (PAGE === 'opgaverelev.aspx' && document.querySelector('#s_m_Content_Content_ExerciseGV')) takeover = 'opgaver';
       if (PAGE === 'material_lektieoversigt.aspx' && document.querySelector('#s_m_Content_Content_MaterialLektieOverblikGV')) takeover = 'lektier';
       if (PAGE === 'subnav/fravaerelev.aspx' && document.querySelector('table[id$="SFTabStudentAbsenceDataTable"]')) takeover = 'fravaer';
       if (PAGE === 'grades/grade_report.aspx' && parseGrades(document).length) takeover = 'karakterer';
     }
+    if (takeover) html.classList.add('lp-takeover'); else html.classList.remove('lp-takeover');
+
+    primeCache(params);
+    buildSidebar();
+    tidyLectioPage();
+    if (!takeover) darkFix();
+    watchPage();
+    html.classList.remove('lp-boot');
 
     if (takeover) {
-      document.documentElement.classList.add('lp-takeover');
       const app = document.createElement('main');
       app.id = 'lp-app';
       document.body.appendChild(app);
@@ -1127,20 +1529,13 @@
       else {
         const wk = params.get('week');
         let d = new Date();
-        if (wk && /^\d{6}$/.test(wk)) {
-          const w = +wk.slice(0, 2); const y = +wk.slice(2);
-          const jan4 = new Date(y, 0, 4);
-          d = mondayOf(jan4); d.setDate(d.getDate() + (w - 1) * 7);
-        }
+        if (wk && /^\d{6}$/.test(wk)) { d = mondayOf(new Date(+wk.slice(2), 0, 4)); d.setDate(d.getDate() + (+wk.slice(0, 2) - 1) * 7); }
         let cur = d;
         renderWeek(app, cur);
         document.addEventListener('keydown', (e) => {
-          if (!e.altKey || !/Arrow(Left|Right)/.test(e.key)) return;
+          if (!e.altKey || !/Arrow(Left|Right)/.test(e.key) || drawerState) return;
           e.preventDefault();
-          const u = new URLSearchParams(location.search).get('week');
-          let base = new Date();
-          if (u && /^\d{6}$/.test(u)) { base = mondayOf(new Date(+u.slice(2), 0, 4)); base.setDate(base.getDate() + (+u.slice(0, 2) - 1) * 7); }
-          cur = new Date(base.getTime() + (e.key === 'ArrowLeft' ? -7 : 7) * 864e5);
+          cur = new Date(cur.getTime() + (e.key === 'ArrowLeft' ? -7 : 7) * 864e5);
           history.replaceState(null, '', `${BASE}SkemaNy.aspx?week=${weekParam(cur)}`);
           renderWeek(app, cur);
         });
@@ -1149,28 +1544,12 @@
       if (PAGE === 'opgaverelev.aspx') enhanceAssignments();
       if (PAGE.startsWith('beskeder')) enhanceMessages();
     }
-
-    // badges på alle sider (let, cachet 3 min)
-    if (takeover !== 'dashboard') {
-      try {
-        const cache = JSON.parse(sessionStorage.getItem('lp-badges') || 'null');
-        if (cache && Date.now() - cache.t < 3 * 60 * 1000) { Object.entries(cache.b).forEach(([k, v]) => setBadge(k, v)); }
-        else {
-          const b = {};
-          const [msgs, tasks] = await Promise.allSettled([fetchDoc('beskeder2.aspx').then(parseMessages), fetchDoc('OpgaverElev.aspx').then(parseAssignments)]);
-          const now = new Date();
-          if (msgs.status === 'fulfilled') b.beskeder = msgs.value.filter((x) => x.unread).length;
-          if (tasks.status === 'fulfilled') b.opgaver = tasks.value.filter((t) => !/afleveret/i.test(t.status) && t.due && (t.due - now) / 864e5 < 7 && (t.due > now || /mangler/i.test(t.status))).length;
-          Object.entries(b).forEach(([k, v]) => setBadge(k, v));
-          sessionStorage.setItem('lp-badges', JSON.stringify({ t: Date.now(), b }));
-        }
-      } catch (e) { /* badges er valgfrie */ }
-    }
+    if (takeover !== 'dashboard') refreshStale();
   }
 
   if (hasChrome && chrome.storage.onChanged) {
     chrome.storage.onChanged.addListener((ch) => {
-      if (ch.theme && Object.keys(ch).length === 1) { settings.theme = ch.theme.newValue; applyTheme(); return; }
+      if (ch.theme && Object.keys(ch).length === 1) { settings.theme = ch.theme.newValue; saveBoot(); applyTheme(); return; }
       if (ch.hideDone && Object.keys(ch).length === 1) return;
       location.reload();
     });
