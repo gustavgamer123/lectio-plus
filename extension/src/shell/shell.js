@@ -3,9 +3,9 @@
   'use strict';
   const LP = (globalThis.LP = globalThis.LP || {});
 
-  // opts: { doc, base, activeKey, user: { name, cls }, schoolName, logoutHref, colors?, onSearch, onTheme, onOriginal }
+  // opts: { doc, base, activeKey, user: { name, cls }, schoolName, logoutHref, colors?, theme?, onSearch, onTheme, onOriginal }
   LP.buildShell = (opts) => {
-    const { doc, base, activeKey, user = {}, schoolName = '', logoutHref, colors, onSearch, onTheme, onOriginal } = opts;
+    const { doc, base, activeKey, user = {}, schoolName = '', logoutHref, colors, theme, onSearch, onTheme, onOriginal } = opts;
     const { esc, ICONS } = LP;
     const tab = LP.tabFor(activeKey);
     const moreItem = tab === 'more' ? LP.MORE_ITEMS.find((n) => n.key === activeKey) : null;
@@ -26,7 +26,7 @@
         <span class="lp-school">${esc(schoolName)}</span>
         <button type="button" class="lp-find">${ICONS.search}<span>Søg</span><kbd>Ctrl K</kbd></button>
         <span class="lp-who"><strong>${esc(user.name || '')}</strong> <small>${esc(user.cls || '')}</small></span>
-        <button type="button" class="lp-bar-btn" data-act="theme" aria-label="Skift tema" title="Skift tema">${ICONS.moon}</button>
+        <button type="button" class="lp-bar-btn" data-act="theme" aria-label="Skift tema" title="Skift tema">${theme === 'dark' ? ICONS.sun : ICONS.moon}</button>
         <button type="button" class="lp-bar-btn" data-act="original" aria-label="Vis Lectios egen visning" title="Vis Lectios egen visning">${ICONS.layers}</button>
         <a class="lp-bar-btn" data-act="logout" href="${esc(logoutHref || '#')}" aria-label="Log ud" title="Log ud">${ICONS.out}</a>
       </div>
@@ -52,6 +52,8 @@
     btn.addEventListener('click', () => setOpen(pop.hidden));
     doc.addEventListener('click', (e) => { if (!pop.hidden && !(e.target.closest && e.target.closest('.lp-more-wrap'))) setOpen(false); });
     doc.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) setOpen(false, true); });
+    // Tabber man ud af menuen, lukker den.
+    el.querySelector('.lp-more-wrap').addEventListener('focusout', (e) => { if (!pop.hidden && e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) setOpen(false); });
     el.querySelector('.lp-find').addEventListener('click', () => onSearch && onSearch());
     el.querySelector('[data-act=theme]').addEventListener('click', () => onTheme && onTheme());
     el.querySelector('[data-act=original]').addEventListener('click', () => onOriginal && onOriginal());
@@ -71,6 +73,8 @@
       }).join('');
       g.hidden = !items.length;
     };
-    return { el, setBadge, setHold };
+    // I mørkt tema viser knappen solen (skift til lyst), i lyst tema månen.
+    const setTheme = (t) => { el.querySelector('[data-act=theme]').innerHTML = t === 'dark' ? ICONS.sun : ICONS.moon; };
+    return { el, setBadge, setHold, setTheme };
   };
 })();

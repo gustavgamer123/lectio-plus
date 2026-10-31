@@ -130,14 +130,14 @@ html.lp-on #fixedBlock > .ls-std-rowblock {
 }
 
 /* ---------- links og Lectios egen blå ---------- */
-html.lp-on .outerContentFrame a:not([data-role="button"]):where(:not(:is(#lp-shell-head, #lp-app, #lp-drawer, #lp-colors) a)) { color: var(--accent) !important; }
+html.lp-on .outerContentFrame a:not([data-role="button"]):where(:not(:is(#lp-pagehead, #lp-app, #lp-drawer, #lp-colors) a)) { color: var(--accent) !important; }
 html.lp-on .outerContentFrame li::marker { color: var(--accent); }
 html.lp-on .outerContentFrame :is(.infoText, .infoTextItalic) { color: var(--ink-2) !important; font-style: normal !important; }
 
 /* ---------- formularer ---------- */
 /* De indbyggede afkrydsningsfelter og radioknapper tegnes i accentfarven; color-scheme (styles.css) giver synlige flueben i mørkt tema. */
 html.lp-on { accent-color: var(--accent); }
-html.lp-on .outerContentFrame :is(input:is([type="text"], [type="search"], [type="password"], [type="email"], [type="tel"], [type="number"], [type="date"], :not([type])), select, textarea):not(:is(#lp-shell-head, #lp-app, #lp-drawer) *) {
+html.lp-on .outerContentFrame :is(input:is([type="text"], [type="search"], [type="password"], [type="email"], [type="tel"], [type="number"], [type="date"], :not([type])), select, textarea):not(:is(#lp-pagehead, #lp-app, #lp-drawer) *) {
   min-height: 32px; padding: 4px 8px !important; border: 1px solid var(--rule) !important; border-radius: var(--radius-sm) !important;
   background: var(--surface) !important; color: var(--ink) !important; font: 400 13.5px/1.3 var(--font) !important; box-shadow: none !important;
 }
@@ -199,7 +199,7 @@ html.lp-on .outerContentFrame table.forsideTabel a :is(b, i) { color: inherit !i
 html.lp-on .outerContentFrame table.forsideTabel a i { color: var(--ink-2) !important; font-style: normal !important; font-size: 12.5px; }
 
 /* Lectios egne overskrifter inde i indholdet følger sidehovedets skala */
-html.lp-on .outerContentFrame :is(h1, h2, h3, h4):not(:is(#lp-shell-head, #lp-app, #lp-drawer, #lp-colors) *):not(.islandHeader *) {
+html.lp-on .outerContentFrame :is(h1, h2, h3, h4):not(:is(#lp-pagehead, #lp-app, #lp-drawer, #lp-colors) *):not(.islandHeader *) {
   font-family: var(--font) !important; font-size: 15px !important; font-weight: 600 !important; letter-spacing: 0 !important; line-height: 1.3 !important;
   color: var(--ink) !important; text-align: left !important; justify-self: start !important; margin: 4px 0 8px !important;
 }

@@ -31,9 +31,8 @@ html.lp-boot body::before { content: ""; position: fixed; inset: 0 0 auto 0; hei
 /* faner */
 #lp-shell .lp-tabs-main {
   height: 42px; flex: none; display: flex; align-items: stretch; gap: 2px; padding: 0 10px;
-  background: var(--surface); border-bottom: 1px solid var(--rule); overflow-x: auto; scrollbar-width: none;
+  background: var(--surface); border-bottom: 1px solid var(--rule); overflow-x: auto; scrollbar-width: thin;
 }
-#lp-shell .lp-tabs-main::-webkit-scrollbar { display: none; }
 #lp-shell .lp-tab {
   flex: none; display: flex; align-items: center; gap: 6px; padding: 0 10px; margin: 0; border: 0; border-radius: 0; background: none;
   color: var(--ink-2) !important; font: 500 14px var(--font); white-space: nowrap; cursor: pointer; box-shadow: inset 0 -3px 0 transparent;
@@ -49,7 +48,7 @@ html.lp-boot body::before { content: ""; position: fixed; inset: 0 0 auto 0; hei
 #lp-shell .lp-more-btn::after { content: ""; width: 6px; height: 6px; margin: -3px 0 0 2px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
 #lp-shell .lp-more-btn[aria-expanded="true"] { background: var(--sunk); color: var(--ink) !important; }
 #lp-shell .lp-more-pop {
-  position: fixed; top: calc(var(--shell-h) + 6px); left: 12px; width: min(920px, calc(100vw - 24px));
+  position: fixed; top: calc(var(--shell-h) + 6px); left: 12px; right: 12px; max-width: 920px;
   max-height: calc(100vh - var(--shell-h) - 24px); overflow-y: auto; z-index: 9001;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 24px; padding: 14px 18px 16px;
   background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
@@ -80,7 +79,7 @@ html.lp-boot body::before { content: ""; position: fixed; inset: 0 0 auto 0; hei
 
 /* ============ sidehoved, underfaner, knapper og søgning i samme stil ============ */
 .lp-vhead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; margin: 0 0 14px; font-family: var(--font); }
-#lp-app .lp-vhead h1, #lp-shell-head .lp-vhead h1 { font-size: 24px !important; font-weight: 600 !important; letter-spacing: -.015em; line-height: 1.2; margin: 0 !important; color: var(--ink) !important; font-family: var(--font); }
+#lp-app .lp-vhead h1, #lp-pagehead .lp-vhead h1 { font-size: 24px !important; font-weight: 600 !important; letter-spacing: -.015em; line-height: 1.2; margin: 0 !important; color: var(--ink) !important; font-family: var(--font); }
 .lp-vhead-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .lp-viewsub { margin: -4px 0 16px !important; color: var(--ink-2); font-size: 14px; font-family: var(--font); }
 .lp-vhead + .lp-viewsub { margin-top: -8px !important; }

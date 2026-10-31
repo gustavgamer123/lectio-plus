@@ -66,7 +66,9 @@
   LP.activeKey = (page, search) => {
     const p = page;
     const q = (search || '').toLowerCase();
-    const exact = LP.NAV_TABS.concat(LP.MORE_ITEMS).find((n) => pathOnly(n.path) === p && (!n.path.includes('?') || n.key === 'studieplan' || q.includes(n.path.split('?')[1].toLowerCase())));
+    // Punkter med query (fx default.aspx?menu=kontakt) prøves før punkter uden (default.aspx).
+    const all = LP.NAV_TABS.concat(LP.MORE_ITEMS);
+    const exact = all.filter((n) => n.path.includes('?')).concat(all.filter((n) => !n.path.includes('?'))).find((n) => pathOnly(n.path) === p && (!n.path.includes('?') || n.key === 'studieplan' || q.includes(n.path.split('?')[1].toLowerCase())));
     if (exact) return exact.key;
     if (p.startsWith('forside')) return 'forside';
     if (p.startsWith('skemany') || p.startsWith('skema/') || p.startsWith('aktivitet/')) return 'skema';

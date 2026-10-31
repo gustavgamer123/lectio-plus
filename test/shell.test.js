@@ -86,3 +86,28 @@ test('knapperne i bjælken kalder deres handlinger', () => {
   assert.deepEqual({ ...calls }, { search: 1, theme: 1, original: 1 });
   assert.equal(doc.querySelector('a[data-act=logout]').getAttribute('href'), '/lectio/123/logout.aspx');
 });
+
+function makeTheme(theme) {
+  const win = loadExt(['src/lib/core.js', 'src/lib/subjects.js', 'src/lib/icons.js', 'src/shell/nav.js', 'src/shell/shell.js'], {
+    html: '<!doctype html><html><body><form id="aspnetForm"><p>Lectio</p></form></body></html>'
+  });
+  const shell = win.LP.buildShell({ doc: win.document, base: '/lectio/123/', activeKey: 'forside', user: {}, theme, onSearch() {}, onTheme() {}, onOriginal() {} });
+  return { win, doc: win.document, shell };
+}
+const SUN = 'r="4"';
+test('temaknappen viser solen i mørkt tema og månen i lyst', () => {
+  assert.ok(makeTheme('dark').doc.querySelector('[data-act=theme]').innerHTML.includes(SUN));
+  assert.ok(!makeTheme('light').doc.querySelector('[data-act=theme]').innerHTML.includes(SUN));
+});
+test('setTheme skifter ikonet', () => {
+  const { doc, shell } = makeTheme('light');
+  shell.setTheme('dark');
+  assert.ok(doc.querySelector('[data-act=theme]').innerHTML.includes(SUN));
+});
+test('Mere lukker, når fokus forlader menuen', () => {
+  const { win, doc } = makeTheme('light');
+  doc.querySelector('.lp-more-btn').click();
+  const outside = doc.querySelector('#aspnetForm p');
+  doc.querySelector('.lp-more-wrap').dispatchEvent(new win.FocusEvent('focusout', { bubbles: true, relatedTarget: outside }));
+  assert.equal(doc.querySelector('.lp-more-pop').hidden, true);
+});

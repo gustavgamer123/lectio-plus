@@ -5,7 +5,7 @@
   const LP = (globalThis.LP = globalThis.LP || {});
 
   // Vores egne flader, som darkFix aldrig rører.
-  LP.OWN_UI = '#lp-shell, #lp-app, #lp-drawer, #lp-palette, #lp-pill, #lp-afl, #lp-act-hero, #lp-shell-head, .lp-act-cardhead, .lp-fb-empty, #lp-colors';
+  LP.OWN_UI = '#lp-shell, #lp-app, #lp-drawer, #lp-palette, #lp-pill, #lp-afl, #lp-act-hero, #lp-pagehead, .lp-act-cardhead, .lp-fb-empty, #lp-colors';
 
   // Lysstyrke 0..1 for oklch()/rgb()/rgba(), eller null hvis farven er (næsten) gennemsigtig eller ukendt.
   LP.lum = (c) => {

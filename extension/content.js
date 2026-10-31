@@ -156,6 +156,7 @@
   function applyTheme() {
     const t = settings.theme === 'auto' ? (mq.matches ? 'dark' : 'light') : settings.theme;
     document.documentElement.setAttribute('data-lp-theme', t);
+    if (shell) shell.setTheme(t);
     if (t === 'dark' && typeof darkFix === 'function' && document.documentElement.classList.contains('lp-on')) setTimeout(darkFix, 0);
   }
   mq.addEventListener?.('change', applyTheme);
@@ -873,7 +874,7 @@
   // Lectios egne sider får samme sidehoved som de nye sider.
   function buildPageShell() {
     const cc = document.querySelector('.outerContentFrame > .ls-content-container');
-    if (!cc || document.getElementById('lp-shell-head')) return;
+    if (!cc || document.getElementById('lp-pagehead')) return;
     const t = document.getElementById('s_m_HeaderContent_MainTitle') || document.querySelector('[id$="HeaderContent_MainTitle"], .maintitle');
     let title = (t ? t.textContent : '').trim();
     const m = title.match(TITLE_RE);
@@ -881,11 +882,11 @@
     if (!title) { const dm = document.title.match(TITLE_RE); title = (dm ? dm[4] : document.title).split(' - ')[0].trim(); }
     title = groupTitle() || title.replace(/\s+oversigt$/i, '');
     const head = document.createElement('div');
-    head.id = 'lp-shell-head';
+    head.id = 'lp-pagehead';
     head.innerHTML = pageHead(title, '', shellActions);
     cc.prepend(head);
     head.querySelectorAll('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy)?.click()));
-    document.documentElement.classList.add('lp-shell');
+    document.documentElement.classList.add('lp-has-pagehead');
   }
   // Lectios egne underfaner (fx Karaktermeddelelse og Fraværsårsager) vises også i de nye visninger.
   function subTabs() {
@@ -1482,7 +1483,7 @@
     if (takeover) html.classList.add('lp-takeover'); else html.classList.remove('lp-takeover');
 
     primeCache(params);
-    shell = LP.buildShell({ doc: document, base: BASE, activeKey: activeKey(), user: USER, schoolName, logoutHref: logoutLink.getAttribute('href'), colors: settings.colors, onSearch: openPalette, onTheme, onOriginal });
+    shell = LP.buildShell({ doc: document, base: BASE, activeKey: activeKey(), user: USER, schoolName, logoutHref: logoutLink.getAttribute('href'), colors: settings.colors, theme: document.documentElement.getAttribute('data-lp-theme'), onSearch: openPalette, onTheme, onOriginal });
     shell.setHold(cache.front?.d?.hold || []);
     updateBadges();
     tidyLectioPage();

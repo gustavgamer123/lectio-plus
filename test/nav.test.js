@@ -20,3 +20,7 @@ test('tabFor', () => {
   assert.equal(LP.tabFor('dokumenter'), 'more');
   assert.equal(LP.tabFor(null), null);
 });
+test('activeKey vælger punktet med query før punktet uden', () => {
+  assert.equal(LP.activeKey('default.aspx', '?menu=kontakt'), 'kontakt');
+  assert.equal(LP.activeKey('default.aspx', ''), 'hovedmenu');
+});
