@@ -16,3 +16,15 @@ test('markEmptyRows markerer kun rækker uden tekst og uden kontroller', () => {
   const marked = [...win.document.querySelectorAll('tr.lp-empty-row')].map((r) => r.id);
   assert.deepEqual(marked, ['tom']);
 });
+
+test('markCategoryCells gør skolens kategorifarve til en variabel og markerer cellen', () => {
+  const html = `<!doctype html><html><body><div class="outerContentFrame"><table class="forsideTabel"><tr>
+    <td id="farve" class="forsideCell13" style="background-color: rgb(80, 120, 200)">Kategori</td>
+    <td id="ingen" class="forsideCell14">Kategori</td></tr></table></div></body></html>`;
+  const win = loadExt(['src/lib/core.js', 'src/lib/tidy.js'], { html });
+  win.LP.markCategoryCells(win.document.querySelector('.outerContentFrame'));
+  const td = win.document.getElementById('farve');
+  assert.ok(td.classList.contains('lp-cat'));
+  assert.equal(td.style.getPropertyValue('--lp-cat'), 'rgb(80, 120, 200)');
+  assert.ok(!win.document.getElementById('ingen').classList.contains('lp-cat'));
+});

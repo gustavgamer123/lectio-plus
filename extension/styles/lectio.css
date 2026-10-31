@@ -130,7 +130,7 @@ html.lp-on #fixedBlock > .ls-std-rowblock {
 }
 
 /* ---------- links og Lectios egen blå ---------- */
-html.lp-on .outerContentFrame a:not([data-role="button"]):not(:is(#lp-shell-head, #lp-app, #lp-drawer, #lp-colors) a) { color: var(--accent) !important; }
+html.lp-on .outerContentFrame a:not([data-role="button"]):where(:not(:is(#lp-shell-head, #lp-app, #lp-drawer, #lp-colors) a)) { color: var(--accent) !important; }
 html.lp-on .outerContentFrame li::marker { color: var(--accent); }
 html.lp-on .outerContentFrame :is(.infoText, .infoTextItalic) { color: var(--ink-2) !important; font-style: normal !important; }
 
@@ -185,3 +185,40 @@ html.lp-on .outerContentFrame table.s2skema a.s2skemabrik.s2cancelled * { text-d
 /* Månedskalenderen */
 html.lp-on .outerContentFrame table.s2-mskema { width: 100% !important; }
 html.lp-on .outerContentFrame table.s2-mskema caption { text-align: left !important; font: 600 15px var(--font) !important; color: var(--ink) !important; padding: 0 0 6px !important; }
+
+/* ---------- overskrifter, lister, ikoner og skolens egen HTML ---------- */
+/* Skolens eget indhold i panelerne (fx studieretningspræsentationen) har faste skrifttyper. Ikonskrifter undtages. */
+html.lp-on .outerContentFrame .islandContent *:not([class*="fonticon"]):not(.material-symbols-outlined):not(.material-icons):not(pre):not(code) { font-family: var(--font) !important; }
+
+/* studieretningspræsentationen: kategorifarven bliver en stribe (--lp-cat sættes af LP.markCategoryCells) */
+html.lp-on .outerContentFrame table.forsideTabel td.lp-cat {
+  background: var(--surface) !important; border-left: 4px solid var(--lp-cat) !important; padding: 8px 10px !important; vertical-align: top;
+}
+html.lp-on .outerContentFrame table.forsideTabel .forsideHead { color: var(--ink) !important; background: transparent !important; font-size: 13.5px !important; font-weight: 600 !important; margin-bottom: 4px; }
+html.lp-on .outerContentFrame table.forsideTabel a :is(b, i) { color: inherit !important; }
+html.lp-on .outerContentFrame table.forsideTabel a i { color: var(--ink-2) !important; font-style: normal !important; font-size: 12.5px; }
+
+/* Lectios egne overskrifter inde i indholdet følger sidehovedets skala */
+html.lp-on .outerContentFrame :is(h1, h2, h3, h4):not(:is(#lp-shell-head, #lp-app, #lp-drawer, #lp-colors) *):not(.islandHeader *) {
+  font-family: var(--font) !important; font-size: 15px !important; font-weight: 600 !important; letter-spacing: 0 !important; line-height: 1.3 !important;
+  color: var(--ink) !important; text-align: left !important; justify-self: start !important; margin: 4px 0 8px !important;
+}
+/* store nøgletal (fx Fraværsårsager) står fedt og venstrestillet som på Fravær */
+html.lp-on .outerContentFrame .title-large { font: 700 24px/1.15 var(--font) !important; letter-spacing: -.01em; color: var(--ink) !important; }
+/* Studiekort */
+html.lp-on .outerContentFrame .StudieKortTitel { font: 600 18px var(--font) !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--ink) !important; }
+
+/* Find skema: en tæt liste i kolonner i stedet for en boks om hvert navn */
+html.lp-on .outerContentFrame ul.ls-columnlist { column-gap: 24px; padding: 0 !important; }
+html.lp-on .outerContentFrame ul.ls-columnlist > li > a {
+  display: block; padding: 4px 6px !important; border: 0 !important; border-bottom: 1px solid var(--rule) !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important; font-size: 13.5px !important;
+}
+html.lp-on .outerContentFrame ul.ls-columnlist > li > a:hover { background: var(--sunk) !important; }
+
+/* Dokumenter: Lectios gamle mappe-bitmaps erstattes af en lille mappe tegnet med CSS */
+html.lp-on .outerContentFrame img[src*="folder" i] { width: 16px !important; height: 16px !important; object-position: -9999px 0; background: var(--ink-3);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2h8.4A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 6.5A1.5 1.5 0 0 1 4.5 5h4.6l2 2h8.4A1.5 1.5 0 0 1 21 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z'/%3E%3C/svg%3E") center / contain no-repeat; }
+html.lp-on .outerContentFrame a.TreeNode { color: var(--ink) !important; }
+html.lp-on .outerContentFrame a.TreeNode.selectedFolder { color: var(--accent) !important; background: var(--accent-soft) !important; }
