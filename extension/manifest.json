@@ -37,6 +37,7 @@
         "src/lib/core.js",
         "src/lib/subjects.js",
         "src/lib/parse.js",
+        "src/lib/icons.js",
         "src/shell/nav.js",
         "content.js"
       ],
