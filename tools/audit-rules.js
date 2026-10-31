@@ -61,8 +61,10 @@
   const blend = (fg, bg) => (fg.a >= 1 ? fg : { r: fg.r * fg.a + bg.r * (1 - fg.a), g: fg.g * fg.a + bg.g * (1 - fg.a), b: fg.b * fg.a + bg.b * (1 - fg.a), a: 1 });
 
   /* ---------- sider ---------- */
-  const SKIP = '#lp-app, #lp-shell, #lp-palette, #lp-drawer, [class*="fonticon"], .material-symbols-outlined, .material-icons, img, svg, script, style, noscript, canvas, video';
-  const TABLES = '.ls-table-layout1, .ls-table-layout2, .ls-table-layout5, .lf-grid, .s2skema';
+  // Uden ownViews måles kun Lectios egne sider; med ownViews også vores egne visninger (#lp-app og lektionspanelet).
+  const SKIP_BASE = '#lp-shell, #lp-palette, [class*="fonticon"], .material-symbols-outlined, .material-icons, img, svg, script, style, noscript, canvas, video';
+  const SKIP_OWN = '#lp-app, #lp-drawer, ' + SKIP_BASE;
+  const TABLES = '.ls-table-layout1, .ls-table-layout2, .ls-table-layout5, .lf-grid, .s2skema, table.lp-table';
   const BUTTONS = '.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon';
   const short = (el) => {
     if (!el || el.nodeType !== 1) return '';
@@ -96,9 +98,10 @@
       const v = { rule, selector, detail, count: 1 };
       seen.set(k, v); out.push(v);
     };
-    const root = doc.querySelector('.outerContentFrame');
-    if (!root) return out;
+    const SKIP = opts.ownViews ? SKIP_BASE : SKIP_OWN;
+    const roots = [doc.querySelector('.outerContentFrame'), ...(opts.ownViews ? [doc.getElementById('lp-app'), doc.getElementById('lp-drawer')] : [])].filter(Boolean);
     const own = (opts.own || []).map((c) => A.toRgb(c, doc));
+    for (const root of roots) {
     const frameRight = root.getBoundingClientRect().right;
     for (const el of root.querySelectorAll('*')) {
       if (el.closest(SKIP)) continue;
@@ -109,6 +112,8 @@
       const text = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
       const radius = Math.max(...['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius'].map((p) => parseFloat(cs[p]) || 0));
       if (radius > 6 && r.width >= 24 && r.height >= 24) add('rund', el, radius + 'px');
+      // pills: v1's runde mærker og knapper i de egne visninger
+      if (opts.ownViews && (el.classList.contains('lp-pill') || (radius >= 12 && r.height <= 36 && r.width >= 24))) add('tag', el, radius + 'px');
       if (text && !/^"?LP Plex/.test(cs.fontFamily)) add('skrift', el, cs.fontFamily.slice(0, 40));
       for (const p of ['color', 'backgroundColor', 'borderTopColor']) {
         if (p === 'color' && !text) continue;
@@ -142,6 +147,12 @@
         if (a && a.getBoundingClientRect().width < r.width * 0.9) add('knap', el, 'link fylder ikke knappen');
       }
       if (r.right > frameRight + 2 && !scrollsX(el, root, win)) add('overloeb', el, Math.round(r.right - frameRight) + ' px');
+    }
+    }
+    // ugeskemaet: timegitteret skal starte i samme højde i alle dage
+    for (const wk of doc.querySelectorAll('.lp-week')) {
+      const tops = [...wk.querySelectorAll('.lp-day > .lp-day-body')].map((b) => b.getBoundingClientRect().top);
+      if (tops.length > 1 && Math.max(...tops) - Math.min(...tops) > 1) out.push({ rule: 'flugt', selector: 'div.lp-week', detail: Math.round(Math.max(...tops) - Math.min(...tops)) + ' px', count: 1 });
     }
     if (doc.documentElement.scrollWidth > win.innerWidth + 1) out.push({ rule: 'overloeb', selector: 'html', detail: 'hele siden ruller vandret', count: 1 });
     return out;

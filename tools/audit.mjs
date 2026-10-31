@@ -9,15 +9,20 @@ import { ROOT, EXT, ORIGIN, connect, schoolBase, reloadExtension, setSettings, s
 const navCtx = {};
 vm.runInNewContext(fs.readFileSync(path.join(EXT, 'src', 'shell', 'nav.js'), 'utf8'), navCtx);
 export const PLAN2_PAGES = navCtx.LP.MORE_ITEMS.map((n) => n.path).filter((p) => !p.startsWith('studieplan.aspx'));
+// De egne visninger (plan 3): fanerne, Studieplan og den første opgave og lektion fra de gemte sider.
+const fixture = (name, re) => { try { const m = fs.readFileSync(path.join(ROOT, 'test', 'fixtures', 'private', name), 'utf8').match(re); return m ? m[0].replace(/&amp;/g, '&') : null; } catch (e) { return null; } };
+export const OWN_PAGES = navCtx.LP.NAV_TABS.map((n) => n.path).concat(['studieplan.aspx?displaytype=ugeteksttabel',
+  fixture('OpgaverElev.aspx.html', /ElevAflevering\.aspx\?[^"']+/), fixture('SkemaNy.aspx.html', /aktivitet\/aktivitetforside2\.aspx\?absid=\d+/)]).filter(Boolean);
 
-const opts = { theme: 'both', width: '1280', rule: '' };
+const opts = { theme: 'both', width: '1280', rule: '', own: false };
 const paths = [];
 const argv = process.argv.slice(2);
 for (let i = 0; i < argv.length; i++) {
-  if (argv[i].startsWith('--')) opts[argv[i].slice(2)] = argv[++i];
+  if (argv[i] === '--own') opts.own = true;
+  else if (argv[i].startsWith('--')) opts[argv[i].slice(2)] = argv[++i];
   else paths.push(argv[i]);
 }
-const pages = paths.length ? paths : PLAN2_PAGES;
+const pages = paths.length ? paths : opts.own ? OWN_PAGES : PLAN2_PAGES;
 const themes = opts.theme === 'both' ? ['light', 'dark'] : [opts.theme];
 const rules = opts.rule ? opts.rule.split(',') : null;
 const width = +opts.width;
@@ -34,8 +39,9 @@ await page.setViewportSize({ width, height: 800 });
 const report = [];
 for (const p of pages) {
   for (const theme of themes) {
+    try {
     await page.emulateMedia({ colorScheme: theme });
-    await page.goto(ORIGIN + base + p, { waitUntil: 'load' });
+    await page.goto(ORIGIN + base + p, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
     await page.waitForTimeout(300);
     await page.evaluate(src);
@@ -43,17 +49,20 @@ for (const p of pages) {
       const cs = getComputedStyle(document.documentElement);
       const own = ['--accent', '--accent-soft', '--bar', '--bar-ink-2'].map((v) => cs.getPropertyValue(v).trim());
       globalThis.AUDIT.canvas = true;
-      return globalThis.AUDIT.collect(document, window, { theme: o.theme, own });
-    }, { theme });
+      return globalThis.AUDIT.collect(document, window, { theme: o.theme, own, ownViews: o.ownViews });
+    }, { theme, ownViews: opts.own });
     const kept = found.filter((v) => (!rules || rules.includes(v.rule)) && !allowed(p, v));
     report.push({ page: p, theme, width, violations: kept });
+    } catch (e) {
+      report.push({ page: p, theme, width, violations: [{ rule: 'fejl', selector: 'side', detail: e.message.split('\n')[0], count: 1 }] });
+    }
   }
 }
 await page.close();
 
 fs.mkdirSync(path.join(ROOT, 'shots'), { recursive: true });
-fs.writeFileSync(path.join(ROOT, 'shots', `audit-${width}.json`), JSON.stringify(report, null, 1));
-const names = ['rund', 'skrift', 'blaa', 'kontrast', 'lys', 'tabel', 'knap', 'overloeb'].filter((n) => !rules || rules.includes(n));
+fs.writeFileSync(path.join(ROOT, 'shots', `audit${opts.own ? '-own' : ''}-${width}.json`), JSON.stringify(report, null, 1));
+const names = ['fejl', 'rund', 'tag', 'skrift', 'blaa', 'kontrast', 'lys', 'tabel', 'knap', 'overloeb', 'flugt'].filter((n) => !rules || rules.includes(n));
 console.log(['side'.padEnd(46), ...names.map((n) => n.padStart(8))].join(''));
 let total = 0;
 for (const r of report) {

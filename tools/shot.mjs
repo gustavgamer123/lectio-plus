@@ -25,8 +25,9 @@ const page = await context.newPage();
 await page.setViewportSize({ width, height: 800 });
 for (const p of paths) {
   for (const colorScheme of themes) {
+    try {
     await page.emulateMedia({ colorScheme });
-    await page.goto(ORIGIN + base + p, { waitUntil: 'load' });
+    await page.goto(ORIGIN + base + p, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
     if (opts.click) await page.click(opts.click);
     if (opts.press) await page.keyboard.press(opts.press);
@@ -35,6 +36,9 @@ for (const p of paths) {
     const file = path.join(out, `${slug(p)}${opts.name ? '-' + opts.name : ''}-${colorScheme}-${width}.png`);
     await page.screenshot({ path: file });
     console.log(file);
+    } catch (e) {
+      console.error(`${p} ${colorScheme}: ${e.message.split('\n')[0]}`);
+    }
   }
 }
 await page.close();
