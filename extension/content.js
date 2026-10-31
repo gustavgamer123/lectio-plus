@@ -35,44 +35,8 @@
   }
 
   /* ---------------- hjælpere ---------------- */
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const pad = (n) => String(n).padStart(2, '0');
-  const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  const DAYS = ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'];
-  const MONTHS = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
-  const sameDay = (a, b) => a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const abs = (href) => { if (!href || href === '#' || /^javascript:/i.test(href)) return null; try { return new URL(href, location.origin + BASE).href; } catch (e) { return null; } };
-  const num = (s) => { const v = parseFloat(String(s).replace(',', '.').replace(/[^\d.\-]/g, '')); return isNaN(v) ? null : v; };
-
-  function isoWeek(d) {
-    const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    const day = t.getUTCDay() || 7;
-    t.setUTCDate(t.getUTCDate() + 4 - day);
-    const y = t.getUTCFullYear();
-    const w = Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7);
-    return { w, y };
-  }
-  const weekParam = (d) => { const { w, y } = isoWeek(d); return pad(w) + y; };
-  const mondayOf = (d) => { const x = startOfDay(d); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
-
-  function dayLabel(d, now = new Date()) {
-    const diff = Math.round((startOfDay(d) - startOfDay(now)) / 864e5);
-    if (diff === 0) return 'i dag';
-    if (diff === 1) return 'i morgen';
-    if (diff === -1) return 'i går';
-    if (diff > 1 && diff < 7) return DAYS[d.getDay()];
-    return `${d.getDate()}. ${MONTHS[d.getMonth()].slice(0, 3)}`;
-  }
-  function relTime(d, now = new Date()) {
-    const mins = Math.round((d - now) / 6e4);
-    const a = Math.abs(mins);
-    let txt;
-    if (a < 60) txt = `${a} min`;
-    else if (a < 60 * 24) txt = `${Math.floor(a / 60)} t ${a % 60 ? (a % 60) + ' min' : ''}`.trim();
-    else txt = `${Math.round(a / 1440)} ${Math.round(a / 1440) === 1 ? 'dag' : 'dage'}`;
-    return mins >= 0 ? `om ${txt}` : `for ${txt} siden`;
-  }
+  const { esc, pad, hm, DAYS, MONTHS, sameDay, startOfDay, num, isoWeek, weekParam, mondayOf, dayLabel, relTime } = LP;
+  const abs = (href) => LP.abs(href, BASE);
 
   /* fag og farver */
   const SUBJECTS = {

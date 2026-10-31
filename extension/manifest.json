@@ -4,9 +4,9 @@
   "version": "1.7.1",
   "description": "Et roligere og mere overskueligt Lectio: overblik, nyt ugeskema, mørk tilstand og hurtig søgning (Ctrl+K).",
   "icons": {
-    "128": "icon128.png",
+    "16": "icon16.png",
     "48": "icon48.png",
-    "16": "icon16.png"
+    "128": "icon128.png"
   },
   "action": {
     "default_popup": "popup.html",
@@ -33,6 +33,7 @@
         "https://www.lectio.dk/lectio/*"
       ],
       "js": [
+        "src/lib/core.js",
         "content.js"
       ],
       "run_at": "document_end"

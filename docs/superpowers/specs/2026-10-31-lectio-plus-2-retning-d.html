@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lectio+ 2.0, retning D</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Retning D fra brainstormen 2026-10-31: "Lectio, gjort ordentligt". Miniature, ikke endelige størrelser. */
+  body { margin: 0; padding: 32px; background: #e9ecf0; font-family: system-ui, sans-serif; }
+  .note { max-width: 560px; margin: 0 0 16px; color: #444; font-size: 14px; line-height: 1.5; }
+  .mk { width: 560px; height: 410px; overflow: hidden; position: relative; font-size: 12px; line-height: 1.35; border: 1px solid #c9d0d8; }
+  .mk * { box-sizing: border-box; margin: 0; padding: 0; }
+  .d4 { --blue: #1b5ea8; --ink: #1d2733; --mut: #66717f; --rule: #e1e6ec; --red: #c42b1c; --amber: #a35a00;
+    background: #f3f5f8; color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; }
+  .d4-bar { display: flex; align-items: center; gap: 10px; background: var(--blue); color: #fff; padding: 8px 14px; font-size: 12px; }
+  .d4-bar b { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+  .d4-bar b sup { font-size: 10px; color: #a9cdf5; }
+  .d4-bar span { margin-left: auto; opacity: .85; }
+  .d4-bar kbd { font: 500 10px "IBM Plex Mono", monospace; background: rgba(255, 255, 255, .15); border-radius: 3px; padding: 1px 5px; }
+  .d4-tabs { display: flex; gap: 2px; background: #fff; border-bottom: 1px solid var(--rule); padding: 0 10px; font-size: 12px; }
+  .d4-tabs a { padding: 8px 8px 7px; color: var(--mut); border-bottom: 2px solid transparent; }
+  .d4-tabs a.on { color: var(--ink); font-weight: 600; border-color: var(--blue); }
+  .d4-tabs i { font-style: normal; background: var(--blue); color: #fff; border-radius: 3px; font-size: 10px; padding: 0 4px; margin-left: 3px; }
+  .d4-body { padding: 10px 14px; }
+  .d4-now { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .d4-now div { background: #fff; border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; }
+  .d4-now small { font-size: 10.5px; color: var(--mut); text-transform: uppercase; letter-spacing: .06em; }
+  .d4-now strong { display: block; font-size: 18px; font-weight: 600; letter-spacing: -.01em; }
+  .d4-now span { font: 400 11px "IBM Plex Mono", monospace; color: var(--mut); }
+  .d4-now .live { border-left: 3px solid var(--blue); }
+  .d4-now em { display: block; height: 3px; background: var(--rule); margin-top: 6px; }
+  .d4-now em i { display: block; height: 100%; width: 47%; background: var(--blue); }
+  .d4-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 8px; margin-top: 8px; }
+  .d4 section { background: #fff; border: 1px solid var(--rule); border-radius: 4px; }
+  .d4 section h4 { font-size: 11.5px; font-weight: 600; padding: 6px 10px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; }
+  .d4 section h4 a { color: var(--blue); font-weight: 500; }
+  .d4 table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  .d4 td { padding: 5px 10px; border-top: 1px solid var(--rule); white-space: nowrap; }
+  .d4 tr:first-child td { border-top: 0; }
+  .d4 td.t { font-family: "IBM Plex Mono", monospace; color: var(--mut); width: 1%; }
+  .d4 td.r { color: var(--mut); text-align: right; }
+  .d4 tr.past td { color: #a3abb5; }
+  .d4 tr.live td { background: #eef4fb; font-weight: 600; }
+  .d4 tr.chg td.r { color: var(--amber); font-weight: 600; }
+  .d4 .side { display: grid; gap: 8px; align-content: start; }
+  .d4 .hw td { white-space: normal; }
+  .d4 .hw b { font-weight: 600; margin-right: 4px; }
+  .d4 .st { font-size: 10px; font-weight: 600; border-radius: 3px; padding: 1px 5px; }
+  .d4 .st.red { background: #fbe9e7; color: var(--red); }
+  .d4 .st.amb { background: #fdf1e1; color: var(--amber); }
+</style>
+</head>
+<body>
+<p class="note">Retning D, valgt i brainstormen 31. oktober 2026. Det er en miniature, der viser stemningen: Lectios faner foroven, tæt og stramt, tider på lige linje, firkantede statusmærker og én blå farve. Størrelserne er ikke endelige.</p>
+<div class="mk d4">
+  <div class="d4-bar"><b>Lectio<sup>+</sup></b><span>Freja Holm, 2.b</span><kbd>Ctrl K</kbd></div>
+  <nav class="d4-tabs"><a class="on">Forside</a><a>Skema</a><a>Lektier</a><a>Opgaver</a><a>Beskeder<i>2</i></a><a>Fravær</a><a>Karakterer</a></nav>
+  <div class="d4-body">
+    <div class="d4-now">
+      <div class="live"><small>Nu · til 11:35</small><strong>Fysik, 2.14</strong><span>10:05-11:35 · ML</span><em><i></i></em></div>
+      <div><small>Næste · om 1 t 23 min</small><strong>Dansk, 1.07</strong><span>12:10-13:40 · AN</span></div>
+    </div>
+    <div class="d4-grid">
+      <section><h4>Mandag 2/11 <a>Hele ugen</a></h4>
+        <table>
+          <tr class="past"><td class="t">08:15</td><td>Matematik</td><td class="r">2.03</td></tr>
+          <tr class="live"><td class="t">10:05</td><td>Fysik</td><td class="r">2.14</td></tr>
+          <tr><td class="t">12:10</td><td>Dansk</td><td class="r">1.07</td></tr>
+          <tr class="chg"><td class="t">13:55</td><td>Historie</td><td class="r">3.01, ændret</td></tr>
+        </table>
+      </section>
+      <div class="side">
+        <section><h4>Lektier til tirsdag <a>Alle</a></h4>
+          <table class="hw"><tr><td><b>Engelsk</b>Read "The Lottery", s. 12-24</td></tr><tr><td><b>Matematik</b>Opg. 4.12-4.18</td></tr></table>
+        </section>
+        <section><h4>Opgaver <a>Alle</a></h4>
+          <table><tr><td>Kronikanalyse</td><td class="r"><span class="st red">Mangler</span></td></tr><tr><td>Rapport: frit fald</td><td class="r"><span class="st amb">fre 23:59</span></td></tr></table>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
