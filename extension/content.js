@@ -14,7 +14,7 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
   // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
   const LP = globalThis.LP;
-  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix'].every((k) => LP[k])) {
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows'].every((k) => LP[k])) {
     document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
     return;
   }
@@ -1411,7 +1411,7 @@
           const sig = (t ? t.textContent.length + ':' + t.rows.length : '') + (document.querySelector('.selectedFolder')?.textContent || '');
           if (sig !== lectioSig) { lectioSig = sig; lectioChange(); }
         }
-        idle(() => nodes.forEach((n) => { if (n.isConnected) darkFix(n); }), 500);
+        idle(() => nodes.forEach((n) => { if (n.isConnected) { darkFix(n); LP.markEmptyRows(n); } }), 500);
       }, 120);
     }).observe(target, { childList: true, subtree: true });
   }
@@ -1486,7 +1486,7 @@
     shell.setHold(cache.front?.d?.hold || []);
     updateBadges();
     tidyLectioPage();
-    if (!takeover) darkFix();
+    if (!takeover) { darkFix(); LP.markEmptyRows(document.querySelector('.outerContentFrame')); }
     watchPage();
     html.classList.remove('lp-boot');
 

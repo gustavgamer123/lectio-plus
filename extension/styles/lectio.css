@@ -34,26 +34,12 @@ html.lp-on .ls-subnav-container a, html.lp-on .ls-subnav1 a {
 html.lp-on .ls-subnav-container a:hover { color: var(--ink) !important; background: var(--sunk) !important; }
 html.lp-on .ls-subnav-container a[class*="active"], html.lp-on .ls-subnav-container a[aria-current] { color: var(--accent) !important; box-shadow: inset 0 -2px 0 var(--accent); border-radius: 0 !important; }
 html.lp-on a { color: var(--accent); }
-html.lp-on .lf-grid, html.lp-on .ls-table-layout1, html.lp-on .ls-table-layout2, html.lp-on .ls-table-layout5 {
-  background: var(--surface) !important; color: var(--ink) !important; border: 0 !important; border-collapse: collapse !important;
-}
-html.lp-on .lf-grid tr, html.lp-on .ls-table-layout2 tr, html.lp-on .ls-table-layout5 tr { background: transparent !important; }
-html.lp-on .lf-grid th, html.lp-on .ls-table-layout2 th, html.lp-on .ls-table-layout5 th, html.lp-on .ls-table-layout1 th {
-  background: var(--surface) !important; color: var(--ink-2) !important; font-weight: 600 !important; font-size: 13px !important;
-  border: 0 !important; border-bottom: 1px solid var(--rule) !important; padding: 10px 12px !important; text-align: left;
-}
-html.lp-on .lf-grid td, html.lp-on .ls-table-layout2 td, html.lp-on .ls-table-layout5 td, html.lp-on .ls-table-layout1 td {
-  border: 0 !important; border-bottom: 1px solid var(--rule) !important; padding: 10px 12px !important;
-  background: transparent !important; color: inherit !important; vertical-align: top;
-}
-html.lp-on .lf-grid tr:hover td { background: var(--sunk) !important; }
 html.lp-on[data-lp-theme="dark"] .outerContentFrame :is(td, th, span, div, p, label, h1, h2, h3, h4, li, b, strong) { color: var(--ink); }
 html.lp-on[data-lp-theme="dark"] .outerContentFrame :is(div, section, td, span, table)[style*="background"] { background-color: transparent !important; }
 html.lp-on[data-lp-theme="dark"] .lp-dk-bg { background-color: var(--sunk) !important; background-image: none !important; border-color: var(--rule) !important; }
 html.lp-on[data-lp-theme="dark"] .lp-dk-fg { color: var(--ink) !important; }
 html.lp-on[data-lp-theme="dark"] .lp-dk-link { color: var(--accent) !important; }
 html.lp-on[data-lp-theme="dark"] .outerContentFrame img:not([src*=".svg"]):not([class*="icon"]) { opacity: .9; }
-html.lp-on[data-lp-theme="dark"] .s2skema, html.lp-on[data-lp-theme="dark"] .s2skema td { background-color: var(--surface) !important; border-color: var(--rule) !important; }
 
 /* tabeller i kasser (fra 1.x, skrives om i plan 2 task 5) */
 html.lp-on section.lf-island .islandContent table :is(td, th):first-child { padding-left: 0 !important; }
@@ -161,3 +147,41 @@ html.lp-on .outerContentFrame :is(input, select, textarea):disabled { opacity: .
 /* tom tekst og Lectios fremhævning */
 html.lp-on .outerContentFrame :is(.noRecord, .noRecordItalic) { color: var(--ink-2) !important; font-style: normal !important; }
 html.lp-on .outerContentFrame .attention { color: var(--danger) !important; }
+
+/* ---------- tabeller ---------- */
+/* Tætte tabeller: vandrette streger på 1 px, grå tabelhoveder, ingen lodrette streger, ingen stiplede kanter og ingen tomme mellemrækker. */
+html.lp-on .outerContentFrame :is(.ls-table-layout1, .ls-table-layout2, .ls-table-layout5, .lf-grid, .ls-std-table-inputlist, table.s2skema) {
+  border-collapse: collapse !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; color: var(--ink) !important;
+}
+html.lp-on .outerContentFrame :is(.ls-table-layout1, .ls-table-layout2, .ls-table-layout5, .lf-grid, .ls-std-table-inputlist, table.s2skema) tr { background: transparent !important; }
+html.lp-on .outerContentFrame :is(.ls-table-layout1, .ls-table-layout2, .ls-table-layout5, .lf-grid, .ls-std-table-inputlist, table.s2skema) :is(td, th) {
+  padding: 6px 10px !important; border: 0 !important; border-bottom: 1px solid var(--rule) !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important; font-family: var(--font) !important;
+}
+html.lp-on .outerContentFrame :is(.ls-table-layout1, .ls-table-layout2, .ls-table-layout5, .lf-grid, .ls-std-table-inputlist) td { color: inherit !important; vertical-align: top; font-size: 13.5px; }
+html.lp-on .outerContentFrame :is(.ls-table-layout1, .ls-table-layout2, .ls-table-layout5, .lf-grid, .ls-std-table-inputlist) th,
+html.lp-on .outerContentFrame :is(.ls-table-layout1, .ls-table-layout2, .ls-table-layout5, .lf-grid, .ls-std-table-inputlist) th :is(a, span) {
+  font-size: 12.5px !important; font-weight: 600 !important; color: var(--ink-2) !important; text-decoration: none !important; vertical-align: bottom;
+}
+html.lp-on .outerContentFrame .lf-grid tr:hover > td { background: var(--sunk) !important; }
+html.lp-on .outerContentFrame tr.lp-empty-row { display: none !important; }
+
+/* skematabellerne i Dags- og Ugeændringer */
+html.lp-on .outerContentFrame table.s2skema { width: 100% !important; }
+html.lp-on .outerContentFrame table.s2skema tr.s2weekHeader > td { text-align: left !important; font-size: 14.5px !important; font-weight: 600 !important; color: var(--ink) !important; padding: 2px 10px 8px !important; }
+html.lp-on .outerContentFrame table.s2skema tr.s2dayHeader > td { font-size: 12.5px !important; font-weight: 600 !important; color: var(--ink-2) !important; }
+html.lp-on .outerContentFrame table.s2skema td.s2module-info { font-size: 12px !important; color: var(--ink-2) !important; white-space: nowrap; }
+html.lp-on .outerContentFrame table.s2skema a.s2skemabrik {
+  display: block; padding: 3px 8px !important; margin: 1px 0 !important; border: 0 !important; border-left: 3px solid var(--rule) !important; border-radius: 0 !important;
+  background: transparent !important; box-shadow: none !important; text-decoration: none !important;
+}
+html.lp-on .outerContentFrame table.s2skema a.s2skemabrik, html.lp-on .outerContentFrame table.s2skema a.s2skemabrik * {
+  color: var(--ink) !important; font-style: normal !important; background: transparent !important; font-family: var(--font) !important;
+}
+html.lp-on .outerContentFrame table.s2skema a.s2skemabrik.s2changed { border-left-color: var(--warn) !important; }
+html.lp-on .outerContentFrame table.s2skema a.s2skemabrik.s2cancelled { border-left-color: var(--danger) !important; }
+html.lp-on .outerContentFrame table.s2skema a.s2skemabrik.s2cancelled * { text-decoration: line-through; text-decoration-color: var(--danger); }
+
+/* Månedskalenderen */
+html.lp-on .outerContentFrame table.s2-mskema { width: 100% !important; }
+html.lp-on .outerContentFrame table.s2-mskema caption { text-align: left !important; font: 600 15px var(--font) !important; color: var(--ink) !important; padding: 0 0 6px !important; }
