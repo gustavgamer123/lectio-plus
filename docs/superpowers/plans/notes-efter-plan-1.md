@@ -158,3 +158,15 @@ Gennemgang af de 60 skærmbilleder i `shots/` (30 sider, 1280 px, lyst og mørkt
 4. **Hårde farver i mørkt tema.** Fluebenet i afkrydsningsfelter kan ikke ses, kanter og skillelinjer er lyse eller hvide (Hjælp, Undervisningsbeskrivelse, Dokumenter), og knaptekst er usynlig (Beskeder) eller næsten usynlig (deaktiverede knapper). Afkrydsningsfelter, kanter og knaptilstande skal gå gennem tokens i begge temaer.
 5. **Lectios tabeller er ikke gjort ensartede.** Skematabellerne (Dags- og Ugeændringer) har fuldt gitter, grøn kursiv, creme baggrund, tomme mellemrækker og centrerede billedtekster. Andre tabeller har høje rækker (43-55 px), blandede blå og grå tabelhoveder, tomme mellemrækker og stiplede kanter. Én fælles tabelregel skal give vandrette linjer på 1 px, grå tabelhoveder, rækker på ca. 32 px og ingen tomme rækker eller stiplede kanter.
 6. **Lectios gamle typografi og indhold i kanterne.** Det gælder centrerede sider- og månedstitler i tynd skrift, mappe-bitmaps, kolonnelister hvor hvert punkt er en boks, og skolens egen HTML i Verdana. Overskrifter skal følge sidehovedets skala, og Lectios ikoner og indlejret indhold skal tæmmes (skrift, farve og flade).
+
+## Mindre fund fra gennemgangen af plan 1
+
+Fundet af den afsluttende reviewer og udskudt til plan 2:
+- Mere-menuen lukker ikke, når fokus tabbes ud af den. Tilføj `focusout` på `.lp-more-wrap`.
+- Kontakt-siden vises som "Hovedmenu" på Mere-knappen. `activeKey` finder `default.aspx` uden query før `default.aspx?menu=kontakt`. Fejlen fandtes i 1.x.
+- Temaknappen viser altid månen. Vis solen i mørkt tema (`ICONS.sun` findes).
+- Mere-menuens bredde bruger `100vw` og kan gå ind under den lodrette rullebjælke under ca. 944 px. Brug `left`/`right` + `max-width`.
+- Fanerækkens rullebjælke er skjult. Under ca. 700 px kan musebrugere ikke nå de skjulte faner.
+- Tre ting hedder "shell": `#lp-shell`, `#lp-shell-head` og `html.lp-shell`. Omdøb de to gamle.
+- `#lp-colors` (z-index 60) kan ligge under skallen, når siden er rullet.
+- Regel fremover: alt med `position: sticky` eller `fixed` og en `top` skal lægge `var(--shell-h)` til. `test/css-rules.test.js` tjekker det for sticky.
