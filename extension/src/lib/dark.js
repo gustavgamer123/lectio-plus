@@ -30,7 +30,8 @@
     if (!root || root.nodeType !== 1 || root.closest(LP.OWN_UI)) return;
     const win = doc.defaultView;
     for (const el of [root, ...root.getElementsByTagName('*')]) {
-      if (el.closest(LP.OWN_UI)) continue;
+      // Lectios knapper får deres farver fra lectio.css; ikoner i dem må ikke farves om.
+      if (el.closest(LP.OWN_UI) || el.closest('[data-role="button"]')) continue;
       const cs = win.getComputedStyle(el);
       if (cs.display === 'none') continue;
       const b = LP.lum(cs.backgroundColor);

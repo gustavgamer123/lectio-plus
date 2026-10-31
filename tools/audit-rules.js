@@ -77,6 +77,8 @@
     }
     return { r: 255, g: 255, b: 255, a: 1 };
   };
+  // Samlet opacity op gennem forældrene; den dæmper teksten ligesom en gennemsigtig farve.
+  const opacityOf = (el, win) => { let o = 1; for (let e = el; e && e.nodeType === 1; e = e.parentElement) o *= parseFloat(win.getComputedStyle(e).opacity) || 0; return o; };
   const scrollsX = (el, stop, win) => {
     for (let e = el.parentElement; e && e !== stop; e = e.parentElement) {
       if (/auto|scroll/.test(win.getComputedStyle(e).overflowX)) return true;
@@ -121,7 +123,7 @@
           const bold = (parseInt(cs.fontWeight, 10) || 400) >= 700;
           const off = !!el.closest('[disabled], [aria-disabled="true"], .disabled, .aspNetDisabled');
           const min = size >= 24 || (size >= 18.66 && bold) || off ? 3 : 4.5;
-          const c = A.contrast(blend(fg, bg), bg);
+          const c = A.contrast(blend({ ...fg, a: fg.a * opacityOf(el, win) }, bg), bg);
           if (c < min) add('kontrast', el, c.toFixed(2));
         }
       }

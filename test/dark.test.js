@@ -22,3 +22,9 @@ test('darkFix gør intet i lyst tema', () => {
   win.LP.darkFix(win.document.getElementById('masterContent'), win.document);
   assert.ok(!win.document.getElementById('hvid').classList.contains('lp-dk-bg'));
 });
+test('darkFix farver ikke ikoner inde i Lectios knapper om', () => {
+  const html = page.replace('<div id="bund"', '<div class="buttonfilled"><a data-role="button" style="color: rgb(15, 19, 24)"><span id="ikon" style="color: rgb(15, 19, 24)">qr</span></a></div><div id="bund"');
+  const win = loadExt(['src/lib/core.js', 'src/lib/dark.js'], { html });
+  win.LP.darkFix(win.document.getElementById('masterContent'), win.document);
+  assert.ok(!win.document.getElementById('ikon').className.includes('lp-dk'), win.document.getElementById('ikon').className);
+});

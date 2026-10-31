@@ -23,3 +23,12 @@ test('startdækket har samme farver som skallen: blå bjælke og hvid fanerække
   assert.match(boot.body, /var\(--bar\)/);
   assert.match(boot.body, /var\(--surface\)/);
 });
+
+test('undtagelser for vores egne flader i lectio.css har ingen specificitet og dækker opgave- og lektionssiden', () => {
+  const css = read('styles/lectio.css');
+  const bare = [...css.matchAll(/:not\(:is\(#/g)].filter((m) => css.slice(Math.max(0, m.index - 7), m.index) !== ':where(');
+  assert.equal(bare.length, 0, 'en :not(:is(#...)) uden :where( giver ID-specificitet');
+  const lists = [...css.matchAll(/:where\(:not\(:is\(([^)]*)\)/g)].map((m) => m[1]);
+  assert.ok(lists.length >= 3, `kun ${lists.length} undtagelseslister`);
+  for (const l of lists) for (const id of ['#lp-pagehead', '#lp-app', '#lp-drawer', '#lp-afl', '#lp-act-hero', '.lp-afl', '.lp-act-cardhead']) assert.ok(l.includes(id), `${id} mangler i: ${l}`);
+});

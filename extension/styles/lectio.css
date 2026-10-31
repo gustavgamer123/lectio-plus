@@ -121,7 +121,11 @@ html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledt
 html.lp-on .outerContentFrame input:is([type="submit"], [type="button"]):focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 2px; }
 html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon):is(.disabled, [aria-disabled="true"]) > :is(a, button),
 html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon) > :is(a, button):is([disabled], [aria-disabled="true"], .disabled, .aspNetDisabled),
-html.lp-on .outerContentFrame input:is([type="submit"], [type="button"])[disabled] { opacity: .55; filter: none; pointer-events: none; }
+html.lp-on .outerContentFrame input:is([type="submit"], [type="button"])[disabled] { color: var(--ink-3) !important; filter: none; pointer-events: none; }
+/* fyldte knapper uden for brug: grå flade i stedet for opacity, så teksten holder 3:1 */
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonfilledtonal):is(.disabled, [aria-disabled="true"]) > :is(a, button),
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonfilledtonal) > :is(a, button):is([disabled], [aria-disabled="true"], .disabled, .aspNetDisabled),
+html.lp-on .outerContentFrame input:is([type="submit"], [type="button"])[disabled] { background: var(--sunk) !important; border-color: var(--rule) !important; }
 
 /* Valgfag: Lectios flydende handlingsbjælke bliver en fast, uigennemsigtig bund */
 html.lp-on #fixedBlock > .ls-std-rowblock {
@@ -130,18 +134,21 @@ html.lp-on #fixedBlock > .ls-std-rowblock {
 }
 
 /* ---------- links og Lectios egen blå ---------- */
-html.lp-on .outerContentFrame a:not([data-role="button"]):where(:not(:is(#lp-pagehead, #lp-app, #lp-drawer, #lp-colors) a)) { color: var(--accent) !important; }
+html.lp-on .outerContentFrame a:not([data-role="button"]):where(:not(:is(#lp-pagehead, #lp-app, #lp-drawer, #lp-colors, #lp-afl, #lp-act-hero, .lp-afl, .lp-act-cardhead) *)) { color: var(--accent) !important; }
 html.lp-on .outerContentFrame li::marker { color: var(--accent); }
 html.lp-on .outerContentFrame :is(.infoText, .infoTextItalic) { color: var(--ink-2) !important; font-style: normal !important; }
 
 /* ---------- formularer ---------- */
 /* De indbyggede afkrydsningsfelter og radioknapper tegnes i accentfarven; color-scheme (styles.css) giver synlige flueben i mørkt tema. */
 html.lp-on { accent-color: var(--accent); }
-html.lp-on .outerContentFrame :is(input:is([type="text"], [type="search"], [type="password"], [type="email"], [type="tel"], [type="number"], [type="date"], :not([type])), select, textarea):not(:is(#lp-pagehead, #lp-app, #lp-drawer) *) {
+html.lp-on .outerContentFrame :is(input:is([type="text"], [type="search"], [type="password"], [type="email"], [type="tel"], [type="number"], [type="date"], :not([type])), select, textarea):where(:not(:is(#lp-pagehead, #lp-app, #lp-drawer, #lp-colors, #lp-afl, #lp-act-hero, .lp-afl, .lp-act-cardhead) *)) {
   min-height: 32px; padding: 4px 8px !important; border: 1px solid var(--rule) !important; border-radius: var(--radius-sm) !important;
   background: var(--surface) !important; color: var(--ink) !important; font: 400 13.5px/1.3 var(--font) !important; box-shadow: none !important;
 }
-html.lp-on .outerContentFrame textarea { min-height: 64px; }
+/* tekstfelter skal være til at skrive i; Beskeder og afleveringssiden har deres egne højder (styles.css), som skal vinde over feltreglen ovenfor */
+html.lp-on .outerContentFrame textarea { min-height: 96px !important; line-height: 1.5 !important; }
+html.lp-on.lp-msgpage .outerContentFrame textarea { min-height: 130px !important; font-size: 15px !important; }
+html.lp-on.lp-aflpage .outerContentFrame .lp-afl-entries textarea { min-height: 110px !important; }
 html.lp-on .outerContentFrame :is(input, select, textarea):focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 1px; border-color: var(--accent) !important; }
 html.lp-on .outerContentFrame :is(input, select, textarea):disabled { opacity: .6; }
 /* tom tekst og Lectios fremhævning */
@@ -199,7 +206,7 @@ html.lp-on .outerContentFrame table.forsideTabel a :is(b, i) { color: inherit !i
 html.lp-on .outerContentFrame table.forsideTabel a i { color: var(--ink-2) !important; font-style: normal !important; font-size: 12.5px; }
 
 /* Lectios egne overskrifter inde i indholdet følger sidehovedets skala */
-html.lp-on .outerContentFrame :is(h1, h2, h3, h4):not(:is(#lp-pagehead, #lp-app, #lp-drawer, #lp-colors) *):not(.islandHeader *) {
+html.lp-on .outerContentFrame :is(h1, h2, h3, h4):where(:not(:is(#lp-pagehead, #lp-app, #lp-drawer, #lp-colors, #lp-afl, #lp-act-hero, .lp-afl, .lp-act-cardhead) *)):not(.islandHeader *) {
   font-family: var(--font) !important; font-size: 15px !important; font-weight: 600 !important; letter-spacing: 0 !important; line-height: 1.3 !important;
   color: var(--ink) !important; text-align: left !important; justify-self: start !important; margin: 4px 0 8px !important;
 }
@@ -250,3 +257,6 @@ html.lp-on .outerContentFrame :is(.ls-table-layout1, .ls-table-layout2, .ls-tabl
 html.lp-on .outerContentFrame table.s2skema a.s2skemabrik { width: auto !important; }
 /* Valgfag: den faste bjælke i bunden må ikke dække de sidste rækker */
 html.lp-on .ls-content:has(#fixedBlock) { padding-bottom: 72px !important; }
+/* Lectio dæmper selv knapper uden for brug med opacity; det overtager farverne ovenfor, så teksten holder mindst 3:1 */
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon):is(.disabled, [aria-disabled="true"], :has(> :is(a, button):is([disabled], [aria-disabled="true"], .disabled, .aspNetDisabled))),
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon) > :is(a, button):is([disabled], [aria-disabled="true"], .disabled, .aspNetDisabled) { opacity: 1 !important; }
