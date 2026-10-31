@@ -1,0 +1,48 @@
+
+side                                              rund  skrift    blaakontrast     lys   tabel    knapoverloeb
+DokumentOversigt.aspx light                         12       .       3       1       .       1       .       .
+DokumentOversigt.aspx dark                          12       .       3       1       6       1       .       .
+SkemaDagsaendringer.aspx light                       5       .       .       .       .       .       .       .
+SkemaDagsaendringer.aspx dark                        5       .       .       .       6       .       .       .
+SkemaUgeaendringer.aspx light                        5       .       .       2       .       .       .       .
+SkemaUgeaendringer.aspx dark                         5       .       .       2       7       .       .       .
+kalender.aspx light                                 13       .       .       3       .      10       .       .
+kalender.aspx dark                                  13       .       .       3      14      10       .       .
+FindSkema.aspx_type_laerer light                     1       .       .       .       .       .       .       .
+FindSkema.aspx_type_laerer dark                      1       .       .       .       2       .       .       .
+studieplan_undervisningsbeskrivelse.as light         9       .       .       .       .       6       .       .
+studieplan_undervisningsbeskrivelse.as dark          9       .       .       .      11       6       .       .
+teacherstudybook.aspx_type_contactbook light         3       .       .       1       .       1       .       .
+teacherstudybook.aspx_type_contactbook dark          3       .       .       1       4       1       .       .
+studieretningElevValg.aspx light                     6      42       1      34       .       .       .       .
+studieretningElevValg.aspx dark                      6      42       1      34      10       .       .       .
+studieretningValgfag.aspx light                     27      25       7       1       .      33       1       .
+studieretningValgfag.aspx dark                      27      25       7       1      56      33       1       .
+fagvalg_fagvalgoversigt.aspx light                   3       .       .       1       .       1       .       .
+fagvalg_fagvalgoversigt.aspx dark                    3       .       .       1       3       1       .       .
+grades_grade_karakterblad.aspx light                 2       .       .       2       .       7       .       .
+grades_grade_karakterblad.aspx dark                  2       .       .       2      13       7       .       .
+subnav_fravaerelev_fravaersaarsager.as light        26       .       .       5       .      10       .       .
+subnav_fravaerelev_fravaersaarsager.as dark         26       .       .       5      16      10       .       .
+BD_UserReservations.aspx light                       5       .       .       .       .       3       .       .
+BD_UserReservations.aspx dark                        5       .       .       .       5       3       .       .
+spoergeskema_spoergeskema_rapport.aspx light         7       .       1       1       .       2       .       .
+spoergeskema_spoergeskema_rapport.aspx dark          7       .       1       1       5       2       .       .
+Elev_SPS.aspx light                                  9       .       .       2       .       2       .       .
+Elev_SPS.aspx dark                                   9       .       .       2       5       2       .       .
+digitaltStudiekort.aspx light                        2       .       1       .       .       .       .       .
+digitaltStudiekort.aspx dark                         2       .       1       .       1       .       .       .
+indstillinger_studentIndstillinger.asp light        11       .       4       .       .       .       .       .
+indstillinger_studentIndstillinger.asp dark         11       .       4       .      15       .       .       .
+MinButik.aspx light                                  4       .       .       1       .       1       .       .
+MinButik.aspx dark                                   4       .       .       1       3       1       .       .
+indstillinger_AdgangIndstillinger.aspx light         7       .       .       .       .       4       .       .
+indstillinger_AdgangIndstillinger.aspx dark          7       .       .       .       7       4       .       .
+default.aspx light                                   1       .       .       .       .       .       .       .
+default.aspx dark                                    1       .       .       .       1       .       .       .
+default.aspx_menu_kontakt light                      1       .       .       .       .       .       .       .
+default.aspx_menu_kontakt dark                       1       .       .       .       1       .       .       .
+help_mainhelp.aspx light                             2       .       .       .       .       .       .       .
+help_mainhelp.aspx dark                              2       .       .       .       2       .       .       .
+
+955 brud (unikke selectors) ved 1280 px. Detaljer: shots/audit-1280.json

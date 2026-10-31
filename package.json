@@ -6,7 +6,8 @@
     "test": "node --test \"test/**/*.test.js\"",
     "dev": "node tools/dev-browser.mjs",
     "capture": "node tools/capture.mjs",
-    "shot": "node tools/shot.mjs"
+    "shot": "node tools/shot.mjs",
+    "audit": "node tools/audit.mjs"
   },
   "devDependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
