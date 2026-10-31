@@ -613,7 +613,7 @@ html.lp-on a.TreeNode.selectedFolder { background: var(--accent-soft) !important
 html.lp-on .TreeNode-icon { filter: grayscale(1); opacity: .55; width: 16px; height: auto; }
 html.lp-on .TreeNode-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 html.lp-on .ls-lectiofilepicker-container { display: flex !important; gap: 20px; align-items: flex-start; }
-html.lp-on .lectiofilepicker-foldertree-col { flex: 0 0 240px; width: 240px !important; position: sticky; top: 16px; background: transparent !important; border: 0 !important; }
+html.lp-on .lectiofilepicker-foldertree-col { flex: 0 0 240px; width: 240px !important; position: sticky; top: calc(var(--shell-h) + 16px); background: transparent !important; border: 0 !important; }
 html.lp-on .lectiofilepicker-foldercontent-col { flex: 1 1 auto; min-width: 0; width: auto !important; background: var(--surface) !important; border: 1px solid var(--rule) !important; border-radius: 14px; padding: 16px 20px !important; }
 
 /* dialoger */
@@ -953,7 +953,7 @@ html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :last-child {
 
 /* skrivetilstand: Lectios værktøjslinje bliver en rolig bar der følger med ned */
 html.lp-fbedit [id$="tocAndToolbar_toolbaroutercontainer"] {
-  display: block !important; position: sticky !important; top: 10px; z-index: 30; margin: 0 0 12px !important; padding: 0 !important;
+  display: block !important; position: sticky !important; top: calc(var(--shell-h) + 10px); z-index: 30; margin: 0 0 12px !important; padding: 0 !important;
   background: transparent !important; border: 0 !important; width: auto !important; max-width: none !important; height: auto !important;
 }
 html.lp-fbpage .ls-texteditor-toolbarContainer, html.lp-fbpage [id$="tocAndToolbar_toolbarcontent"] { padding: 0 !important; margin: 0 !important; background: transparent !important; border: 0 !important; width: auto !important; max-width: none !important; }

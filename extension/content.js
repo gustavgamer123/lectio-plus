@@ -12,6 +12,12 @@
   const PAGE = location.pathname.slice(BASE.length).toLowerCase();
   const logoutLink = document.querySelector('a[href*="logout.aspx"]');
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
+  // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
+  const LP = globalThis.LP;
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell'].every((k) => LP[k])) {
+    document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
+    return;
+  }
 
   /* ---------------- indstillinger ---------------- */
   const DEFAULTS = { enabled: true, theme: 'auto', dashboard: true, skema: true, views: true, hideDone: false, colors: {} };
