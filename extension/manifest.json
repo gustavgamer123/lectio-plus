@@ -27,6 +27,7 @@
         "styles/tokens.css",
         "styles.css",
         "styles/lectio.css",
+        "styles/views.css",
         "styles/shell.css"
       ],
       "run_at": "document_start"

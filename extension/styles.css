@@ -26,7 +26,6 @@ html.lp-on .lp-row-done td { color: var(--ink-3) !important; }
 #lp-shell svg, #lp-app svg, #lp-palette svg, #lp-modal svg { width: 18px; height: 18px; flex: none; }
 #lp-app :focus-visible, #lp-modal :focus-visible, #lp-palette :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .lp-muted { color: var(--ink-2); }
-.lp-sd { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--h, 200) 55% var(--dot-l)); margin-right: 8px; flex: none; vertical-align: 1px; }
 
 .lp-icon-btn {
   display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 7px; border: 0; background: transparent;
@@ -36,9 +35,6 @@ html.lp-on .lp-row-done td { color: var(--ink-3) !important; }
 
 /* ---------- overblik ---------- */
 html.lp-takeover #s_m_outerContentFrameDiv, html.lp-takeover .ls-master-footer, html.lp-takeover #s_m_masterfooter { display: none !important; }
-#lp-app { padding: 36px 40px 64px; max-width: 1180px; font-size: 15px; }
-#lp-app h1 { font-size: 32px; font-weight: 700; letter-spacing: -.025em; line-height: 1.15; margin: 2px 0 0; }
-#lp-app p { margin: 0; }
 .lp-date { color: var(--ink-2); font-size: 15px; }
 
 .lp-top { margin-bottom: 28px; }
@@ -252,14 +248,6 @@ html.lp-takeover #s_m_outerContentFrameDiv, html.lp-takeover .ls-master-footer, 
 
 /* ---------- egne visninger ---------- */
 html.lp-on, html.lp-on body { overflow-x: hidden; }
-.lp-sheet { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 6px 24px 18px; }
-.lp-group { padding-top: 18px; }
-.lp-group[hidden] { display: none; }
-.lp-group + .lp-group { border-top: 1px solid var(--rule); margin-top: 6px; }
-.lp-group h2 { margin: 0 0 8px; font-size: 17px; font-weight: 700; display: flex; align-items: baseline; gap: 8px; }
-.lp-group h2 span { font-size: 14px; font-weight: 500; color: var(--ink-3); }
-.lp-group h2 small { font-size: 14px; font-weight: 400; color: var(--ink-3); }
-.lp-group.is-late h2 { color: var(--danger); }
 .lp-done summary { list-style: none; cursor: pointer; }
 .lp-done summary::-webkit-details-marker { display: none; }
 .lp-done summary h2::after { content: "vis"; font-size: 13.5px; font-weight: 500; color: var(--accent); margin-left: 4px; }
@@ -305,12 +293,6 @@ html.lp-on, html.lp-on body { overflow-x: hidden; }
 .lp-hw-item.is-done .lp-hw-body { opacity: .45; }
 .lp-hw-item.is-done .lp-hw-top strong { text-decoration: line-through; }
 
-.lp-bignums { display: flex; gap: 48px; flex-wrap: wrap; margin-bottom: 20px; }
-.lp-bignums > div { display: flex; flex-direction: column; }
-.lp-bignums b { font-size: 34px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: normal; line-height: 1.15; }
-.lp-bignums span { color: var(--ink-2); font-size: 14.5px; }
-.lp-bignums .is-warn b { color: var(--warn); }
-.lp-bignums .is-danger b { color: var(--danger); }
 .lp-abs-table, .lp-gr-table { display: flex; flex-direction: column; }
 .lp-abs-row { display: grid; grid-template-columns: minmax(160px, 1.4fr) 100px minmax(60px, 1fr) 100px minmax(60px, 1fr); gap: 14px; align-items: center; padding: 9px 0; border-top: 1px solid var(--rule); font-variant-numeric: normal; }
 .lp-abs-row.is-head, .lp-gr-row.is-head { border-top: 0; color: var(--ink-3); font-size: 13.5px; padding-bottom: 4px; }
@@ -475,8 +457,6 @@ html.lp-drawer-open { overflow: hidden; }
    ===================================================================== */
 html.lp-on { font-size: 14px !important; }
 html.lp-on body { line-height: 1.5; }
-html.lp-on #s_m_outerContentFrameDiv > .ls-content-container,
-html.lp-on #m_outerContentFrameDiv > .ls-content-container { max-width: 1680px; margin-inline: auto; }
 html.lp-on .outerContentFrame { padding: clamp(16px, 2vw, 36px) clamp(16px, 2.4vw, 44px) 56px !important; }
 html.lp-on .maintitle { font-size: clamp(24px, 2vw, 32px) !important; letter-spacing: -.02em; }
 
@@ -553,30 +533,16 @@ html.lp-on .message-thread-message * { background-color: transparent !important;
 /* =====================================================================
    1.5: egne flader
    ===================================================================== */
-#lp-app { max-width: 1480px; margin: 0 auto; container-type: inline-size; padding: clamp(20px, 2.4vw, 44px) clamp(16px, 2.6vw, 48px) 64px; }
-#lp-app.lp-dash, #lp-app.lp-msgview { max-width: 1960px; }
 .lp-btn-main { background: var(--ink) !important; border-color: var(--ink) !important; color: var(--surface) !important; }
 .lp-btn-main:hover { opacity: .88; background: var(--ink) !important; }
 .lp-link-btn { border: 0; background: none; padding: 0; color: var(--accent); font: 500 14px var(--font); cursor: pointer; }
 .lp-link-btn:hover { text-decoration: underline; }
 
-/* kort */
-.lp-card { background: var(--surface); border: 1px solid var(--rule); border-radius: 16px; padding: 18px 20px 16px; min-width: 0; }
-.lp-card.lp-week-card { padding: 8px 12px 8px 4px; }
-.lp-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
-.lp-card-head h2 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; min-width: 0; }
-.lp-card-head small { color: var(--ink-3); font-size: 13.5px; white-space: nowrap; }
-.lp-card-foot { display: block; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 14px; color: var(--accent) !important; text-decoration: none !important; }
-.lp-card-foot:hover { text-decoration: underline !important; }
 
 /* forside */
 .lp-dhead { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px 32px; flex-wrap: wrap; margin-bottom: 20px; }
 .lp-dhead h1 { font-size: clamp(28px, 2.4vw, 40px) !important; }
 .lp-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-.lp-pill { display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--rule); color: var(--ink) !important; text-decoration: none !important; font-size: 14px; font-weight: 500; white-space: nowrap; }
-.lp-pill:hover { background: var(--sunk); }
-.lp-pill.is-danger { color: var(--danger) !important; border-color: color-mix(in srgb, var(--danger) 45%, var(--rule)); }
-.lp-pill.is-warn { color: var(--warn) !important; border-color: color-mix(in srgb, var(--warn) 45%, var(--rule)); }
 .lp-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; margin-bottom: 20px; }
 .lp-hero .lp-skel i { height: 120px; border-radius: 16px; }
 .lp-hero-item {
@@ -720,24 +686,13 @@ html.lp-aflpage .lp-afl-students.lp-afl-redundant { display: none !important; }
 /* =====================================================================
    1.6: samme skal på alle sider
    ===================================================================== */
-html.lp-on { --page-max: 1760px; --page-pad: clamp(16px, 2.6vw, 48px); --page-top: clamp(20px, 2.4vw, 40px); }
 
-/* samme bredde og placering overalt */
-#lp-app, #lp-app.lp-dash, #lp-app.lp-msgview, #lp-app:has(.lp-spgrid) { box-sizing: border-box; max-width: var(--page-max) !important; margin: 0 auto !important; padding: var(--page-top) var(--page-pad) 64px !important; }
-html.lp-on .outerContentFrame { padding: 0 0 64px !important; }
-html.lp-on .outerContentFrame > .ls-content-container { box-sizing: border-box; width: auto !important; max-width: var(--page-max) !important; margin-inline: auto !important; padding: var(--page-top) var(--page-pad) 0 !important; }
 html.lp-has-pagehead .ls-master-pageheader { display: none !important; }
 
 /* samme sidehoved overalt */
 #lp-pagehead { font-family: var(--font); color: var(--ink); }
 #lp-pagehead .lp-btn { text-decoration: none !important; }
 
-/* kort og Lectios kasser ser ens ud */
-.lp-card, .lp-sheet { border-radius: 16px !important; border: 1px solid var(--rule) !important; background: var(--surface) !important; }
-.lp-card { padding: 18px 22px !important; }
-.lp-card.lp-week-card { padding: 8px 12px 8px 4px !important; }
-.lp-sheet { padding: 4px 22px 18px !important; }
-.lp-card-head h2, .lp-group h2 { font-size: 17px !important; font-weight: 700 !important; }
 
 
 /* detaljesider flugter med titlen */

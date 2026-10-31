@@ -1,0 +1,71 @@
+/* ============ Lectio+ 2.0: egne visninger i retning D ============ */
+/* Panelet, tags og tabellerne er de samme som på Lectios sider (lectio.css), så visningerne og Lectio ser ens ud. */
+
+/* ---------- én sideramme for de egne visninger og Lectios sider ---------- */
+html.lp-on { --page-max: 1760px; --page-pad: clamp(16px, 2.6vw, 48px); --page-top: clamp(20px, 2.4vw, 40px); }
+#lp-app { box-sizing: border-box; max-width: var(--page-max) !important; margin: 0 auto !important; padding: var(--page-top) var(--page-pad) 64px !important; font-size: 14px; line-height: 1.45; }
+#lp-app p { margin: 0; }
+html.lp-on .outerContentFrame { padding: 0 0 64px !important; }
+html.lp-on .outerContentFrame > .ls-content-container {
+  box-sizing: border-box; width: auto !important; max-width: var(--page-max) !important; margin-inline: auto !important; padding: var(--page-top) var(--page-pad) 0 !important;
+}
+/* Lectio rykker sit indhold 7 px ind; uden det står panelerne lige under titlen ligesom i de egne visninger */
+html.lp-on .outerContentFrame .ls-content { padding-inline: 0 !important; }
+
+/* ---------- panel ---------- */
+.lp-panel, #lp-app :is(.lp-card, .lp-sheet) {
+  background: var(--surface) !important; border: 1px solid var(--rule) !important; border-radius: var(--radius) !important; box-shadow: none !important; padding: 0 !important; min-width: 0;
+}
+.lp-panel-head, #lp-app .lp-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; padding: 0 14px; margin: 0 !important; border-bottom: 1px solid var(--rule);
+}
+.lp-panel-head h2, #lp-app .lp-card-head h2 { margin: 0; font-size: 14.5px !important; font-weight: 600 !important; letter-spacing: 0; color: var(--ink); display: flex; align-items: center; gap: 6px; min-width: 0; }
+.lp-panel-head :is(a, small), #lp-app .lp-card-head :is(a, small) { font-size: 13px; }
+.lp-panel-body, #lp-app .lp-card-body { padding: 12px 14px; }
+#lp-app .lp-card.lp-week-card { padding: 4px 8px 6px 0 !important; }
+#lp-app .lp-card-foot { display: block; margin: 0; padding: 8px 14px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--accent) !important; text-decoration: none !important; }
+#lp-app .lp-card-foot:hover { text-decoration: underline !important; }
+/* grupper i et ark (Opgaver, Lektier, Fravær ...) har hver sit hoved */
+#lp-app .lp-group { padding: 0; }
+#lp-app .lp-group[hidden] { display: none; }
+#lp-app .lp-group + .lp-group { border-top: 1px solid var(--rule); margin: 0; }
+#lp-app .lp-group > h2, #lp-app .lp-group > summary > h2 {
+  display: flex; align-items: baseline; gap: 8px; min-height: 40px; align-items: center; margin: 0; padding: 0 14px;
+  font-size: 14.5px !important; font-weight: 600 !important; border-bottom: 1px solid var(--rule);
+}
+#lp-app .lp-group h2 :is(span, small) { font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+#lp-app .lp-group.is-late > h2 { color: var(--danger); }
+#lp-app .lp-group > :not(h2):not(summary) { padding-inline: 14px; }
+
+/* ---------- tags ---------- */
+.lp-tag, #lp-app .lp-pill {
+  display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border: 0 !important; border-radius: var(--radius-sm) !important;
+  background: var(--sunk) !important; color: var(--ink-2) !important; font: 600 12px var(--font); white-space: nowrap; text-decoration: none !important;
+}
+:is(.lp-tag, #lp-app .lp-pill).is-danger { background: var(--danger-soft) !important; color: var(--danger) !important; }
+:is(.lp-tag, #lp-app .lp-pill).is-warn { background: var(--warn-soft) !important; color: var(--warn) !important; }
+:is(.lp-tag, #lp-app .lp-pill).is-ok { background: var(--ok-soft) !important; color: var(--ok) !important; }
+:is(.lp-tag, #lp-app .lp-pill).is-accent { background: var(--accent-soft) !important; color: var(--accent) !important; }
+#lp-app a.lp-pill:hover { filter: brightness(.97); }
+
+/* ---------- tætte tabeller ---------- */
+table.lp-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.lp-table :is(th, td) { padding: 6px 10px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+table.lp-table th { font-size: 12.5px; font-weight: 600; color: var(--ink-2); vertical-align: bottom; white-space: nowrap; }
+table.lp-table tr:last-child > td { border-bottom: 0; }
+table.lp-table :is(th, td):first-child { padding-left: 14px; }
+table.lp-table :is(th, td):last-child { padding-right: 14px; }
+table.lp-table tr.is-late > td:first-child { box-shadow: inset 3px 0 0 var(--danger); }
+table.lp-table tr.is-done > td { color: var(--ink-2); }
+table.lp-table tr.is-live > td { background: var(--accent-soft); }
+table.lp-table .lp-mono, .lp-mono { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+table.lp-table tbody tr:hover > td { background: var(--sunk); }
+
+/* ---------- fagprik og nøgletal ---------- */
+.lp-sd { display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: hsl(var(--h, 200) 55% var(--dot-l)); margin-right: 6px; flex: none; vertical-align: 1px; }
+#lp-app .lp-bignums { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+#lp-app .lp-bignums > div { display: flex; flex-direction: column; gap: 2px; min-width: 160px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); }
+#lp-app .lp-bignums b { font: 700 24px/1.15 var(--font); letter-spacing: -.01em; color: var(--ink); }
+#lp-app .lp-bignums span { font-size: 12.5px; color: var(--ink-2); }
+#lp-app .lp-bignums .is-warn b { color: var(--warn); }
+#lp-app .lp-bignums .is-danger b { color: var(--danger); }

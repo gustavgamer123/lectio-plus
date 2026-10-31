@@ -20,7 +20,7 @@ html.lp-on #s_m_mastermenu,
 html.lp-on .ls-mobil-bottom-menu,
 html.lp-on #mobilMereSheetMenu { display: none !important; }
 html.lp-on #masterContent { background: transparent !important; max-width: none !important; }
-html.lp-on .outerContentFrame { background: transparent !important; padding: 20px 28px 48px !important; }
+html.lp-on .outerContentFrame { background: transparent !important; } /* rammen og luften står i views.css, fælles med de egne visninger */
 html.lp-on .ls-master-pageheader {
   background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 4px 0 12px !important; margin-bottom: 12px !important;
   border-bottom: 1px solid var(--rule) !important; width: auto !important;
