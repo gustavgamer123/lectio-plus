@@ -703,9 +703,8 @@
     /* fravær og snit som pills */
     loadSrc('abs', (a) => { if (a) { chips.abs = a.total.pct || 0; writeChips(); } });
     loadSrc('grades', (g) => {
-      let ws = 0; let wt = 0;
-      g.forEach((x) => { const v = num(x.grade); if (v != null && x.weight && /^-?\d+$/.test(x.grade.trim())) { ws += v * x.weight; wt += x.weight; } });
-      if (wt) { chips.avg = ws / wt; writeChips(); }
+      const a = LP.gradeAverage((g && g.protocol) || []);
+      if (a.avg != null) { chips.avg = a.avg; writeChips(); }
     });
 
     setTimeout(() => {
@@ -1003,21 +1002,17 @@
   }
 
   function renderGradesView(app) {
-    const g = parseGrades(document);
-    let ws = 0; let wt = 0;
-    g.forEach((x) => { const v = num(x.grade); if (v != null && x.weight && /^-?\d+$/.test(x.grade.trim())) { ws += v * x.weight; wt += x.weight; } });
-    const fmtW = (w) => (w == null ? '' : String(w).replace('.', ','));
-    app.innerHTML = viewHead('Karakterer', g.length ? `${g.length} fag på beviset` : '') +
-      `<div class="lp-bignums"><div><b>${wt ? (ws / wt).toFixed(1).replace('.', ',') : '-'}</b><span>vægtet snit af årskarakterer</span></div></div>
-      <div class="lp-sheet"><section class="lp-group"><h2>Linjer på bevis</h2>
+    const { current, protocol } = parseGrades(document);
+    const a = LP.gradeAverage(protocol);
+    const fmt = (v) => (v == null ? '–' : v.toFixed(1).replace('.', ','));
+    app.innerHTML = viewHead('Karakterer', '') +
+      `<div class="lp-bignums"><div><b>${fmt(a.avg)}</b><span>${a.n ? `snit på beviset, ${a.n} karakterer` : 'Ingen karakterer på beviset endnu'}</span></div></div>
+      <div class="lp-sheet"><section class="lp-group"><h2>Karakterer i år</h2>
         <div class="lp-gr-table" role="table">
-          <div class="lp-gr-row is-head" role="row"><span>Fag</span><span>Årskarakter</span><span>Eksamen</span><span>Vægt</span></div>
-          ${g.map((x) => `<div class="lp-gr-row" role="row"><span>${esc(x.subject)}</span>
-            <span class="lp-grade">${esc(x.grade || '-')}<small>${esc(x.ects && x.ects !== '-' ? x.ects : '')}</small></span>
-            <span class="lp-grade">${esc(x.exam || '-')}<small>${esc(x.examEcts && x.examEcts !== '-' ? x.examEcts : '')}</small></span>
-            <span class="lp-muted">${esc(fmtW(x.weight))}</span></div>`).join('') || '<p class="lp-empty">Ingen karakterer endnu.</p>'}
-        </div>
-        <p class="lp-note">Karakternoter, bemærkninger og protokollinjer findes under Lectios visning.</p></section></div>`;
+          <div class="lp-gr-row is-head" role="row"><span>Fag</span><span>1. standpunkt</span><span>2. standpunkt</span><span>Årskarakter</span></div>
+          ${current.map((x) => `<div class="lp-gr-row" role="row"><span>${esc(x.subject)} ${esc(x.level)}<small> ${esc(x.form)}</small></span>
+            <span class="lp-grade">${esc(x.s1 || '–')}</span><span class="lp-grade">${esc(x.s2 || '–')}</span><span class="lp-grade">${esc(x.year || '–')}</span></div>`).join('') || '<p class="lp-empty">Ingen karakterer endnu.</p>'}
+        </div></section></div>`;
   }
 
   /* ---------------- beskedsiden ---------------- */
@@ -1429,7 +1424,7 @@
       if (PAGE === 'material_lektieoversigt.aspx' && !q.length) cachePut('hw', parseHomework(document));
       if (PAGE === 'beskeder2.aspx' && (!q.length || params.get('mappeid') === '-70')) { const m = parseMessages(document); if (m.length) cachePut('msgs', m); }
       if (PAGE === 'subnav/fravaerelev.aspx' && !q.length) { const a = parseAbsence(document); if (a) cachePut('abs', a); }
-      if (PAGE === 'grades/grade_report.aspx' && !q.length) { const g = parseGrades(document); if (g.length) cachePut('grades', g); }
+      if (PAGE === 'grades/grade_report.aspx' && !q.length) { const g = parseGrades(document); if (g.current.length || g.protocol.length) cachePut('grades', g); }
       if (PAGE === 'skemany.aspx' && q.every((k) => k === 'week')) {
         const sk = parseSkema(document);
         const wk = params.get('week');
@@ -1474,7 +1469,7 @@
       if (PAGE === 'opgaverelev.aspx' && document.querySelector('#s_m_Content_Content_ExerciseGV')) takeover = 'opgaver';
       if (PAGE === 'material_lektieoversigt.aspx' && document.querySelector('#s_m_Content_Content_MaterialLektieOverblikGV')) takeover = 'lektier';
       if (PAGE === 'subnav/fravaerelev.aspx' && document.querySelector('table[id$="SFTabStudentAbsenceDataTable"]')) takeover = 'fravaer';
-      if (PAGE === 'grades/grade_report.aspx' && parseGrades(document).length) takeover = 'karakterer';
+      if (PAGE === 'grades/grade_report.aspx' && parseGrades(document).current.length) takeover = 'karakterer';
     }
     if (settings.views && PAGE === 'beskeder2.aspx' && [...params.keys()].every((k) => k === 'mappeid') &&
         document.querySelector('table[id*="threadGV"]') && !document.querySelector('textarea, [id$="ViewThreadPagePanel"] .message-thread-container')) takeover = 'beskeder';

@@ -34,7 +34,11 @@ page('subnav_fravaerelev.aspx', (d) => {
   assert.notEqual(a, null);
   assert.ok(a.rows.length > 0);
 });
-page('grades_grade_report.aspx', (d) => assert.ok(Array.isArray(LP.parseGrades(d))));
+page('grades_grade_report.aspx', (d) => {
+  const g = LP.parseGrades(d);
+  assert.ok(g.current.length > 0 && g.current.every((c) => c.subject && !/Hold:/.test(c.subject)));
+  assert.ok(g.protocol.some((l) => typeof l.weight === 'number' && l.weight > 0));
+});
 page('forside.aspx', (d) => {
   const f = LP.parseFront(d, BASE);
   assert.ok(Array.isArray(f.notices));

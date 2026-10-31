@@ -240,14 +240,19 @@
     return { rows, total };
   };
 
+  // Karaktersiden har to tabeller: de nuværende karakterer pr. hold (KarakterGV) og protokollen med de endelige karakterer til
+  // beviset, med vægt og "Medtæller" (ProtokolLinierGrid). Celler med OnlyMobile er dubletter til mobil og springes over.
   LP.parseGrades = (doc) => {
-    const num = LP.num;
-    const t = [...doc.querySelectorAll('table')].find((x) => x.rows.length > 1 && /Årskarakter/.test(x.rows[0].textContent) && /Fag/.test(x.rows[0].textContent));
-    if (!t) return [];
-    return [...t.rows].slice(2).filter((r) => r.cells.length >= 7).map((r) => {
-      const c = [...r.cells].map((x) => x.textContent.trim().split('\n')[0].trim());
-      return { subject: c[0], weight: num(c[1]), grade: c[2], ects: c[3], examWeight: num(c[4]), exam: c[5], examEcts: c[6] };
+    const cells = (r) => [...r.cells].filter((c) => !c.classList.contains('OnlyMobile')).map((c) => c.textContent.replace(/\s+/g, ' ').trim());
+    const rows = (sel) => { const tb = doc.querySelector(sel); return tb ? [...tb.rows].filter((r) => r.querySelector('td')).map(cells) : []; };
+    const current = rows('table[id$="KarakterGV"]').filter((c) => c.length >= 6).map((c) => {
+      const m = c[1].match(/^(.*?)\s+([A-C])(?:,\s*(.+))?$/);
+      return { hold: c[0], subject: m ? m[1] : c[1], level: m ? m[2] : '', form: m && m[3] ? m[3] : '', s1: c[2], s2: c[3], year: c[4], exam: c[5] };
     });
+    const protocol = rows('table[id$="ProtokolLinierGrid"]').filter((c) => c.length >= 9).map((c) => ({
+      term: c[0], type: c[1], counts: /^ja$/i.test(c[2]), subject: c[3].replace(/^\S*\d\S*\s+/, ''), form: c[4], hold: c[5], weight: LP.num(c[6]), grade: c[7], scale: c[8]
+    }));
+    return { current, protocol };
   };
 
   LP.parseFront = (doc, base) => {

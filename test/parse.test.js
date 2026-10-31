@@ -110,12 +110,15 @@ test('parseAbsence: hold sorteret og samlet', () => {
   assert.equal(a.total.wPct, 6.67);
 });
 
-test('parseGrades', () => {
-  const [g] = LP.parseGrades(doc(`<table><tbody>
-    ${row(['Fag', 'Årskarakter', '', 'Eksamen'])}${row(['', 'Vægt', 'Karakter', 'ECTS', 'Vægt', 'Karakter', 'ECTS'])}
-    ${row(['Fysik B', '1,00', '7', 'C', '1,00', '10', 'B'])}
-  </tbody></table>`));
-  assert.deepEqual({ ...g }, { subject: 'Fysik B', weight: 1, grade: '7', ects: 'C', examWeight: 1, exam: '10', examEcts: 'B' });
+test('parseGrades: nuværende karakterer og protokollinjer', () => {
+  const g = LP.parseGrades(doc(`<table id="x_KarakterGV"><tbody>
+    <tr><th>Hold</th><th>Fag</th><th class="OnlyMobile">Hold/Fag</th><th>1.standpunkt</th><th>2.standpunkt</th><th>Årskarakter</th><th>Eksamen</th></tr>
+    <tr><td>2y BT</td><td>Bioteknologi A, Skriftlig</td><td class="OnlyMobile">Hold: 2y BT</td><td>7</td><td></td><td></td><td></td></tr></tbody></table>
+    <table id="x_ProtokolLinierGrid"><tbody>
+    <tr><th>Termin</th><th>Type</th><th>Medtæller</th><th>XPRS fag</th><th>Evalueringsform</th><th>Hold</th><th>Vægt</th><th>Karakter</th><th>Skala</th></tr>
+    <tr><td>Sommer 2026</td><td>Afsl. Standpkt.</td><td>Ja</td><td>4686C Design og arkitektur</td><td>Mundtlig</td><td>2025 de_c</td><td>1,00</td><td>10</td><td>7-trinsskala</td></tr></tbody></table>`));
+  assert.deepEqual({ ...g.current[0] }, { hold: '2y BT', subject: 'Bioteknologi', level: 'A', form: 'Skriftlig', s1: '7', s2: '', year: '', exam: '' });
+  assert.deepEqual({ ...g.protocol[0] }, { term: 'Sommer 2026', type: 'Afsl. Standpkt.', counts: true, subject: 'Design og arkitektur', form: 'Mundtlig', hold: '2025 de_c', weight: 1, grade: '10', scale: '7-trinsskala' });
 });
 
 test('parseFront: hold og opslag fra skolen', () => {

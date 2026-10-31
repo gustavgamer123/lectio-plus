@@ -41,6 +41,8 @@
         "src/lib/parse.js",
         "src/lib/dark.js",
         "src/lib/tidy.js",
+        "src/lib/grades.js",
+        "src/lib/week.js",
         "src/lib/icons.js",
         "src/shell/nav.js",
         "src/shell/shell.js",
