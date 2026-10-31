@@ -47,11 +47,6 @@ html.lp-on .lf-grid td, html.lp-on .ls-table-layout2 td, html.lp-on .ls-table-la
   background: transparent !important; color: inherit !important; vertical-align: top;
 }
 html.lp-on .lf-grid tr:hover td { background: var(--sunk) !important; }
-html.lp-on input[type="text"], html.lp-on input[type="search"], html.lp-on input[type="password"], html.lp-on select, html.lp-on textarea {
-  border: 1px solid var(--rule) !important; border-radius: 8px !important; padding: 6px 10px !important;
-  background: var(--surface) !important; color: var(--ink) !important;
-}
-html.lp-on input[type="submit"], html.lp-on input[type="button"], html.lp-on .button, html.lp-on .lec-button { border-radius: 8px !important; }
 html.lp-on[data-lp-theme="dark"] .outerContentFrame :is(td, th, span, div, p, label, h1, h2, h3, h4, li, b, strong) { color: var(--ink); }
 html.lp-on[data-lp-theme="dark"] .outerContentFrame :is(div, section, td, span, table)[style*="background"] { background-color: transparent !important; }
 html.lp-on[data-lp-theme="dark"] .lp-dk-bg { background-color: var(--sunk) !important; background-image: none !important; border-color: var(--rule) !important; }
@@ -152,3 +147,17 @@ html.lp-on #fixedBlock > .ls-std-rowblock {
 html.lp-on .outerContentFrame a:not([data-role="button"]):not(:is(#lp-shell-head, #lp-app, #lp-drawer, #lp-colors) a) { color: var(--accent) !important; }
 html.lp-on .outerContentFrame li::marker { color: var(--accent); }
 html.lp-on .outerContentFrame :is(.infoText, .infoTextItalic) { color: var(--ink-2) !important; font-style: normal !important; }
+
+/* ---------- formularer ---------- */
+/* De indbyggede afkrydsningsfelter og radioknapper tegnes i accentfarven; color-scheme (styles.css) giver synlige flueben i mørkt tema. */
+html.lp-on { accent-color: var(--accent); }
+html.lp-on .outerContentFrame :is(input:is([type="text"], [type="search"], [type="password"], [type="email"], [type="tel"], [type="number"], [type="date"], :not([type])), select, textarea):not(:is(#lp-shell-head, #lp-app, #lp-drawer) *) {
+  min-height: 32px; padding: 4px 8px !important; border: 1px solid var(--rule) !important; border-radius: var(--radius-sm) !important;
+  background: var(--surface) !important; color: var(--ink) !important; font: 400 13.5px/1.3 var(--font) !important; box-shadow: none !important;
+}
+html.lp-on .outerContentFrame textarea { min-height: 64px; }
+html.lp-on .outerContentFrame :is(input, select, textarea):focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 1px; border-color: var(--accent) !important; }
+html.lp-on .outerContentFrame :is(input, select, textarea):disabled { opacity: .6; }
+/* tom tekst og Lectios fremhævning */
+html.lp-on .outerContentFrame :is(.noRecord, .noRecordItalic) { color: var(--ink-2) !important; font-style: normal !important; }
+html.lp-on .outerContentFrame .attention { color: var(--danger) !important; }

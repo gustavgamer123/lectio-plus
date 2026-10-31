@@ -14,7 +14,7 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
   // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
   const LP = globalThis.LP;
-  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell'].every((k) => LP[k])) {
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix'].every((k) => LP[k])) {
     document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
     return;
   }
@@ -1383,41 +1383,9 @@
     const m = t.textContent.trim().match(TITLE_RE);
     if (m) t.textContent = m[4].trim();
   }
-  function lum(c) {
-    let m = c.match(/^oklch\(\s*([\d.]+)(%?)[^/)]*(?:\/\s*([\d.]+)(%?))?/);
-    if (m) {
-      if (m[3] !== undefined && parseFloat(m[3]) / (m[4] ? 100 : 1) < 0.35) return null;
-      const v = parseFloat(m[1]); return m[2] ? v / 100 : v;
-    }
-    m = c.match(/^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?/);
-    if (m) {
-      if (m[4] !== undefined && +m[4] < 0.35) return null;
-      return (0.2126 * m[1] + 0.7152 * m[2] + 0.0722 * m[3]) / 255;
-    }
-    return null;
-  }
-  const OWN_UI = '#lp-shell, #lp-app, #lp-drawer, #lp-palette, #lp-pill, #lp-afl, #lp-act-hero, #lp-shell-head, .lp-act-cardhead, .lp-fb-empty, #lp-colors';
-  // Finder lyse flader og mørk tekst i Lectios egne sider og farver dem om i mørk tilstand.
-  function darkFix(root) {
-    const html = document.documentElement;
-    if (html.getAttribute('data-lp-theme') !== 'dark' || !html.classList.contains('lp-on') || html.classList.contains('lp-takeover')) return;
-    root = root || document.getElementById('masterContent') || document.body;
-    if (!root || root.nodeType !== 1 || root.closest(OWN_UI)) return;
-    const els = [root, ...root.getElementsByTagName('*')];
-    for (const el of els) {
-      if (el.id && el.id.startsWith('lp-')) continue;
-      const cs = getComputedStyle(el);
-      if (cs.display === 'none') continue;
-      const b = lum(cs.backgroundColor);
-      if (b != null && b > 0.72) el.classList.add('lp-dk-bg');
-      const f = lum(cs.color);
-      if (f != null && f < 0.4) el.classList.add(el.tagName === 'A' || el.closest('a') ? 'lp-dk-link' : 'lp-dk-fg');
-      if (parseFloat(cs.borderTopWidth) || parseFloat(cs.borderLeftWidth)) {
-        const bd = lum(parseFloat(cs.borderTopWidth) ? cs.borderTopColor : cs.borderLeftColor);
-        if (bd != null && bd > 0.6) el.classList.add('lp-dk-bd');
-      }
-    }
-  }
+  const { OWN_UI } = LP;
+  // Finder lyse flader og mørk tekst i Lectios egne sider og farver dem om i mørkt tema (src/lib/dark.js).
+  const darkFix = (root) => LP.darkFix(root, document);
   // Holder øje med det Lectio selv ændrer på siden og retter kun de nye dele.
   let lectioChange = null;
   let lectioSig = '';
