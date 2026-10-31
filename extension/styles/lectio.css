@@ -233,3 +233,20 @@ html.lp-on .outerContentFrame ul.ls-columnlist > li > a { white-space: normal !i
 html.lp-on .outerContentFrame .ls-card-filled:has(> table.s2skema) { overflow-x: auto; max-width: 100%; }
 html.lp-on .outerContentFrame :is(section.lf-island, .ls-card-filled, .ls-card-elevated) { max-width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; }
 html.lp-on .outerContentFrame .ls-table-wrapper { max-width: 100% !important; overflow-x: auto !important; }
+
+/* ---------- rester fundet i den samlede kontrol ---------- */
+/* Lectios afkrydsningsfelter er tegnet med appearance:none og et ✓ i ::before; fluebenet skal kunne ses i begge temaer */
+html.lp-on .outerContentFrame input[type="checkbox"] {
+  width: 16px !important; height: 16px !important; border: 1px solid var(--ink-3) !important; border-radius: var(--radius-sm) !important;
+  background: var(--surface) !important; vertical-align: -3px;
+}
+html.lp-on .outerContentFrame input[type="checkbox"]:checked { background: var(--accent) !important; border-color: var(--accent) !important; }
+html.lp-on .outerContentFrame input[type="checkbox"]::before { color: var(--accent-ink) !important; }
+/* tekst inde i et link arver linkets farve, også når mørkt tema har farvet den om */
+html.lp-on .outerContentFrame a :is(span, b, i, strong, em, div, nobr) { color: inherit !important; }
+/* tabelhoveder flugter med deres kolonne */
+html.lp-on .outerContentFrame :is(.ls-table-layout1, .ls-table-layout2, .ls-table-layout5, .lf-grid, .ls-std-table-inputlist) th { text-align: left !important; }
+/* Ugeændringer: lektionerne har en fast bredde i Lectios HTML, så ugen bliver bredere end panelet */
+html.lp-on .outerContentFrame table.s2skema a.s2skemabrik { width: auto !important; }
+/* Valgfag: den faste bjælke i bunden må ikke dække de sidste rækker */
+html.lp-on .ls-content:has(#fixedBlock) { padding-bottom: 72px !important; }
