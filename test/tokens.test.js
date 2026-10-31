@@ -55,4 +55,4 @@ const allText = () => {
   return out;
 };
 test('Schibsted-skriften er væk', () => allText().forEach(([p, t]) => assert.ok(!t.includes('LP Schibsted'), p)));
-test('--side er væk', { todo: 'fjernes i Task 7' }, () => allText().forEach(([p, t]) => assert.ok(!t.includes('--side'), p)));
+test('--side er væk', () => allText().forEach(([p, t]) => assert.ok(!t.includes('--side'), p)));

@@ -34,7 +34,6 @@ html.lp-on, html.lp-lite, #lp-pill {
   --radius: 4px;
   --radius-sm: 3px;
   --shell-h: 88px;
-  --side: 224px; /* kun til sidemenuen fra 1.x, fjernes når topbjælken tager over */
 }
 html[data-lp-theme="dark"].lp-on, html[data-lp-theme="dark"].lp-lite, html[data-lp-theme="dark"] #lp-pill {
   --bg: #0f1318;

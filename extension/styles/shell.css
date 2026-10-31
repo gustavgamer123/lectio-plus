@@ -1,0 +1,79 @@
+/* ============ Lectio+ 2.0: skallen med topbjælke, faner og Mere ============ */
+/* Alt er afgrænset under #lp-shell, fordi .lp-more-btn også bruges af "Læs mere" på forsiden. */
+html.lp-on body { padding-top: var(--shell-h) !important; padding-left: 0 !important; }
+html.lp-on { scroll-padding-top: var(--shell-h); }
+/* Opstart uden blink: bjælkens plads er farvet, før skallen er bygget. */
+html.lp-boot body::before { content: ""; position: fixed; inset: 0 0 auto 0; height: var(--shell-h); background: var(--bar); z-index: 8990; }
+
+#lp-shell { position: fixed; inset: 0 0 auto 0; z-index: 9000; height: var(--shell-h); display: flex; flex-direction: column; line-height: 1.3; }
+#lp-shell a { text-decoration: none !important; }
+
+/* blå bjælke */
+#lp-shell .lp-bar { height: 46px; flex: none; display: flex; align-items: center; gap: 14px; padding: 0 12px 0 20px; background: var(--bar); color: var(--bar-ink); }
+#lp-shell .lp-mark { font-size: 18px; font-weight: 700; letter-spacing: -.02em; color: var(--bar-ink) !important; white-space: nowrap; }
+#lp-shell .lp-mark span { color: var(--bar-ink-2); margin-left: 1px; }
+#lp-shell .lp-school { flex: 0 1 auto; min-width: 0; font-size: 13px; color: var(--bar-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#lp-shell .lp-find {
+  flex: 0 1 320px; min-width: 120px; margin-left: auto; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 6px 0 10px;
+  border: 1px solid rgba(255, 255, 255, .2); border-radius: var(--radius); background: rgba(255, 255, 255, .14); color: var(--bar-ink); font: 500 13.5px var(--font); cursor: pointer;
+}
+#lp-shell .lp-find:hover { background: rgba(255, 255, 255, .22); }
+#lp-shell .lp-find svg { width: 16px; height: 16px; }
+#lp-shell .lp-find span { flex: 1; text-align: left; }
+#lp-shell kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, .3); color: var(--bar-ink-2); background: transparent; }
+#lp-shell .lp-who { flex: 0 1 auto; min-width: 0; max-width: 220px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#lp-shell .lp-who strong { font-weight: 600; }
+#lp-shell .lp-who small { margin-left: 3px; font-size: 12.5px; color: var(--bar-ink-2); }
+#lp-shell .lp-bar-btn { flex: none; display: inline-grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: var(--radius); background: transparent; color: var(--bar-ink) !important; cursor: pointer; }
+#lp-shell .lp-bar-btn:hover { background: rgba(255, 255, 255, .14); }
+#lp-shell .lp-bar :focus-visible { outline: 2px solid var(--bar-ink); outline-offset: 2px; }
+
+/* faner */
+#lp-shell .lp-tabs-main {
+  height: 42px; flex: none; display: flex; align-items: stretch; gap: 2px; padding: 0 10px;
+  background: var(--surface); border-bottom: 1px solid var(--rule); overflow-x: auto; scrollbar-width: none;
+}
+#lp-shell .lp-tabs-main::-webkit-scrollbar { display: none; }
+#lp-shell .lp-tab {
+  flex: none; display: flex; align-items: center; gap: 6px; padding: 0 10px; margin: 0; border: 0; border-radius: 0; background: none;
+  color: var(--ink-2) !important; font: 500 14px var(--font); white-space: nowrap; cursor: pointer; box-shadow: inset 0 -3px 0 transparent;
+}
+#lp-shell .lp-tab:hover { color: var(--ink) !important; background: var(--sunk); }
+#lp-shell .lp-tab.is-active { color: var(--ink) !important; font-weight: 600; box-shadow: inset 0 -3px 0 var(--accent); }
+#lp-shell .lp-tabs-main :focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+#lp-shell .lp-badge { min-width: 18px; padding: 0 5px; border-radius: var(--radius-sm); background: var(--accent); color: var(--accent-ink); font: 600 11px/18px var(--font); text-align: center; }
+#lp-shell .lp-badge[hidden] { display: none; }
+
+/* Mere */
+#lp-shell .lp-more-wrap { display: flex; flex: none; }
+#lp-shell .lp-more-btn::after { content: ""; width: 6px; height: 6px; margin: -3px 0 0 2px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+#lp-shell .lp-more-btn[aria-expanded="true"] { background: var(--sunk); color: var(--ink) !important; }
+#lp-shell .lp-more-pop {
+  position: fixed; top: calc(var(--shell-h) + 6px); left: 12px; width: min(920px, calc(100vw - 24px));
+  max-height: calc(100vh - var(--shell-h) - 24px); overflow-y: auto; z-index: 9001;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 24px; padding: 14px 18px 16px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
+}
+#lp-shell .lp-more-pop[hidden] { display: none; }
+#lp-shell .lp-more-pop section { display: flex; flex-direction: column; min-width: 0; }
+#lp-shell .lp-more-pop h3 { margin: 2px 0 4px; font: 600 11.5px var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+#lp-shell .lp-more-hold { grid-column: 1 / -1; padding-bottom: 10px; margin-bottom: 4px; border-bottom: 1px solid var(--rule); }
+#lp-shell .lp-more-hold[hidden] { display: none; }
+#lp-shell .lp-more-holdlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0 24px; }
+#lp-shell .lp-more-item {
+  display: flex; align-items: center; min-width: 0; padding: 5px 8px; margin: 0 -8px; border-radius: var(--radius-sm);
+  color: var(--ink) !important; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#lp-shell .lp-more-item:hover { background: var(--sunk); }
+#lp-shell .lp-more-item[aria-current="page"] { background: var(--accent-soft); color: var(--accent) !important; font-weight: 600; }
+#lp-shell .lp-more-item .lp-sd { width: 8px; height: 8px; border-radius: 2px; margin: 0 8px 0 0; }
+#lp-shell .lp-more-pop :focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+@media (max-width: 860px) {
+  #lp-shell .lp-school, #lp-shell .lp-who small, #lp-shell .lp-find span, #lp-shell .lp-find kbd { display: none; }
+  #lp-shell .lp-find { flex: none; min-width: 0; width: 34px; padding: 0; justify-content: center; }
+}
+@media print {
+  #lp-shell { display: none !important; }
+  html.lp-on body { padding-top: 0 !important; }
+}

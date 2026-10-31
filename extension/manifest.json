@@ -25,7 +25,8 @@
       ],
       "css": [
         "styles/tokens.css",
-        "styles.css"
+        "styles.css",
+        "styles/shell.css"
       ],
       "run_at": "document_start"
     },
@@ -39,6 +40,7 @@
         "src/lib/parse.js",
         "src/lib/icons.js",
         "src/shell/nav.js",
+        "src/shell/shell.js",
         "content.js"
       ],
       "run_at": "document_end"

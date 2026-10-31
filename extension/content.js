@@ -92,7 +92,7 @@
     }
     saveCache();
     if (/^(msgs|tasks|hw)$/.test(key) && typeof updateBadges === 'function') updateBadges();
-    if (key === 'front' && typeof renderHoldGroup === 'function') renderHoldGroup();
+    if (key === 'front' && shell) shell.setHold((data && data.hold) || []);
   }
   const isFresh = (key, min) => cache[key] && Date.now() - cache[key].t < min * 6e4;
 
@@ -154,81 +154,20 @@
   }
   mq.addEventListener?.('change', applyTheme);
 
-  /* ---------------- sidebar ---------------- */
-  const sideOpen = (() => { try { return JSON.parse(localStorage.getItem('lp-side-open') || '{}'); } catch (e) { return {}; } })();
-  function rememberOpen(id, open) { sideOpen[id] = open; try { localStorage.setItem('lp-side-open', JSON.stringify(sideOpen)); } catch (e) { /* ignorer */ } }
-  function buildSidebar() {
-    const ak = activeKey();
-    const item = (n) => `<a class="lp-nav-item${n.key === ak ? ' is-active' : ''}" href="${BASE + n.path}" data-key="${n.key}"${n.key === ak ? ' aria-current="page"' : ''}>${ICONS[n.icon]}<span>${esc(n.label)}</span><b class="lp-badge" data-badge="${n.key}" hidden></b></a>`;
-    const moreActive = MORE_ITEMS.some((n) => n.key === ak);
-    const more = NAV_MORE.map((g) => `<p class="lp-more-group">${esc(g.group)}</p>${g.items.map((n) => `<a class="lp-more-item${n.key === ak ? ' is-active' : ''}" href="${BASE + n.path}" title="${esc(n.label)}"${n.key === ak ? ' aria-current="page"' : ''}>${esc(n.label)}</a>`).join('')}`).join('');
-    const side = document.createElement('aside');
-    side.id = 'lp-side';
-    side.innerHTML = `
-      <div class="lp-brand">
-        <div class="lp-brand-txt"><strong>Lectio<span>+</span></strong><small>${esc(schoolName)}</small></div>
-      </div>
-      <button class="lp-search-btn" type="button">${ICONS.search}<span>Søg</span><kbd>Ctrl K</kbd></button>
-      <nav class="lp-nav" aria-label="Lectio">
-        ${NAV_MAIN.map(item).join('')}
-        <div class="lp-nav-sep"></div>
-        ${NAV_SECOND.map(item).join('')}
-        <details class="lp-more" data-id="hold" hidden><summary>${ICONS.layers}<span>Mine hold</span></summary><div class="lp-more-list" id="lp-hold-list"></div></details>
-        <details class="lp-more" data-id="more"${moreActive || sideOpen.more ? ' open' : ''}><summary>${ICONS.menu}<span>Mere</span></summary><div class="lp-more-list">${more}</div></details>
-      </nav>
-      <div class="lp-side-foot">
-        <div class="lp-me"><div><strong>${esc(USER.name || 'Lectio')}</strong><small>${esc(USER.cls)}</small></div></div>
-        <div class="lp-foot-actions">
-          <button type="button" class="lp-icon-btn" data-act="theme" title="Skift tema" aria-label="Skift tema">${ICONS.moon}</button>
-          <button type="button" class="lp-icon-btn" data-act="original" title="Vis Lectios egen visning" aria-label="Vis Lectios egen visning">${ICONS.layers}</button>
-          <a class="lp-icon-btn" href="${esc(logoutLink.getAttribute('href'))}" title="Log ud" aria-label="Log ud">${ICONS.out}</a>
-        </div>
-      </div>`;
-    document.body.appendChild(side);
-
-    const top = document.createElement('div');
-    top.id = 'lp-topbar';
-    top.innerHTML = `<button type="button" class="lp-icon-btn" data-act="menu" aria-label="Menu">${ICONS.menu}</button><strong>Lectio<span>+</span></strong><button type="button" class="lp-icon-btn" data-act="search" aria-label="Søg">${ICONS.search}</button>`;
-    document.body.appendChild(top);
-
-    const scrim = document.createElement('div');
-    scrim.id = 'lp-scrim';
-    document.body.appendChild(scrim);
-
-    side.querySelector('.lp-search-btn').addEventListener('click', openPalette);
-    top.querySelector('[data-act=search]').addEventListener('click', openPalette);
-    top.querySelector('[data-act=menu]').addEventListener('click', () => document.documentElement.classList.toggle('lp-menu-open'));
-    scrim.addEventListener('click', () => document.documentElement.classList.remove('lp-menu-open'));
-    side.querySelectorAll('details.lp-more').forEach((d) => d.addEventListener('toggle', () => rememberOpen(d.dataset.id, d.open)));
-    side.querySelector('[data-act=theme]').addEventListener('click', () => {
-      const cur = document.documentElement.getAttribute('data-lp-theme');
-      settings.theme = cur === 'dark' ? 'light' : 'dark';
-      saveSetting('theme', settings.theme);
-      saveBoot();
-      applyTheme();
-    });
-    side.querySelector('[data-act=original]').addEventListener('click', () => {
-      sessionStorage.setItem('lp-original', '1');
-      location.reload();
-    });
-    renderHoldGroup();
-    updateBadges();
+  /* ---------------- skal: topbjælke og faner ---------------- */
+  let shell = null;
+  function onTheme() {
+    const cur = document.documentElement.getAttribute('data-lp-theme');
+    settings.theme = cur === 'dark' ? 'light' : 'dark';
+    saveSetting('theme', settings.theme);
+    saveBoot();
+    applyTheme();
   }
-  function renderHoldGroup() {
-    const box = document.getElementById('lp-hold-list');
-    const hold = cache.front?.d?.hold || [];
-    if (!box || !hold.length) return;
-    const here = location.href.split('#')[0];
-    box.innerHTML = hold.map((h) => `<a class="lp-more-item${h.href === here ? ' is-active' : ''}" href="${esc(h.href)}">${subjDot(subjectFrom(h.name)?.code || h.name)}${esc(h.name)}</a>`).join('');
-    const det = box.closest('details');
-    det.hidden = false;
-    if (sideOpen.hold || hold.some((h) => h.href === here)) det.open = true;
+  function onOriginal() {
+    sessionStorage.setItem('lp-original', '1');
+    location.reload();
   }
-  function setBadge(key, n) {
-    const b = document.querySelector(`[data-badge="${key}"]`);
-    if (!b) return;
-    if (n > 0) { b.textContent = n > 99 ? '99+' : n; b.hidden = false; } else b.hidden = true;
-  }
+  const setBadge = (key, n) => shell && shell.setBadge(key, n);
   function updateBadges() {
     const now = new Date();
     const today = startOfDay(now);
@@ -255,7 +194,6 @@
     return out;
   }
   function openPalette() {
-    document.documentElement.classList.remove('lp-menu-open');
     let pal = document.getElementById('lp-palette');
     if (!pal) {
       pal = document.createElement('div');
@@ -1452,7 +1390,7 @@
     }
     return null;
   }
-  const OWN_UI = '#lp-side, #lp-app, #lp-drawer, #lp-palette, #lp-topbar, #lp-pill, #lp-scrim, #lp-afl, #lp-act-hero, #lp-shell-head, .lp-act-cardhead, .lp-fb-empty, #lp-colors';
+  const OWN_UI = '#lp-shell, #lp-app, #lp-drawer, #lp-palette, #lp-pill, #lp-afl, #lp-act-hero, #lp-shell-head, .lp-act-cardhead, .lp-fb-empty, #lp-colors';
   // Finder lyse flader og mørk tekst i Lectios egne sider og farver dem om i mørk tilstand.
   function darkFix(root) {
     const html = document.documentElement;
@@ -1570,7 +1508,9 @@
     if (takeover) html.classList.add('lp-takeover'); else html.classList.remove('lp-takeover');
 
     primeCache(params);
-    buildSidebar();
+    shell = LP.buildShell({ doc: document, base: BASE, activeKey: activeKey(), user: USER, schoolName, logoutHref: logoutLink.getAttribute('href'), colors: settings.colors, onSearch: openPalette, onTheme, onOriginal });
+    shell.setHold(cache.front?.d?.hold || []);
+    updateBadges();
     tidyLectioPage();
     if (!takeover) darkFix();
     watchPage();
