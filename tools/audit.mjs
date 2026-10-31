@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
-import { ROOT, EXT, ORIGIN, connect, schoolBase, reloadExtension, slug } from './lib.mjs';
+import { ROOT, EXT, ORIGIN, connect, schoolBase, reloadExtension, setSettings, slug } from './lib.mjs';
 
 const navCtx = {};
 vm.runInNewContext(fs.readFileSync(path.join(EXT, 'src', 'shell', 'nav.js'), 'utf8'), navCtx);
@@ -28,6 +28,7 @@ const src = fs.readFileSync(path.join(ROOT, 'tools', 'audit-rules.js'), 'utf8');
 const { context } = await connect();
 const base = schoolBase(context);
 await reloadExtension(context);
+await setSettings(context, { theme: 'auto' });
 const page = await context.newPage();
 await page.setViewportSize({ width, height: 800 });
 const report = [];

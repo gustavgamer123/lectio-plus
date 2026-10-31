@@ -1,67 +1,4 @@
 /* ============ Lectio+ ============ */
-/* ---------- Lectios egne sider ---------- */
-html.lp-on body {
-  background: var(--bg) !important;
-  color: var(--ink);
-  font-family: var(--font) !important;
-  -webkit-font-smoothing: antialiased;
-}
-html.lp-on body *:not([class*="material"]):not([class*="fonticon"]):not(.material-icons):not(.material-symbols-outlined) { font-family: inherit; }
-html.lp-on .ls-fonticon { font-family: ls-font-icons !important; }
-html.lp-on .helptip-wrap,
-html.lp-on #s_m_HeaderContent_subnavigator_generic_tr,
-html.lp-on #s_m_HeaderContent_picctrlthumbimage,
-html.lp-on #s_m_masterFooter,
-html.lp-on .ls-master-footer,
-html.lp-on #s_m_masterHeaderDiv,
-html.lp-on #s_m_mastermenu,
-html.lp-on .ls-mobil-bottom-menu,
-html.lp-on #mobilMereSheetMenu { display: none !important; }
-html.lp-on #masterContent { background: transparent !important; max-width: none !important; }
-html.lp-on .outerContentFrame { background: transparent !important; padding: 20px 28px 48px !important; }
-html.lp-on .ls-master-pageheader {
-  background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 4px 0 12px !important; margin-bottom: 12px !important;
-  border-bottom: 1px solid var(--rule) !important; width: auto !important;
-}
-html.lp-on .ls-master-pageheader img { display: none !important; }
-html.lp-on .maintitle { font-size: 24px !important; font-weight: 700 !important; color: var(--ink) !important; letter-spacing: -.015em; }
-html.lp-on .ls-subnav-container a, html.lp-on .ls-subnav1 a {
-  padding: 4px 10px !important; color: var(--ink-2) !important; text-decoration: none !important; background: transparent !important;
-  border: 0 !important; border-radius: 6px !important; font-weight: 500;
-}
-html.lp-on .ls-subnav-container a:hover { color: var(--ink) !important; background: var(--sunk) !important; }
-html.lp-on .ls-subnav-container a[class*="active"], html.lp-on .ls-subnav-container a[aria-current] { color: var(--accent) !important; box-shadow: inset 0 -2px 0 var(--accent); border-radius: 0 !important; }
-html.lp-on a { color: var(--accent); }
-html.lp-on .lf-island, html.lp-on .ls-island-filled, html.lp-on .islandContent, html.lp-on .islandHeaderContainer {
-  background: var(--surface) !important; border-color: var(--rule) !important; border-radius: 12px; box-shadow: none !important;
-}
-html.lp-on .islandHeaderContainer { border-bottom: 1px solid var(--rule) !important; border-radius: 12px 12px 0 0; }
-html.lp-on .lf-grid, html.lp-on .ls-table-layout1, html.lp-on .ls-table-layout2, html.lp-on .ls-table-layout5 {
-  background: var(--surface) !important; color: var(--ink) !important; border: 0 !important; border-collapse: collapse !important;
-}
-html.lp-on .lf-grid tr, html.lp-on .ls-table-layout2 tr, html.lp-on .ls-table-layout5 tr { background: transparent !important; }
-html.lp-on .lf-grid th, html.lp-on .ls-table-layout2 th, html.lp-on .ls-table-layout5 th, html.lp-on .ls-table-layout1 th {
-  background: var(--surface) !important; color: var(--ink-2) !important; font-weight: 600 !important; font-size: 13px !important;
-  border: 0 !important; border-bottom: 1px solid var(--rule) !important; padding: 10px 12px !important; text-align: left;
-}
-html.lp-on .lf-grid td, html.lp-on .ls-table-layout2 td, html.lp-on .ls-table-layout5 td, html.lp-on .ls-table-layout1 td {
-  border: 0 !important; border-bottom: 1px solid var(--rule) !important; padding: 10px 12px !important;
-  background: transparent !important; color: inherit !important; vertical-align: top;
-}
-html.lp-on .lf-grid tr:hover td { background: var(--sunk) !important; }
-html.lp-on input[type="text"], html.lp-on input[type="search"], html.lp-on input[type="password"], html.lp-on select, html.lp-on textarea {
-  border: 1px solid var(--rule) !important; border-radius: 8px !important; padding: 6px 10px !important;
-  background: var(--surface) !important; color: var(--ink) !important;
-}
-html.lp-on input[type="submit"], html.lp-on input[type="button"], html.lp-on .button, html.lp-on .lec-button { border-radius: 8px !important; }
-html.lp-on[data-lp-theme="dark"] .outerContentFrame :is(td, th, span, div, p, label, h1, h2, h3, h4, li, b, strong) { color: var(--ink); }
-html.lp-on[data-lp-theme="dark"] .outerContentFrame :is(div, section, td, span, table)[style*="background"] { background-color: transparent !important; }
-html.lp-on[data-lp-theme="dark"] .lp-dk-bg { background-color: var(--sunk) !important; background-image: none !important; border-color: var(--rule) !important; }
-html.lp-on[data-lp-theme="dark"] .lp-dk-fg { color: var(--ink) !important; }
-html.lp-on[data-lp-theme="dark"] .lp-dk-link { color: var(--accent) !important; }
-html.lp-on[data-lp-theme="dark"] .outerContentFrame img:not([src*=".svg"]):not([class*="icon"]) { opacity: .9; }
-html.lp-on[data-lp-theme="dark"] .s2skema, html.lp-on[data-lp-theme="dark"] .s2skema td { background-color: var(--surface) !important; border-color: var(--rule) !important; }
-
 /* opgaveside */
 html.lp-hide-done .lp-row-done { display: none !important; }
 html.lp-on .lp-row-missing td:first-child { box-shadow: inset 3px 0 0 var(--danger); }
@@ -426,11 +363,6 @@ html.lp-msgpage .message-thread-message {
 html.lp-msgpage .message-thread-message * { background-color: transparent !important; }
 html.lp-msgpage textarea { min-height: 130px; width: 100% !important; font: 15px/1.5 var(--font) !important; }
 
-/* islands på Lectios øvrige sider */
-html.lp-on .lf-island { border: 1px solid var(--rule) !important; overflow: hidden; margin-bottom: 16px !important; }
-html.lp-on .islandHeaderContainer { padding: 10px 16px !important; }
-html.lp-on .islandHeader, html.lp-on .islandHeader h3, html.lp-on .islandHeader span { font-size: 16px !important; font-weight: 700 !important; color: var(--ink) !important; }
-html.lp-on .islandContent { padding: 12px 16px !important; }
 
 @media (max-width: 860px) {
   .lp-sheet { padding: 4px 14px 14px; }
@@ -548,22 +480,6 @@ html.lp-on #m_outerContentFrameDiv > .ls-content-container { max-width: 1680px; 
 html.lp-on .outerContentFrame { padding: clamp(16px, 2vw, 36px) clamp(16px, 2.4vw, 44px) 56px !important; }
 html.lp-on .maintitle { font-size: clamp(24px, 2vw, 32px) !important; letter-spacing: -.02em; }
 
-/* øer (Lectios kasser) */
-html.lp-on section.lf-island { border: 1px solid var(--rule) !important; border-radius: 14px !important; background: var(--surface) !important; box-shadow: none !important; overflow: hidden; margin-bottom: 18px; }
-html.lp-on section.lf-island .islandHeaderContainer { background: transparent !important; border: 0 !important; border-bottom: 1px solid var(--rule) !important; border-radius: 0 !important; padding: 14px 20px !important; min-height: 0 !important; display: flex !important; align-items: center; justify-content: space-between; gap: 12px; }
-html.lp-on section.lf-island .islandHeader { font-size: 17px !important; font-weight: 700 !important; color: var(--ink) !important; letter-spacing: -.01em; }
-html.lp-on section.lf-island .islandHeaderRight { opacity: .45; transition: opacity .15s; }
-html.lp-on section.lf-island:hover .islandHeaderRight { opacity: 1; }
-html.lp-on section.lf-island .islandContent { background: transparent !important; border: 0 !important; border-radius: 0 !important; padding: 16px 20px 18px !important; }
-html.lp-on .ls-std-island-layout-ltr { display: flex !important; flex-wrap: wrap; gap: 18px !important; align-items: flex-start; }
-html.lp-on .ls-std-island-layout-ltr > section.lf-island { margin: 0 !important; min-width: 0; max-width: 100% !important; }
-html.lp-on .ls-std-island-layout-ltr > section.largeBlock { flex: 1 1 560px; width: auto !important; }
-html.lp-on .ls-std-island-layout-ltr > section.smallBlockFixed,
-html.lp-on .ls-std-island-layout-ltr > section.smallBlock,
-html.lp-on .ls-std-island-layout-ltr > section.defaultBlock { flex: 0 1 380px; width: auto !important; }
-html.lp-on .ls-std-island-layout-col { display: flex !important; flex-direction: column; gap: 18px; }
-html.lp-on .ls-std-island-layout-col > br { display: none; }
-html.lp-on .ls-std-island-layout-col > section.lf-island { width: 100% !important; max-width: 100% !important; margin: 0 !important; }
 
 /* tabeller */
 html.lp-on .outerContentFrame table { font-size: inherit; }
@@ -796,8 +712,6 @@ html.lp-aflpage .lp-afl-entries textarea { width: 100% !important; min-height: 1
 /* 1.5 rettelser efter live-test */
 html.lp-on[data-lp-theme="dark"] { color-scheme: dark; }
 html.lp-on[data-lp-theme="light"] { color-scheme: light; }
-html.lp-on section.lf-island, html.lp-on .ls-island-elevated, html.lp-on .ls-island-outlined, html.lp-on .ls-island-filled { outline: none !important; }
-html.lp-on .ls-card-filled { background: transparent !important; border: 0 !important; box-shadow: none !important; outline: none !important; padding: 0 !important; }
 #lp-app :is(h1, h2, h3, h4, h5), #lp-drawer :is(h2, h3, h4, h5), .lp-afl :is(h1, h2, h3) { color: var(--ink) !important; }
 .lp-mlist, .lp-mread, .lp-dr-body { scrollbar-width: thin; }
 html.lp-aflpage .ls-elevaflevering-root section.lf-island { width: 100% !important; max-width: none !important; flex: none !important; }
@@ -819,22 +733,12 @@ html.lp-shell .ls-master-pageheader { display: none !important; }
 #lp-shell-head .lp-btn { text-decoration: none !important; }
 
 /* kort og Lectios kasser ser ens ud */
-.lp-card, .lp-sheet, html.lp-on section.lf-island { border-radius: 16px !important; border: 1px solid var(--rule) !important; background: var(--surface) !important; }
+.lp-card, .lp-sheet { border-radius: 16px !important; border: 1px solid var(--rule) !important; background: var(--surface) !important; }
 .lp-card { padding: 18px 22px !important; }
 .lp-card.lp-week-card { padding: 8px 12px 8px 4px !important; }
 .lp-sheet { padding: 4px 22px 18px !important; }
-html.lp-on section.lf-island { margin: 0 0 20px !important; }
-html.lp-on .ls-std-island-layout-ltr > section.lf-island, html.lp-on .ls-std-island-layout-col > section.lf-island { margin: 0 !important; }
-html.lp-on .ls-std-island-layout-ltr, html.lp-on .ls-std-island-layout-col { gap: 20px !important; }
-html.lp-on section.lf-island .islandHeaderContainer { border-bottom: 0 !important; padding: 18px 22px 0 !important; }
-html.lp-on section.lf-island .islandHeader { font-size: 17px !important; font-weight: 700 !important; }
-html.lp-on section.lf-island .islandContent { padding: 10px 22px 18px !important; }
 .lp-card-head h2, .lp-group h2 { font-size: 17px !important; font-weight: 700 !important; }
 
-/* tabeller i kasser flugter med overskriften ligesom i de nye sider */
-html.lp-on section.lf-island .islandContent table :is(td, th):first-child { padding-left: 0 !important; }
-html.lp-on section.lf-island .islandContent table :is(td, th):last-child { padding-right: 0 !important; }
-html.lp-on section.lf-island .islandContent table th { border-bottom: 1px solid var(--rule) !important; }
 
 /* detaljesider flugter med titlen */
 .lp-afl, html.lp-aflpage .ls-elevaflevering-root { max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; }

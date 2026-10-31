@@ -42,6 +42,21 @@ export async function ensureDevMode(context) {
   }
 }
 
+// Sætter indstillinger i udvidelsens egen chrome.storage via dens popup-side.
+// Værktøjerne bruger det til at sætte temaet til "auto", så emulateMedia bestemmer lyst eller mørkt.
+export async function setSettings(context, values) {
+  const page = await context.newPage();
+  try {
+    await page.goto('chrome://extensions');
+    const id = await page.evaluate(async () => (await chrome.developerPrivate.getExtensionsInfo()).find((e) => e.name === 'Lectio+')?.id);
+    if (!id) throw new Error('fandt ikke Lectio+');
+    await page.goto(`chrome-extension://${id}/popup.html`);
+    await page.evaluate((v) => new Promise((res) => chrome.storage.sync.set(v, res)), values);
+  } finally {
+    await page.close();
+  }
+}
+
 export async function reloadExtension(context) {
   const page = await context.newPage();
   try {

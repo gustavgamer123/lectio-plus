@@ -2,7 +2,7 @@
 // Brug: npm run shot -- <sti ...> [--theme light|dark|both] [--width 1280] [--click <css>] [--press <taster>] [--type <tekst>] [--name <tillæg>]
 import fs from 'node:fs';
 import path from 'node:path';
-import { ROOT, ORIGIN, connect, schoolBase, reloadExtension, slug } from './lib.mjs';
+import { ROOT, ORIGIN, connect, schoolBase, reloadExtension, setSettings, slug } from './lib.mjs';
 
 const opts = { theme: 'both', width: '1280' };
 const paths = [];
@@ -20,6 +20,7 @@ fs.mkdirSync(out, { recursive: true });
 const { context } = await connect();
 const base = schoolBase(context);
 await reloadExtension(context);
+await setSettings(context, { theme: 'auto' });
 const page = await context.newPage();
 await page.setViewportSize({ width, height: 800 });
 for (const p of paths) {
