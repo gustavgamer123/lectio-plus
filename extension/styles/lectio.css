@@ -110,3 +110,45 @@ html.lp-on .outerContentFrame .ls-std-toolbar-filled { background: transparent !
 html.lp-on .outerContentFrame a.TreeNode { border-radius: var(--radius-sm) !important; }
 /* Studiekort: et panel som de andre */
 html.lp-on .outerContentFrame [id$="StudiekortContianerID"] { background: var(--surface) !important; border: 1px solid var(--rule) !important; border-radius: var(--radius) !important; box-shadow: none !important; }
+
+/* ---------- knapper ---------- */
+/* Lectios knapper er en div (buttonfilled, buttonoutlined, ...) med et <a data-role="button"> indeni. Det er <a>'et, der er knappen. */
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon) {
+  display: inline-flex !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; padding: 0 !important;
+}
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext) > :is(a, button),
+html.lp-on .outerContentFrame input:is([type="submit"], [type="button"]):not(.hidetabinputbutton) {
+  display: inline-flex !important; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 32px; height: auto !important;
+  padding: 0 12px !important; margin: 0 !important; border: 1px solid transparent !important; border-radius: var(--radius) !important; box-shadow: none !important;
+  font: 500 13.5px/1.2 var(--font) !important; letter-spacing: 0 !important; text-transform: none !important; text-decoration: none !important; white-space: nowrap; cursor: pointer;
+}
+html.lp-on .outerContentFrame .buttonfilled > :is(a, button) { background: var(--accent) !important; border-color: var(--accent) !important; color: var(--accent-ink) !important; }
+html.lp-on .outerContentFrame .buttonfilledtonal > :is(a, button) { background: var(--accent-soft) !important; color: var(--accent) !important; }
+html.lp-on .outerContentFrame .buttontext > :is(a, button) { background: transparent !important; color: var(--accent) !important; padding: 0 6px !important; }
+html.lp-on .outerContentFrame :is(.buttonoutlined > :is(a, button), input:is([type="submit"], [type="button"]):not(.hidetabinputbutton)) {
+  background: var(--surface) !important; border-color: var(--rule) !important; color: var(--ink) !important;
+}
+html.lp-on .outerContentFrame .buttonicon > :is(a, button) {
+  display: inline-grid !important; place-items: center; width: 32px !important; height: 32px !important; padding: 0 !important; border: 0 !important;
+  border-radius: var(--radius) !important; background: transparent !important; color: var(--ink-2) !important; box-shadow: none !important;
+}
+html.lp-on .outerContentFrame .buttonicon > :is(a, button) .ls-fonticon { color: inherit !important; }
+html.lp-on .outerContentFrame :is(.buttonoutlined, .buttontext, .buttonicon) > :is(a, button):hover,
+html.lp-on .outerContentFrame input:is([type="submit"], [type="button"]):not(.hidetabinputbutton):hover { background: var(--sunk) !important; color: var(--ink) !important; }
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonfilledtonal) > :is(a, button):hover { filter: brightness(1.08); }
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon) > :is(a, button):focus-visible,
+html.lp-on .outerContentFrame input:is([type="submit"], [type="button"]):focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 2px; }
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon):is(.disabled, [aria-disabled="true"]) > :is(a, button),
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon) > :is(a, button):is([disabled], [aria-disabled="true"], .disabled, .aspNetDisabled),
+html.lp-on .outerContentFrame input:is([type="submit"], [type="button"])[disabled] { opacity: .55; filter: none; pointer-events: none; }
+
+/* Valgfag: Lectios flydende handlingsbjælke bliver en fast, uigennemsigtig bund */
+html.lp-on #fixedBlock > .ls-std-rowblock {
+  background: var(--surface) !important; opacity: 1 !important; backdrop-filter: none !important; border: 0 !important; border-top: 1px solid var(--rule) !important;
+  border-radius: 0 !important; box-shadow: 0 -6px 16px rgba(0, 0, 0, .08) !important;
+}
+
+/* ---------- links og Lectios egen blå ---------- */
+html.lp-on .outerContentFrame a:not([data-role="button"]):not(:is(#lp-shell-head, #lp-app, #lp-drawer, #lp-colors) a) { color: var(--accent) !important; }
+html.lp-on .outerContentFrame li::marker { color: var(--accent); }
+html.lp-on .outerContentFrame :is(.infoText, .infoTextItalic) { color: var(--ink-2) !important; font-style: normal !important; }
