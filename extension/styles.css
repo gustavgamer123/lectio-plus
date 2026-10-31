@@ -1,46 +1,4 @@
 /* ============ Lectio+ ============ */
-@font-face { font-family: "LP Schibsted"; font-weight: 400; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/sg-400.woff2") format("woff2"); }
-@font-face { font-family: "LP Schibsted"; font-weight: 500; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/sg-500.woff2") format("woff2"); }
-@font-face { font-family: "LP Schibsted"; font-weight: 600; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/sg-600.woff2") format("woff2"); }
-@font-face { font-family: "LP Schibsted"; font-weight: 700; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/sg-700.woff2") format("woff2"); }
-
-html.lp-on, html.lp-lite, #lp-pill {
-  --bg: #f3f4f1;
-  --surface: #ffffff;
-  --sunk: #f6f7f4;
-  --ink: #1c1f1e;
-  --ink-2: #5d6461;
-  --ink-3: #8c928f;
-  --rule: #e1e4df;
-  --accent: #13566b;
-  --accent-soft: #e4eff1;
-  --warn: #94570a;
-  --danger: #b3261e;
-  --ok: #2e7350;
-  --tint-l: 95%;
-  --tint-s: 45%;
-  --dot-l: 46%;
-  --side: 224px;
-  --font: "LP Schibsted", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
-html[data-lp-theme="dark"].lp-on, html[data-lp-theme="dark"].lp-lite, html[data-lp-theme="dark"] #lp-pill {
-  --bg: #111413;
-  --surface: #191d1c;
-  --sunk: #151817;
-  --ink: #e4e7e3;
-  --ink-2: #a0a7a3;
-  --ink-3: #737a77;
-  --rule: #2a302e;
-  --accent: #74b9c8;
-  --accent-soft: #1b2d31;
-  --warn: #e3a646;
-  --danger: #ef7d70;
-  --ok: #72c494;
-  --tint-l: 17%;
-  --tint-s: 22%;
-  --dot-l: 62%;
-}
-
 /* ---------- Lectios egne sider ---------- */
 html.lp-on body {
   background: var(--bg) !important;

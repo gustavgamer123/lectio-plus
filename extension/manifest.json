@@ -24,6 +24,7 @@
         "early.js"
       ],
       "css": [
+        "styles/tokens.css",
         "styles.css"
       ],
       "run_at": "document_start"

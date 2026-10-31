@@ -1,0 +1,62 @@
+/* ============ Lectio+ 2.0: farver og skrift i retning D ("Lectio, gjort ordentligt") ============ */
+@font-face { font-family: "LP Plex"; font-weight: 400; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/plex-sans-400.woff2") format("woff2"); }
+@font-face { font-family: "LP Plex"; font-weight: 500; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/plex-sans-500.woff2") format("woff2"); }
+@font-face { font-family: "LP Plex"; font-weight: 600; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/plex-sans-600.woff2") format("woff2"); }
+@font-face { font-family: "LP Plex"; font-weight: 700; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/plex-sans-700.woff2") format("woff2"); }
+@font-face { font-family: "LP Plex Mono"; font-weight: 400; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/plex-mono-400.woff2") format("woff2"); }
+@font-face { font-family: "LP Plex Mono"; font-weight: 500; font-display: swap; src: url("chrome-extension://__MSG_@@extension_id__/fonts/plex-mono-500.woff2") format("woff2"); }
+
+html.lp-on, html.lp-lite, #lp-pill {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --sunk: #f7f8fa;
+  --ink: #1d2733;
+  --ink-2: #66717f;
+  --ink-3: #848d98;
+  --rule: #e1e6ec;
+  --accent: #1b5ea8;
+  --accent-ink: #ffffff;
+  --accent-soft: #eef4fb;
+  --bar: #1b5ea8;
+  --bar-ink: #ffffff;
+  --bar-ink-2: #c6dcf7;
+  --warn: #a35a00;
+  --warn-soft: #fdf1e1;
+  --danger: #c42b1c;
+  --danger-soft: #fbe9e7;
+  --ok: #2e7350;
+  --ok-soft: #e6f2ea;
+  --tint-l: 95%;
+  --tint-s: 45%;
+  --dot-l: 46%;
+  --font: "LP Plex", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "LP Plex Mono", ui-monospace, Consolas, monospace;
+  --radius: 4px;
+  --radius-sm: 3px;
+  --shell-h: 88px;
+  --side: 224px; /* kun til sidemenuen fra 1.x, fjernes når topbjælken tager over */
+}
+html[data-lp-theme="dark"].lp-on, html[data-lp-theme="dark"].lp-lite, html[data-lp-theme="dark"] #lp-pill {
+  --bg: #0f1318;
+  --surface: #161b22;
+  --sunk: #1b212a;
+  --ink: #e3e8ee;
+  --ink-2: #9aa5b1;
+  --ink-3: #6b7682;
+  --rule: #29313b;
+  --accent: #7fb2ec;
+  --accent-ink: #0f1318;
+  --accent-soft: #18283a;
+  --bar: #14243a;
+  --bar-ink: #e3e8ee;
+  --bar-ink-2: #7fb2ec;
+  --warn: #e0a14a;
+  --warn-soft: #2e2414;
+  --danger: #f08273;
+  --danger-soft: #331b18;
+  --ok: #6fc495;
+  --ok-soft: #16291f;
+  --tint-l: 17%;
+  --tint-s: 22%;
+  --dot-l: 62%;
+}
