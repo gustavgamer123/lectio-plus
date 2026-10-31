@@ -785,6 +785,8 @@
           weeks.askedNext = true;
           const nxt = new Date(mondayOf(now)); nxt.setDate(nxt.getDate() + 7);
           loadWeek(nxt, (sk) => { weeks.next = sk; drawSchedule(); drawHomework(); });
+          // Kom næste uge fra cachen, har kaldet ovenfor allerede tegnet alt med de nye data.
+          if (weeks.next) return;
         }
       }
       const dayLessons = targetDay ? lessons.filter((l) => sameDay(l.start, targetDay)) : [];
