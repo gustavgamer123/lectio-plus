@@ -91,7 +91,6 @@ html.lp-on .lp-row-done td { color: var(--ink-3) !important; }
 .lp-muted { color: var(--ink-2); }
 .lp-sd { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: hsl(var(--h, 200) 55% var(--dot-l)); margin-right: 8px; flex: none; vertical-align: 1px; }
 
-#lp-palette kbd { font: 500 11px var(--font); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--rule); color: var(--ink-3); background: var(--surface); }
 .lp-icon-btn {
   display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 7px; border: 0; background: transparent;
   color: var(--ink-3) !important; cursor: pointer; text-decoration: none !important;
@@ -220,16 +219,6 @@ html.lp-takeover #s_m_outerContentFrameDiv, html.lp-takeover .ls-master-footer, 
 @keyframes lp-pulse { 50% { opacity: .5; } }
 
 /* knapper */
-.lp-btn {
-  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rule);
-  background: var(--surface); color: var(--ink) !important; font: 500 14px var(--font); cursor: pointer; text-decoration: none !important;
-}
-.lp-btn:hover { background: var(--sunk); }
-.lp-btn.is-disabled { color: var(--ink-3) !important; pointer-events: none; }
-.lp-btn-ghost { border-color: transparent; background: transparent; color: var(--ink-2) !important; }
-.lp-btn-primary { background: var(--accent); border-color: var(--accent); color: var(--surface) !important; justify-content: center; width: 100%; margin-top: 18px; height: 40px; font-weight: 600; }
-.lp-btn-primary:hover { background: var(--accent); filter: brightness(1.1); }
-.lp-btn-primary svg { width: 16px !important; height: 16px !important; }
 
 /* ---------- ugeskema ---------- */
 .lp-week-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -278,18 +267,6 @@ html.lp-takeover #s_m_outerContentFrameDiv, html.lp-takeover .ls-master-footer, 
 .lp-lg-ca { background: var(--danger); }
 
 /* ---------- søgning ---------- */
-#lp-palette { position: fixed; inset: 0; z-index: 10000; display: none; align-items: flex-start; justify-content: center; padding-top: 14vh; background: rgba(15, 18, 17, .35); }
-#lp-palette.is-open { display: flex; }
-.lp-pal-box { width: min(600px, 92vw); background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, .25); overflow: hidden; }
-.lp-pal-in { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--rule); color: var(--ink-3); }
-.lp-pal-in input { flex: 1; border: 0 !important; outline: 0; background: transparent !important; color: var(--ink) !important; font: 500 17px var(--font); padding: 0 !important; box-shadow: none !important; }
-.lp-pal-list { max-height: 56vh; overflow-y: auto; padding: 6px; }
-.lp-pal-group { font-size: 13px; font-weight: 600; color: var(--ink-3); padding: 10px 10px 4px; }
-.lp-pal-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; color: var(--ink) !important; text-decoration: none !important; font-size: 14.5px; }
-.lp-pal-item span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lp-pal-item small { color: var(--ink-3); font-size: 13px; white-space: nowrap; max-width: 45%; overflow: hidden; text-overflow: ellipsis; }
-.lp-pal-item svg { color: var(--ink-3); }
-.lp-pal-item.is-sel, .lp-pal-item:hover { background: var(--accent-soft); }
 
 /* ---------- lektionsdetaljer ---------- */
 #lp-modal { position: fixed; inset: 0; z-index: 10001; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 18, 17, .35); }
@@ -313,10 +290,6 @@ html.lp-takeover #s_m_outerContentFrameDiv, html.lp-takeover .ls-master-footer, 
 .lp-pad { padding: 12px 0 0; }
 
 /* ---------- tilbage-knap ---------- */
-#lp-pill {
-  position: fixed; right: 18px; bottom: 18px; z-index: 9999; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--rule);
-  background: var(--surface); box-shadow: 0 8px 24px rgba(0, 0, 0, .15); font: 600 14px var(--font); cursor: pointer;
-}
 
 /* ---------- mindre skærme ---------- */
 @media (max-width: 980px) {
@@ -342,16 +315,6 @@ html.lp-takeover #s_m_outerContentFrameDiv, html.lp-takeover .ls-master-footer, 
 
 /* ---------- egne visninger ---------- */
 html.lp-on, html.lp-on body { overflow-x: hidden; }
-.lp-vhead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
-.lp-vhead-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-.lp-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-.lp-filter button {
-  display: inline-flex; align-items: center; height: 30px; padding: 0 11px; border-radius: 15px; border: 1px solid var(--rule);
-  background: var(--surface); color: var(--ink-2); font: 500 13.5px var(--font); cursor: pointer;
-}
-.lp-filter button .lp-sd { margin-right: 6px; }
-.lp-filter button:hover { color: var(--ink); }
-.lp-filter button.is-on { background: var(--ink); border-color: var(--ink); color: var(--surface); }
 .lp-sheet { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 6px 24px 18px; }
 .lp-group { padding-top: 18px; }
 .lp-group[hidden] { display: none; }
@@ -488,10 +451,6 @@ html.lp-on[data-lp-theme="dark"] .outerContentFrame :is(table, td, th) { border-
 
 
 /* ---------- faner i egne visninger ---------- */
-.lp-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin: -6px 0 18px; border-bottom: 1px solid var(--rule); }
-.lp-tabs a { padding: 8px 12px; color: var(--ink-2) !important; text-decoration: none !important; font-size: 14.5px; box-shadow: inset 0 -2px 0 transparent; }
-.lp-tabs a:hover { color: var(--ink) !important; }
-.lp-tabs a.is-on { color: var(--ink) !important; font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
 
 /* ---------- fra skolen ---------- */
 .lp-status a.is-warn { color: var(--warn) !important; font-weight: 600; }
@@ -856,14 +815,6 @@ html.lp-on .outerContentFrame > .ls-content-container { box-sizing: border-box; 
 html.lp-shell .ls-master-pageheader { display: none !important; }
 
 /* samme sidehoved overalt */
-.lp-vhead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; margin: 0 0 16px; font-family: var(--font); }
-#lp-app .lp-vhead h1, #lp-shell-head .lp-vhead h1 { font-size: clamp(28px, 2.2vw, 36px) !important; font-weight: 700 !important; letter-spacing: -.025em; line-height: 1.15; margin: 0 !important; color: var(--ink) !important; font-family: var(--font); }
-.lp-vhead-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.lp-viewsub { margin: -4px 0 18px !important; color: var(--ink-2); font-size: 15px; font-family: var(--font); }
-.lp-vhead + .lp-viewsub { margin-top: -10px !important; }
-.lp-tabs { margin: 0 0 22px !important; font-family: var(--font); }
-.lp-tabs + .lp-viewsub { margin-top: -8px !important; }
-.lp-tabs a:hover { text-decoration: none !important; }
 #lp-shell-head { font-family: var(--font); color: var(--ink); }
 #lp-shell-head .lp-btn { text-decoration: none !important; }
 
