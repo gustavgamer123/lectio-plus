@@ -37,6 +37,7 @@
         "src/lib/core.js",
         "src/lib/subjects.js",
         "src/lib/parse.js",
+        "src/shell/nav.js",
         "content.js"
       ],
       "run_at": "document_end"
