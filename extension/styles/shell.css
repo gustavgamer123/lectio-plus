@@ -78,7 +78,7 @@ html.lp-boot body::before { content: ""; position: fixed; inset: 0 0 auto 0; hei
 }
 
 /* ============ sidehoved, underfaner, knapper og søgning i samme stil ============ */
-.lp-vhead { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 20px; flex-wrap: wrap; margin: 0 0 14px; font-family: var(--font); }
+.lp-vhead { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; min-height: 34px; margin: 0 0 14px; font-family: var(--font); }
 #lp-app .lp-vhead h1, #lp-pagehead .lp-vhead h1 { font-size: 24px !important; font-weight: 600 !important; letter-spacing: -.015em; line-height: 1.2; margin: 0 !important; color: var(--ink) !important; font-family: var(--font); }
 .lp-vhead-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .lp-viewsub { margin: -4px 0 16px !important; color: var(--ink-2); font-size: 14px; font-family: var(--font); }

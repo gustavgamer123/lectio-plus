@@ -1,0 +1,24 @@
+
+side                                              fejl    rund     tag  skrift    blaakontrast     lys   tabel    knapoverloeb   flugt
+forside.aspx light                                   .       7       2       .       3       5       .       .       .       .       .
+forside.aspx dark                                    .       7       2       .       3       5       .       .       .       .       .
+SkemaNy.aspx light                                   .       .       .       .       .       4       .       .       .       .       1
+SkemaNy.aspx dark                                    .       .       .       .       .       2       .       .       .       .       1
+material_lektieoversigt.aspx light                   .       .       .       .       2       1       .       .       .       .       .
+material_lektieoversigt.aspx dark                    .       .       .       .       2       1       .       .       .       .       .
+OpgaverElev.aspx light                               .       1       .       .       2       1       .       .       .       .       .
+OpgaverElev.aspx dark                                .       1       .       .       2       1       .       .       .       .       .
+beskeder2.aspx light                                 .       6       4       .       .       5       .       .       .       .       .
+beskeder2.aspx dark                                  .       6       4       .       .       5       2       .       .       .       .
+subnav_fravaerelev.aspx light                        .       .       .       .       1       3       .       .       .       .       .
+subnav_fravaerelev.aspx dark                         .       .       .       .       1       3       .       .       .       .       .
+grades_grade_report.aspx light                       .       .       .       .       .       2       .       .       .       .       .
+grades_grade_report.aspx dark                        .       .       .       .       .       2       .       .       .       .       .
+studieplan.aspx_displaytype_ugetekstta light         .       .       .       .       1       4       .       .       .       .       .
+studieplan.aspx_displaytype_ugetekstta dark          .       .       .       .       1       4       .       .       .       .       .
+ElevAflevering.aspx_elevid_72042559679 light         .       1       .       .       .       2       .       .       .       .       .
+ElevAflevering.aspx_elevid_72042559679 dark          .       1       .       .       .       2       .       .       .       .       .
+aktivitet_aktivitetforside2.aspx_absid light         .       3       .       .       .       2       .       .       .       .       .
+aktivitet_aktivitetforside2.aspx_absid dark          .       3       .       .       .       2       .       .       .       .       .
+
+126 brud (unikke selectors) ved 1280 px. Detaljer: shots/audit-1280.json
