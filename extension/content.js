@@ -514,18 +514,14 @@
     const now = new Date();
     const today = startOfDay(now);
     const hour = now.getHours();
-    const greet = hour < 10 ? 'Godmorgen' : hour < 12 ? 'God formiddag' : hour < 18 ? 'God eftermiddag' : 'God aften';
     const { w } = isoWeek(now);
     app.classList.add('lp-dash');
     const card = (id, title, link, linkLabel, body, cls = '') => `<section class="lp-card ${cls}" id="${id}">
         <header class="lp-card-head"><h2>${title}</h2>${link ? `<a class="lp-link" href="${link}">${linkLabel}</a>` : ''}</header>
         <div class="lp-card-body">${body}</div></section>`;
     app.innerHTML = `
-      <header class="lp-dhead">
-        <div><p class="lp-date">${esc(cap(DAYS[now.getDay()]))} ${now.getDate()}. ${esc(MONTHS[now.getMonth()])}, uge ${w}</p>
-        <h1>${greet}${USER.first ? ', ' + esc(USER.first) : ''}</h1></div>
-        <nav id="lp-chips" class="lp-chips" aria-label="Status"></nav>
-      </header>
+      <header class="lp-vhead"><h1>Forside</h1><nav id="lp-chips" class="lp-chips" aria-label="Status"></nav></header>
+      <p class="lp-viewsub">${esc(cap(DAYS[now.getDay()]))} ${now.getDate()}. ${esc(MONTHS[now.getMonth()])}, uge ${w}</p>
       <div id="lp-next" class="lp-hero">${skeleton(1)}</div>
       <div class="lp-dgrid">
         ${card('lp-c-day', 'I dag', BASE + 'SkemaNy.aspx', 'Hele ugen', skeleton(6))}
@@ -548,12 +544,12 @@
       const el = document.getElementById('lp-chips');
       if (!el) return;
       const out = [];
-      if (chips.missing) out.push(`<a class="lp-pill is-danger" href="${BASE}OpgaverElev.aspx">${chips.missing} ${chips.missing === 1 ? 'aflevering mangler' : 'afleveringer mangler'}</a>`);
-      if (chips.soon) out.push(`<a class="lp-pill" href="${BASE}OpgaverElev.aspx">${chips.soon} ${chips.soon === 1 ? 'aflevering' : 'afleveringer'} denne uge</a>`);
-      if (chips.unread) out.push(`<a class="lp-pill" href="${BASE}beskeder2.aspx">${chips.unread} ${chips.unread === 1 ? 'ulæst besked' : 'ulæste beskeder'}</a>`);
-      (chips.deadlines || []).forEach((d) => out.push(`<a class="lp-pill is-warn" href="${esc(d.link || '#lp-c-front')}">${esc(d.title)} senest ${esc(niceTime(d.time))}</a>`));
-      if (chips.abs != null) out.push(`<a class="lp-pill${chips.abs >= 10 ? ' is-danger' : chips.abs >= 5 ? ' is-warn' : ''}" href="${BASE}subnav/fravaerelev.aspx">Fravær ${chips.abs.toFixed(1).replace('.', ',')} %</a>`);
-      if (chips.avg != null) out.push(`<a class="lp-pill" href="${BASE}grades/grade_report.aspx">Snit ${chips.avg.toFixed(1).replace('.', ',')}</a>`);
+      if (chips.missing) out.push(`<a class="lp-tag is-danger" href="${BASE}OpgaverElev.aspx">${chips.missing} ${chips.missing === 1 ? 'aflevering mangler' : 'afleveringer mangler'}</a>`);
+      if (chips.soon) out.push(`<a class="lp-tag" href="${BASE}OpgaverElev.aspx">${chips.soon} ${chips.soon === 1 ? 'aflevering' : 'afleveringer'} denne uge</a>`);
+      if (chips.unread) out.push(`<a class="lp-tag" href="${BASE}beskeder2.aspx">${chips.unread} ${chips.unread === 1 ? 'ulæst besked' : 'ulæste beskeder'}</a>`);
+      (chips.deadlines || []).forEach((d) => out.push(`<a class="lp-tag is-warn" href="${esc(d.link || '#lp-c-front')}">${esc(d.title)} senest ${esc(niceTime(d.time))}</a>`));
+      if (chips.abs != null) out.push(`<a class="lp-tag${chips.abs >= 10 ? ' is-danger' : chips.abs >= 5 ? ' is-warn' : ''}" href="${BASE}subnav/fravaerelev.aspx">Fravær ${chips.abs.toFixed(1).replace('.', ',')} %</a>`);
+      if (chips.avg != null) out.push(`<a class="lp-tag" href="${BASE}grades/grade_report.aspx">Snit ${chips.avg.toFixed(1).replace('.', ',')}</a>`);
       el.innerHTML = out.join('');
     };
 
@@ -646,11 +642,10 @@
 
       const cur = dayLessons.find((l) => !l.cancelled && l.start <= now && now < l.end);
       const next = lessons.filter((l) => !l.cancelled && l.start > now)[0];
-      const block = (lbl, l, sub, extra = '') => `<button type="button" class="lp-hero-item" data-n="${lbl}"${hc(l.subject?.code)} style="--h:${hueFor(l.subject?.code)}">
+      const block = (lbl, l, sub, extra = '') => `<button type="button" class="lp-hero-item${lbl === 'nu' ? ' is-live' : ''}" data-n="${lbl}"${hc(l.subject?.code)} style="--h:${hueFor(l.subject?.code)}">
           <span class="lp-hero-lbl">${lbl === 'nu' ? 'Nu' : cur ? 'Bagefter' : 'Næste time'}</span>
-          <strong>${esc(l.subject?.name || l.title || 'Aktivitet')}</strong>
-          <span class="lp-hero-room">${esc(l.room || 'Intet lokale')}</span>
-          <span class="lp-hero-sub">${esc(sub)}</span>${extra}</button>`;
+          <strong>${subjDot(l.subject?.code)}${esc(l.subject?.name || l.title || 'Aktivitet')}${l.room ? `<span>, ${esc(l.room)}</span>` : ''}</strong>
+          <span class="lp-hero-sub lp-mono">${esc(sub)}</span>${extra}</button>`;
       let h = '';
       if (cur) {
         const prog = Math.round(((now - cur.start) / (cur.end - cur.start)) * 100);

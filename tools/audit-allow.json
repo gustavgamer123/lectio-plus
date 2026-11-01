@@ -1,1 +1,3 @@
-[]
+[
+  { "page": "*", "rule": "blaa", "selector": "lp-sd", "why": "Fagprikker har elevens egne fagfarver, og nogle fag er blå." }
+]
