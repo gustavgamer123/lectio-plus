@@ -182,3 +182,38 @@ table.lp-table tbody tr:hover > td { background: var(--sunk); }
 #lp-app .lp-notice h3 { margin: 8px 0 4px; font-size: 13.5px; font-weight: 600; }
 #lp-app .lp-ntime { color: var(--ink-2) !important; font-family: var(--mono); font-size: 12px; }
 #lp-app .lp-ntime.is-warn { color: var(--warn) !important; }
+
+/* ---------- Skema ---------- */
+#lp-app .lp-week-card { overflow-x: auto; }
+#lp-app .lp-day-head { height: 44px; padding: 12px 10px 0; }
+#lp-app .lp-day-head span { font-size: 13px; color: var(--ink-2); }
+#lp-app .lp-day-head b { font-size: 16px; font-weight: 600; }
+#lp-app .lp-day.is-today .lp-day-head { box-shadow: inset 0 3px 0 var(--accent); }
+/* heldagsrækken har fast højde (sat i renderWeek), så timegitteret flugter */
+#lp-app .lp-day-all { min-height: 0 !important; padding: 0 4px; overflow: hidden; }
+#lp-app .lp-allday {
+  display: block; width: 100%; height: 22px; padding: 0 6px; margin: 0 0 4px; border: 0 !important; border-radius: var(--radius-sm) !important;
+  background: var(--sunk) !important; color: var(--ink); font: 600 12px/22px var(--font); text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+}
+/* tidsaksen: tallene krydses ikke af gitterstregerne */
+#lp-app .lp-gutter .lp-day-body span { z-index: 2; padding: 0 4px; background: var(--surface); font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+/* lektionsblokke: neutral flade, tynd fagstribe */
+#lp-app .lp-blk {
+  padding: 3px 6px 3px 8px; border: 1px solid var(--rule) !important; border-left: 3px solid hsl(var(--h) 55% var(--dot-l)) !important; border-radius: var(--radius-sm) !important;
+  background: var(--surface) !important; color: var(--ink); box-shadow: none; opacity: 1 !important;
+}
+#lp-app .lp-blk:hover { border-color: var(--ink-2) !important; border-left-color: hsl(var(--h) 55% var(--dot-l)) !important; box-shadow: none; }
+#lp-app .lp-blk strong { font-size: 12.5px; font-weight: 600; }
+#lp-app .lp-blk :is(small, em) { font-size: 11.5px; color: var(--ink-2); }
+#lp-app .lp-blk.is-past strong { color: var(--ink-2); }
+#lp-app .lp-blk.is-live { box-shadow: 0 0 0 2px var(--accent) !important; }
+#lp-app .lp-blk.is-changed { border-left-color: var(--warn) !important; }
+#lp-app .lp-blk.is-cancelled { background: var(--sunk) !important; border-left-color: var(--danger) !important; }
+#lp-app .lp-blk.is-cancelled strong { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--danger); }
+#lp-app .lp-blk:is(.is-changed, .is-cancelled) small::after {
+  display: inline-block; margin-left: 4px; padding: 0 4px; border-radius: var(--radius-sm); font: 600 10.5px/15px var(--font); vertical-align: 1px;
+}
+#lp-app .lp-blk.is-changed small::after { content: "ændret"; background: var(--warn-soft); color: var(--warn); }
+#lp-app .lp-blk.is-cancelled small::after { content: "aflyst"; background: var(--danger-soft); color: var(--danger); }
+#lp-app .lp-blk-icons i { border-radius: 2px; }
+#lp-app .lp-legend { font-size: 12.5px; color: var(--ink-2); padding: 10px 8px 4px 52px; }

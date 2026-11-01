@@ -14,7 +14,7 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
   // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
   const LP = globalThis.LP;
-  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells'].every((k) => LP[k])) {
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight'].every((k) => LP[k])) {
     document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
     return;
   }
@@ -750,6 +750,7 @@
       const hours = [];
       for (let t = Math.ceil(minM / 60) * 60; t <= maxM; t += 60) hours.push(t);
       const all = sk.lessons;
+      const AH = LP.alldayHeight(sk.days, all);
       const cols = sk.days.map((d, di) => {
         const isToday = d.date && sameDay(d.date, now);
         const dayAll = all.filter((l) => l.day === di && l.allDay);
@@ -778,14 +779,14 @@
         const nowLine = isToday && nowM >= minM && nowM <= maxM ? `<div class="lp-nowline" style="top:${(nowM - minM) * PX}px"></div>` : '';
         return `<div class="lp-day${isToday ? ' is-today' : ''}">
           <div class="lp-day-head"><span>${esc(d.name)}</span><b>${d.date ? d.date.getDate() : ''}</b></div>
-          <div class="lp-day-all">${dayAll.map((l) => `<button type="button" class="lp-allday" data-li="${all.indexOf(l)}"${hc(l.subject?.code || l.title)} style="--h:${hueFor(l.subject?.code || l.title)}">${esc(l.title || l.subject?.name || 'Begivenhed')}</button>`).join('')}</div>
+          <div class="lp-day-all" style="height:${AH}px">${dayAll.map((l) => `<button type="button" class="lp-allday" data-li="${all.indexOf(l)}"${hc(l.subject?.code || l.title)} style="--h:${hueFor(l.subject?.code || l.title)}">${esc(l.title || l.subject?.name || 'Begivenhed')}</button>`).join('')}</div>
           <div class="lp-day-body" style="height:${H}px">${hours.map((t) => `<div class="lp-hline" style="top:${(t - minM) * PX}px"></div>`).join('')}${blocks}${nowLine}</div>
         </div>`;
       }).join('');
       const anyAll = all.some((l) => l.allDay);
       const box = document.getElementById('lp-week');
       box.innerHTML = `<div class="lp-week${anyAll ? '' : ' no-allday'}">
-        <div class="lp-gutter"><div class="lp-day-head"></div><div class="lp-day-all"></div><div class="lp-day-body" style="height:${H}px">${hours.map((t) => `<span style="top:${(t - minM) * PX}px">${pad(Math.floor(t / 60))}:00</span>`).join('')}</div></div>
+        <div class="lp-gutter"><div class="lp-day-head"></div><div class="lp-day-all" style="height:${AH}px"></div><div class="lp-day-body" style="height:${H}px">${hours.map((t) => `<span style="top:${(t - minM) * PX}px">${pad(Math.floor(t / 60))}:00</span>`).join('')}</div></div>
         ${cols}</div>
         <div class="lp-legend"><span><i class="lp-lg-ch"></i>Ændret</span><span><i class="lp-lg-ca"></i>Aflyst</span><span><i class="lp-lg-hw"></i>Har lektier</span><span>Klik på et modul for at se lektier og noter</span></div>`;
       box.querySelectorAll('[data-li]').forEach((b) => b.addEventListener('click', () => openLesson(all[+b.dataset.li], all)));
@@ -1496,6 +1497,8 @@
         const wk = params.get('week');
         let d = new Date();
         if (wk && /^\d{6}$/.test(wk)) { d = mondayOf(new Date(+wk.slice(2), 0, 4)); d.setDate(d.getDate() + (+wk.slice(0, 2) - 1) * 7); }
+        // Lectio viser næste uge i weekenden; så gør vi også, så overskrift og skema passer sammen.
+        else if (d.getDay() === 0 || d.getDay() === 6) { d = mondayOf(d); d.setDate(d.getDate() + 7); }
         let cur = d;
         renderWeek(app, cur);
         document.addEventListener('keydown', (e) => {
