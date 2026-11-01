@@ -920,21 +920,32 @@
     const missing = tasks.filter((x) => /mangler/i.test(x.status)).sort((a, b) => (b.due || 0) - (a.due || 0));
     const open = tasks.filter((x) => !/afleveret|mangler/i.test(x.status)).sort((a, b) => (a.due || 0) - (b.due || 0));
     const done = tasks.filter((x) => /afleveret/i.test(x.status)).sort((a, b) => (b.due || 0) - (a.due || 0));
+    // Status som tags: mangler og under 24 t er røde, under 72 t rav, afleveret grøn.
+    const status = (x, d) => {
+      const st = x.status.toLowerCase();
+      let cls = ''; let txt = x.status;
+      if (/afleveret/.test(st)) { cls = 'is-ok'; txt = 'Afleveret'; }
+      else if (/mangler/.test(st)) { cls = 'is-danger'; txt = 'Mangler'; }
+      else if (d) { const hrs = (d - now) / 36e5; txt = relTime(d, now); cls = hrs < 24 ? 'is-danger' : hrs < 72 ? 'is-warn' : ''; }
+      const wait = x.waiting && !/afleveret/i.test(x.status) ? (/elev/i.test(x.waiting) ? 'venter på dig' : /lærer/i.test(x.waiting) ? 'venter på læreren' : x.waiting) : '';
+      return `<span class="lp-tag ${cls}">${esc(txt)}</span>${wait ? ` <span class="lp-tag">${esc(wait)}</span>` : ''}`;
+    };
     const row = (x) => {
       const d = x.due;
-      return `<a class="lp-task-row" href="${esc(x.href || '#')}" data-subj="${esc(x.subject?.code || '')}">
-        <span class="lp-task-when">${d ? `<b>${d.getDate()}. ${esc(MONTHS[d.getMonth()].slice(0, 3))}</b><small>${esc(DAYS[d.getDay()].slice(0, 3))} kl. ${hm(d)}</small>` : ''}</span>
-        <span class="lp-task-what"><strong>${esc(x.title)}</strong>
-          <small>${subjDot(x.subject?.code)}${esc(x.subject?.name || x.hold)}${x.hours && x.hours !== '0,00' ? `, ${esc(x.hours)} elevtimer` : ''}${x.grade ? `, karakter ${esc(x.grade)}` : ''}</small>
-          ${x.note ? `<span class="lp-task-note">${esc(x.note)}</span>` : ''}</span>
-        <span class="lp-task-state">${d ? dueText(d, x.status, now) : esc(x.status)}${x.waiting && !/afleveret/i.test(x.status) ? `<small>${/elev/i.test(x.waiting) ? 'venter på dig' : /lærer/i.test(x.waiting) ? 'venter på læreren' : esc(x.waiting)}</small>` : ''}</span>
-      </a>`;
+      const cls = /mangler/i.test(x.status) ? ' class="is-late"' : /afleveret/i.test(x.status) ? ' class="is-done"' : '';
+      return `<tr data-subj="${esc(x.subject?.code || '')}"${cls}>
+        <td class="lp-mono">${d ? `${d.getDate()}. ${esc(MONTHS[d.getMonth()].slice(0, 3))} ${hm(d)}` : ''}</td>
+        <td class="lp-task-what"><a href="${esc(x.href || '#')}">${esc(x.title)}</a>${x.note ? `<div class="lp-task-note">${esc(x.note)}</div>` : ''}</td>
+        <td class="lp-task-subj">${subjDot(x.subject?.code)}${esc(x.subject?.name || x.hold)}</td>
+        <td class="lp-mono">${x.hours && x.hours !== '0,00' ? esc(x.hours) : ''}</td>
+        <td class="lp-task-state">${status(x, d)}${x.grade ? ` <span class="lp-tag is-accent">${esc(x.grade)}</span>` : ''}</td></tr>`;
     };
-    const group = (title, list, cls = '') => list.length ? `<section class="lp-group ${cls}"><h2>${esc(title)} <span>${list.length}</span></h2><div class="lp-list">${list.map(row).join('')}</div></section>` : '';
+    const table = (list) => `<table class="lp-table lp-tasks"><thead><tr><th>Frist</th><th>Opgave</th><th>Fag</th><th>Elevtid</th><th>Status</th></tr></thead><tbody>${list.map(row).join('')}</tbody></table>`;
+    const group = (title, list, cls = '') => list.length ? `<section class="lp-group ${cls}"><h2>${esc(title)} <span>${list.length}</span></h2>${table(list)}</section>` : '';
     app.innerHTML = viewHead('Opgaver', `${open.length} åbne, ${missing.length} mangler, ${done.length} afleveret`) +
       subjectFilter(app, tasks) +
       `<div class="lp-sheet">${group('Mangler', missing, 'is-late')}${group('Kommende', open)}${open.length + missing.length === 0 ? '<p class="lp-empty">Ingen åbne opgaver.</p>' : ''}
-       ${done.length ? `<details class="lp-group lp-done"><summary><h2>Afleveret <span>${done.length}</span></h2></summary><div class="lp-list">${done.map(row).join('')}</div></details>` : ''}</div>`;
+       ${done.length ? `<details class="lp-group lp-done"><summary><h2>Afleveret <span>${done.length}</span></h2></summary>${table(done)}</details>` : ''}</div>`;
   }
 
   function renderHomeworkView(app) {

@@ -217,3 +217,49 @@ table.lp-table tbody tr:hover > td { background: var(--sunk); }
 #lp-app .lp-blk.is-cancelled small::after { content: "aflyst"; background: var(--danger-soft); color: var(--danger); }
 #lp-app .lp-blk-icons i { border-radius: 2px; }
 #lp-app .lp-legend { font-size: 12.5px; color: var(--ink-2); padding: 10px 8px 4px 52px; }
+
+/* ---------- Opgaver og Lektier ---------- */
+#lp-app .lp-group > :not(h2):not(summary):not(table) { padding-inline: 14px; }
+#lp-app .lp-group > table.lp-table { margin: 0; }
+#lp-app .lp-done > summary { list-style: none; cursor: pointer; }
+#lp-app .lp-done > summary::-webkit-details-marker { display: none; }
+#lp-app .lp-done:not([open]) > summary > h2 { border-bottom: 0; }
+#lp-app table.lp-tasks td:first-child { width: 112px; }
+#lp-app table.lp-tasks .lp-task-what a { color: var(--ink) !important; font-weight: 600; text-decoration: none; }
+#lp-app table.lp-tasks .lp-task-what a:hover { color: var(--accent) !important; text-decoration: underline; }
+#lp-app table.lp-tasks .lp-task-note { color: var(--ink-2); font-size: 12.5px; margin-top: 2px; }
+#lp-app table.lp-tasks .lp-task-subj { white-space: nowrap; }
+#lp-app table.lp-tasks .lp-task-state { white-space: nowrap; }
+#lp-app table.lp-tasks tr.is-late td:first-child { color: var(--danger); }
+/* fagfilter */
+#lp-app .lp-filter { margin-bottom: 12px; }
+
+/* lektier: én række pr. lektie med flueben */
+#lp-app .lp-list { display: flex; flex-direction: column; }
+#lp-app .lp-group > .lp-list { padding-inline: 0; }
+#lp-app .lp-hw-item { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--rule); border-radius: 0 !important; background: none !important; }
+#lp-app .lp-list > .lp-hw-item:last-child { border-bottom: 0; }
+#lp-app .lp-hw-item.is-done .lp-hw-body { color: var(--ink-2); }
+#lp-app .lp-hw-item.is-done .lp-hw-top strong { text-decoration: line-through; }
+#lp-app .lp-hw-top { display: flex; align-items: baseline; gap: 8px; }
+#lp-app .lp-hw-top a { color: var(--ink) !important; text-decoration: none !important; display: inline-flex; align-items: center; }
+#lp-app .lp-hw-top strong { font-weight: 600; }
+#lp-app .lp-hw-top small { color: var(--ink-2); font-family: var(--mono); font-size: 12px; }
+#lp-app .lp-hw-content { margin-top: 2px; font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; }
+#lp-app .lp-hw-content > br:first-child, #lp-app .lp-hw-content > :is(div, p):first-child > br:first-child { display: none; }
+/* lektieteksten er tekst, ikke ét stort link; rigtige links står med en understregning */
+#lp-app .lp-hw-content a { color: inherit !important; font-weight: 400 !important; text-decoration: underline; text-decoration-color: var(--ink-2); text-underline-offset: 2px; }
+#lp-app .lp-hw-content :is(blockquote, .quote, [class*="quote"], pre) {
+  margin: 6px 0; padding: 6px 10px; border-radius: var(--radius-sm) !important; background: var(--sunk) !important; border: 0 !important; font-size: inherit !important; color: inherit !important;
+}
+/* flueben */
+#lp-app .lp-check { position: relative; display: inline-block; width: 16px; height: 16px; margin-top: 2px; cursor: pointer; }
+#lp-app .lp-check input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+#lp-app .lp-check i { position: absolute; inset: 0; border: 1px solid var(--ink-2); border-radius: var(--radius-sm); background: var(--surface); }
+#lp-app .lp-check input:checked + i { background: var(--accent); border-color: var(--accent); }
+#lp-app .lp-check input:checked + i::after { content: ""; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px; border: solid var(--accent-ink); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+#lp-app .lp-check input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* de gamle 1.x-klasser .lp-task-what/.lp-task-state gør ellers cellerne til flexbokse */
+#lp-app table.lp-tasks td { display: table-cell !important; text-align: left !important; }
+/* mono skal vinde over den generelle "font-family: inherit" fra 1.x (som har høj specificitet) */
+:is(#lp-app, #lp-drawer) .lp-mono { font-family: var(--mono) !important; font-size: 12.5px; }
