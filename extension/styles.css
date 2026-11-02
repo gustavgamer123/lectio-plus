@@ -27,11 +27,6 @@ html.lp-on .lp-row-done td { color: var(--ink-3) !important; }
 #lp-app :focus-visible, #lp-modal :focus-visible, #lp-palette :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .lp-muted { color: var(--ink-2); }
 
-.lp-icon-btn {
-  display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 7px; border: 0; background: transparent;
-  color: var(--ink-3) !important; cursor: pointer; text-decoration: none !important;
-}
-.lp-icon-btn:hover { color: var(--ink) !important; background: var(--sunk); }
 
 /* ---------- overblik ---------- */
 html.lp-takeover #s_m_outerContentFrameDiv, html.lp-takeover .ls-master-footer, html.lp-takeover #s_m_masterfooter { display: none !important; }
@@ -117,10 +112,6 @@ html.lp-takeover #s_m_outerContentFrameDiv, html.lp-takeover .ls-master-footer, 
 .lp-ag.is-hw strong { font-weight: 600; }
 .lp-ag.is-hw small.lp-clamp { white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--ink); font-size: 14px; }
 .lp-ag.is-task small .lp-sd { margin-right: 6px; }
-.lp-due { font-size: 13.5px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: normal; }
-.lp-due.is-warn { color: var(--warn); font-weight: 600; }
-.lp-due.is-danger { color: var(--danger); font-weight: 600; }
-.lp-due.is-ok { color: var(--ok); }
 
 /* beskeder */
 .lp-msgs { display: flex; flex-direction: column; }
@@ -344,74 +335,6 @@ html.lp-on[data-lp-theme="dark"] .outerContentFrame :is(table, td, th) { border-
 .lp-ntime.is-warn { color: var(--warn); font-weight: 600; }
 .lp-more-btn { border: 0; background: none; padding: 2px 0; color: var(--accent); font: 500 13.5px var(--font); cursor: pointer; }
 
-/* ---------- lektionsvisning (skuffe fra højre) ---------- */
-#lp-drawer { position: fixed; inset: 0; z-index: 10001; font-family: var(--font); color: var(--ink); text-align: left; }
-#lp-drawer * { box-sizing: border-box; }
-#lp-drawer svg { width: 18px; height: 18px; flex: none; }
-.lp-dr-scrim { position: absolute; inset: 0; background: rgba(15, 18, 17, .32); }
-.lp-dr-panel {
-  --h: 200; position: absolute; top: 0; right: 0; bottom: 0; width: min(520px, 100%); display: flex; flex-direction: column;
-  background: var(--surface); border-left: 1px solid var(--rule); box-shadow: -20px 0 50px rgba(0, 0, 0, .18); outline: none;
-}
-@media (prefers-reduced-motion: no-preference) { .lp-dr-panel { animation: lp-slide .18s ease-out; } }
-@keyframes lp-slide { from { transform: translateX(24px); opacity: .4; } }
-.lp-dr-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--rule); }
-.lp-dr-nav { display: flex; align-items: center; gap: 2px; }
-.lp-dr-nav .lp-icon-btn:disabled { opacity: .35; cursor: default; }
-.lp-dr-count { margin-left: 8px; font-size: 13.5px; color: var(--ink-3); font-variant-numeric: normal; }
-.lp-dr-body { flex: 1; overflow-y: auto; padding: 22px 26px 28px; }
-.lp-dr-subj { display: flex; align-items: center; gap: 8px; margin: 0 !important; font-size: 14.5px; color: var(--ink-2); }
-.lp-dr-subj .lp-sd { margin-right: 0; width: 10px; height: 10px; }
-.lp-dr-body h2 { margin: 6px 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; text-wrap: balance; }
-.lp-dr-when { margin: 0 !important; color: var(--ink-2); font-size: 15px; }
-.lp-dr-body > .lp-progress { max-width: 260px; margin-top: 10px; }
-.lp-dr-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px 20px; margin: 20px 0 6px; padding: 14px 0; border-block: 1px solid var(--rule); }
-.lp-dr-meta div { min-width: 0; }
-.lp-dr-meta dt { font-size: 13px; color: var(--ink-3); }
-.lp-dr-meta dd { margin: 2px 0 0; font-size: 14.5px; overflow-wrap: anywhere; }
-.lp-dr-content { font-size: 15px; line-height: 1.6; }
-.lp-dr-content section + section { margin-top: 14px; }
-.lp-dr-tip { opacity: .6; }
-.lp-dr-loading { margin: 14px 0 0 !important; color: var(--ink-3); font-size: 14px; }
-@media (prefers-reduced-motion: no-preference) { .lp-dr-loading { animation: lp-pulse 1.4s ease-in-out infinite; } }
-.lp-pre { white-space: pre-line; margin: 0; overflow-wrap: anywhere; }
-.lp-c-head { margin: 18px 0 6px !important; font-size: 15px; font-weight: 700; }
-.lp-dr-content > :first-child .lp-c-head, .lp-dr-content > section:first-child .lp-c-head, .lp-act > :first-child .lp-c-head { margin-top: 10px !important; }
-.lp-act { overflow-wrap: anywhere; }
-.lp-act article { margin: 0; }
-.lp-act p { margin: 0 0 8px; }
-.lp-act h5 { margin: 12px 0 4px; font-size: 15px; }
-.lp-act hr { border: 0; border-top: 1px solid var(--rule); margin: 10px 0; }
-.lp-act a { color: var(--accent); }
-.lp-act img { max-width: 100%; height: auto; border-radius: 6px; }
-.lp-act ul, .lp-act ol { padding-left: 20px; margin: 4px 0 8px; }
-.lp-act table { border-collapse: collapse; display: block; overflow-x: auto; }
-.lp-act td, .lp-act th { border: 1px solid var(--rule); padding: 4px 8px; }
-.lp-c-file { display: flex; align-items: center; gap: 8px; margin: 0 !important; padding: 8px 10px; border-radius: 8px; background: var(--sunk); font-weight: 500; }
-.lp-c-file + .lp-c-file, .lp-act article + article { margin-top: 6px !important; }
-.lp-c-file img { max-height: 18px; width: auto; border-radius: 0; }
-.lp-c-file a { text-decoration: none; }
-.lp-c-file a:hover { text-decoration: underline; }
-.lp-dr-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 20px 16px; border-top: 1px solid var(--rule); }
-.lp-dr-foot .lp-btn-primary { width: auto; margin: 0; padding: 0 16px; }
-.lp-dr-keys { font-size: 13px; color: var(--ink-3); }
-.lp-dr-keys kbd { font: 500 11px var(--font); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--rule); color: var(--ink-2); }
-@media (max-width: 860px) {
-  .lp-dr-panel { width: 100%; border-left: 0; }
-  .lp-dr-body { padding: 18px 16px 24px; }
-  .lp-dr-keys { display: none; }
-}
-
-/* ---------- Lectios egen lektionsside ---------- */
-html.lp-on #homeworkContentContainer, html.lp-on .ls-paper {
-  background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--rule) !important; border-radius: 12px;
-  box-shadow: none !important; padding: 20px 24px !important;
-}
-html.lp-on .ls-section-title-heading, html.lp-on .ls-section-title-heading * { font-style: normal !important; }
-html.lp-on .ls-section-title-heading { font-size: 18px !important; font-weight: 600 !important; }
-html.lp-on .ls-paper-section-heading { font-size: 17px !important; font-weight: 700 !important; margin: 16px 0 6px !important; }
-html.lp-on .lc-display-fragment h1 { font-size: 15px !important; font-weight: 500 !important; }
-html.lp-drawer-open { overflow: hidden; }
 
 /* tabeltal kun hvor tider står under hinanden */
 .lp-row-time, .lp-row-end, .lp-gutter .lp-day-body span { font-variant-numeric: normal; }
@@ -548,26 +471,6 @@ html.lp-on .ls-columnlist a:hover, html.lp-on [class*="columnlist"] a:hover { ba
 .lp-notices .lp-notice + .lp-notice { margin-top: 12px; }
 @container (min-width: 1081px) { .lp-notices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 28px; } .lp-notices .lp-notice + .lp-notice { margin-top: 0; padding-top: 0; border-top: 0; } }
 
-/* opgaveaflevering */
-.lp-afl { --h: 200; position: relative; max-width: 1100px; margin: 0 auto 20px; padding: 24px 28px 24px 32px; background: var(--surface); border: 1px solid var(--rule); border-radius: 16px; font-family: var(--font); color: var(--ink); overflow: hidden; }
-.lp-afl::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: hsl(var(--h) 55% var(--dot-l)); }
-.lp-afl-subj { display: flex; align-items: center; gap: 8px; margin: 0 !important; color: var(--ink-2); font-size: 15px; }
-.lp-afl-subj .lp-sd { margin: 0; }
-.lp-afl-subj small { color: var(--ink-3); font-size: 13.5px; }
-.lp-afl h1 { margin: 6px 0 0; font-size: clamp(24px, 2.2vw, 34px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; color: var(--ink); }
-.lp-afl-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px 24px; margin: 18px 0 4px; padding: 16px 0; border-block: 1px solid var(--rule); }
-.lp-afl-facts dt { font-size: 13px; color: var(--ink-3); }
-.lp-afl-facts dd { margin: 2px 0 0; font-size: 15px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
-.lp-afl-facts .is-grade dd { font-size: 24px; font-weight: 700; }
-.lp-afl-desc h2 { margin: 16px 0 6px; font-size: 15px; font-weight: 700; }
-.lp-afl-go { margin-top: 18px; }
-html.lp-aflpage .ls-elevaflevering-root { max-width: 1100px; margin: 0 auto; }
-html.lp-aflpage .lp-afl-hasinfo .lp-afl-info { display: none !important; }
-html.lp-aflpage .ls-elevaflevering-root .ls-std-island-layout-ltr { flex-direction: column; flex-wrap: nowrap; }
-html.lp-aflpage .ls-elevaflevering-root .ls-std-island-layout-ltr > section { width: 100% !important; flex: none !important; }
-html.lp-aflpage .lp-afl-entries { order: -1; }
-html.lp-aflpage .ls-elevaflevering-root .islandHeaderRight { display: none !important; }
-html.lp-aflpage .lp-afl-entries textarea { width: 100% !important; min-height: 110px; }
 
 /* studieplan */
 .lp-spgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 18px; align-items: start; }
@@ -594,10 +497,6 @@ html.lp-aflpage .lp-afl-entries textarea { width: 100% !important; min-height: 1
 /* 1.5 rettelser efter live-test */
 html.lp-on[data-lp-theme="dark"] { color-scheme: dark; }
 html.lp-on[data-lp-theme="light"] { color-scheme: light; }
-#lp-app :is(h1, h2, h3, h4, h5), #lp-drawer :is(h2, h3, h4, h5), .lp-afl :is(h1, h2, h3) { color: var(--ink) !important; }
-.lp-dr-body { scrollbar-width: thin; }
-html.lp-aflpage .ls-elevaflevering-root section.lf-island { width: 100% !important; max-width: none !important; flex: none !important; }
-html.lp-aflpage .lp-afl-students.lp-afl-redundant { display: none !important; }
 
 /* =====================================================================
    1.6: samme skal på alle sider
@@ -611,146 +510,11 @@ html.lp-has-pagehead .ls-master-pageheader { display: none !important; }
 
 
 
-/* detaljesider flugter med titlen */
-.lp-afl, html.lp-aflpage .ls-elevaflevering-root { max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; }
-.lp-afl { margin-bottom: 20px !important; }
 html.lp-on #masterContent, html.lp-on .ls-master-container1, html.lp-on .ls-master-container2, html.lp-on .outerContentFrame { width: auto !important; max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; }
 html.lp-on [id$="helptipDiv"] { display: none !important; }
 html.lp-on #masterContent, html.lp-on .ls-master-container1, html.lp-on .ls-master-container2 { display: block !important; }
 html.lp-on { scrollbar-gutter: stable; }
 
-/* lektionsside i samme stil som opgaveaflevering */
-html.lp-actpage .ls-std-toolbar-filled, html.lp-actpage nav.ls-std-rowblock, html.lp-actpage .ls-std-toolbar,
-html.lp-actpage .lectioTabToolbar, html.lp-actpage .ls-tocContainer-outer, html.lp-actpage [id$="tocAndToolbar_toolbaroutercontainer"],
-html.lp-actpage [id$="actHeader"] { display: none !important; }
-html.lp-actpage .buttonlink:has(a[href*="forloeb_vis"]), html.lp-actpage :is(div, span):has(> .buttonlink a[href*="forloeb_vis"]) { display: none !important; }
-html.lp-actpage .ls-tocandcontentparent, html.lp-actpage .ls-texteditor-container, html.lp-actpage .ls-tocContent-outer, html.lp-actpage .ls-texteditor-paper-container { display: block !important; width: auto !important; max-width: none !important; margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
-html.lp-actpage #homeworkContentContainer { max-width: none !important; margin: 0 !important; padding: 18px 22px !important; border-radius: 16px !important; font-size: 15px; line-height: 1.6; min-height: 0 !important; height: auto !important; }
-.lp-act-cardhead h2 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--ink) !important; font-family: var(--font); }
-html.lp-actpage #homeworkContentContainer .ls-paper-section-heading { font-size: 15px !important; font-weight: 700 !important; margin: 16px 0 6px !important; color: var(--ink) !important; }
-html.lp-actpage #homeworkContentContainer hr { border: 0 !important; border-top: 1px solid var(--rule) !important; margin: 12px 0 !important; }
-html.lp-actpage #homeworkContentContainer article.lc-display-fragment { margin: 6px 0 !important; }
-html.lp-actpage #homeworkContentContainer article.lc-display-fragment > h1 { display: flex; align-items: center; gap: 8px; margin: 0 !important; padding: 9px 12px !important; border-radius: 8px; background: var(--sunk) !important; font-size: 15px !important; font-weight: 500 !important; }
-html.lp-actpage #homeworkContentContainer article.lc-display-fragment > h1 a { color: var(--accent) !important; }
-html.lp-actpage #homeworkContentContainer article.lc-display-fragment img { max-height: 18px; width: auto; }
-.lp-afl-subj .lp-flag { margin-left: 4px; }
-.lp-afl-facts dd a { color: var(--accent) !important; }
 .lp-sep-dot { color: var(--ink-3); }
 html.lp-on .outerContentFrame .ls-content { display: block !important; width: auto !important; }
 #lp-pagehead svg { width: 18px; height: 18px; flex: none; }
-.lp-afl-facts dd > .lp-flist a + a::before { content: ", "; color: var(--ink-3); }
-html.lp-actpage #PrintAktivititetArea, html.lp-actpage .ls-toccontent-container, html.lp-actpage .ls-tabs4, html.lp-actpage .lectioTabContent,
-html.lp-actpage .ls-texteditor-container, html.lp-actpage .ls-tocandcontentparent, html.lp-actpage .ls-tocContent-outer,
-html.lp-actpage .ls-texteditor-paper-container, html.lp-actpage #homeworkContentContainer { display: block !important; width: auto !important; max-width: none !important; min-width: 0 !important; float: none !important; }
-
-/* ---------- 1.7 egne farver til fag ---------- */
-#lp-app .lp-vhead { position: relative; }
-#lp-colors {
-  position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: min(460px, calc(100vw - 32px)); max-height: min(72vh, 660px); overflow: auto;
-  background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; box-shadow: 0 18px 44px rgba(0, 0, 0, .16);
-  padding: 14px 14px 12px; font-family: var(--font); color: var(--ink); text-align: left;
-}
-html[data-lp-theme="dark"] #lp-colors { box-shadow: 0 18px 44px rgba(0, 0, 0, .5); }
-#lp-colors:focus { outline: none; }
-#lp-colors header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-#lp-colors h3 { margin: 0 !important; font-size: 16px !important; font-weight: 700 !important; color: var(--ink) !important; letter-spacing: 0; }
-#lp-colors .lp-icon-btn svg { width: 16px; height: 16px; }
-.lp-col-help { margin: 2px 0 10px !important; color: var(--ink-2) !important; font-size: 13.5px; line-height: 1.45; }
-.lp-col-list { list-style: none !important; margin: 0 !important; padding: 0 !important; }
-.lp-col-list li { border-top: 1px solid var(--rule); margin: 0 !important; padding: 0 !important; }
-.lp-col-row {
-  display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; border: 0; border-radius: 8px; background: transparent;
-  color: var(--ink) !important; font: 500 14.5px var(--font); text-align: left; cursor: pointer;
-}
-.lp-col-row:hover, .lp-col-list li.is-open .lp-col-row { background: var(--sunk); }
-.lp-col-row .lp-sd { width: 12px; height: 12px; margin: 0; }
-.lp-col-row span { flex: 1; min-width: 0; }
-.lp-col-row small { color: var(--ink-3); font-size: 12.5px; }
-.lp-col-list li:not(.is-open) .lp-swatches { display: none; }
-.lp-col-list .lp-swatches { padding: 10px 8px 12px 30px; }
-#lp-colors footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--rule); padding-top: 10px; }
-#lp-colors footer .lp-btn:disabled { opacity: .45; cursor: default; background: transparent; }
-
-.lp-swatches { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
-.lp-sw-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-.lp-sw {
-  width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
-  background: hsl(var(--h) 55% var(--dot-l)); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08); transition: transform .12s ease;
-}
-.lp-sw:hover { transform: scale(1.12); }
-.lp-sw.is-on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px hsl(var(--h) 55% var(--dot-l)); }
-.lp-sw-reset {
-  height: 26px; padding: 0 11px; border-radius: 13px; border: 1px solid var(--rule); background: transparent;
-  color: var(--ink-2) !important; font: 500 12.5px var(--font); cursor: pointer;
-}
-.lp-sw-reset:hover { background: var(--sunk); color: var(--ink) !important; }
-.lp-sw-reset.is-on { color: var(--ink) !important; border-color: var(--ink-3); }
-:is(.lp-sw, .lp-sw-reset, .lp-col-row, .lp-dr-colbtn):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* farve direkte fra lektionsskuffen */
-.lp-dr-colbtn {
-  margin-left: auto; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border-radius: 7px;
-  border: 1px solid var(--rule); background: transparent; color: var(--ink-2) !important; font: 500 13px var(--font); cursor: pointer;
-}
-.lp-dr-colbtn svg { width: 15px !important; height: 15px !important; flex: none; }
-.lp-dr-colbtn:hover, .lp-dr-colbtn[aria-expanded="true"] { background: var(--sunk); color: var(--ink) !important; }
-.lp-dr-colors { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--sunk); }
-.lp-dr-colors[hidden] { display: none !important; }
-.lp-dr-colors .lp-sw.is-on { box-shadow: 0 0 0 2px var(--sunk), 0 0 0 4px hsl(var(--h) 55% var(--dot-l)); }
-
-/* ---------- 1.7 elevfeedback på lektionssiden ---------- */
-html.lp-fbpage #ElevContentContainer {
-  background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--rule) !important; border-radius: 16px !important;
-  padding: 18px 22px !important; margin: 0 !important; font-size: 15px; line-height: 1.6; min-height: 0 !important; height: auto !important; box-shadow: none !important;
-}
-html.lp-fbpage #ElevContentContainer > .ls-paper-header, html.lp-fbpage #ElevContentContainer > .nb_type_information, html.lp-fbpage .ls-tocContent-outer > menutemplate, html.lp-fbpage [id$="tocAndToolbar_toolbarMenuContainer"] { display: none !important; }
-.lp-fb-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px 20px; flex-wrap: wrap; }
-.lp-fb-head h2 { margin: 0 !important; }
-.lp-fb-head p { margin: 2px 0 0 !important; color: var(--ink-2) !important; font-size: 14px; line-height: 1.45; }
-.lp-fb-actions { display: flex; gap: 6px; }
-.lp-fb-actions .lp-btn svg { width: 16px; height: 16px; flex: none; }
-.lp-fb-empty { padding: 12px 0 2px !important; }
-html.lp-fbpage #ElevContentContainer .ls-paper { background: transparent !important; border: 0 !important; border-radius: 0 !important; padding: 0 !important; margin: 16px 0 0 !important; box-shadow: none !important; min-height: 0 !important; width: auto !important; max-width: none !important; }
-html.lp-fbpage #ElevContentContainer :is(.homeworkContainer, [id$="editorContainer"], .cke, span:has(> .cke), div:has(> .cke)) { width: auto !important; max-width: none !important; display: block !important; }
-html.lp-fbpage #ElevContentContainer .ls-paper + .ls-paper { border-top: 1px solid var(--rule) !important; padding-top: 16px !important; }
-html.lp-fbpage #ElevContentContainer .ls-section-subgroup-heading { margin: 0 0 8px !important; padding: 0 !important; border: 0 !important; background: transparent !important; font-size: 13px !important; font-weight: 600 !important; color: var(--ink-3) !important; }
-html.lp-fbpage #ElevContentContainer .ls-section-subgroup-heading * { color: inherit !important; font-size: inherit !important; font-weight: inherit !important; margin: 0 !important; }
-html.lp-fbpage #ElevContentContainer .homeworkContainer { margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
-html.lp-fbpage #ElevContentContainer .homeworkContainer :is(h1, h2, h3) { font-size: 16px !important; font-weight: 700 !important; margin: 14px 0 4px !important; color: var(--ink) !important; }
-html.lp-fbpage #ElevContentContainer .homeworkContainer :is(p, li) { color: var(--ink) !important; }
-html.lp-fbpage #ElevContentContainer .homeworkContainer a { color: var(--accent) !important; }
-html.lp-fbpage #ElevContentContainer article.lc-display-fragment { margin: 0 !important; padding: 12px 16px !important; border-radius: 10px !important; background: var(--sunk) !important; font-size: 15px !important; line-height: 1.6; }
-html.lp-fbpage #ElevContentContainer article.lc-display-fragment + article.lc-display-fragment { margin-top: 8px !important; }
-html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :is(h1, h2, h3) { margin: 10px 0 2px !important; font-size: 16px !important; }
-html.lp-fbpage #ElevContentContainer article.lc-display-fragment > h1[style*="background-image"] { padding: 0 0 0 26px !important; background-position: 0 50% !important; background-size: 16px auto !important; background-repeat: no-repeat !important; }
-html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :first-child { margin-top: 0 !important; }
-html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :last-child { margin-bottom: 0 !important; }
-
-/* skrivetilstand: Lectios værktøjslinje bliver en rolig bar der følger med ned */
-html.lp-fbedit [id$="tocAndToolbar_toolbaroutercontainer"] {
-  display: block !important; position: sticky !important; top: calc(var(--shell-h) + 10px); z-index: 30; margin: 0 0 12px !important; padding: 0 !important;
-  background: transparent !important; border: 0 !important; width: auto !important; max-width: none !important; height: auto !important;
-}
-html.lp-fbpage .ls-texteditor-toolbarContainer, html.lp-fbpage [id$="tocAndToolbar_toolbarcontent"] { padding: 0 !important; margin: 0 !important; background: transparent !important; border: 0 !important; width: auto !important; max-width: none !important; }
-html.lp-fbpage .cke_chrome { border: 0 !important; box-shadow: none !important; padding: 0 !important; background: transparent !important; }
-html.lp-fbpage .cke_inner { background: transparent !important; }
-html.lp-fbpage .cke_top {
-  background: var(--surface) !important; background-image: none !important; border: 1px solid var(--rule) !important; border-radius: 12px !important;
-  padding: 6px 8px 2px !important; box-shadow: 0 6px 18px rgba(0, 0, 0, .06) !important;
-}
-html.lp-fbpage .cke_toolgroup { background: transparent !important; background-image: none !important; border: 0 !important; box-shadow: none !important; }
-html.lp-fbpage a.cke_button { border-radius: 6px !important; border: 0 !important; background: transparent !important; background-image: none !important; box-shadow: none !important; }
-html.lp-fbpage a.cke_button:hover, html.lp-fbpage a.cke_button_on { background: var(--sunk) !important; }
-html.lp-on.lp-fbpage .cke_top :is(a.cke_button, a.cke_button *, .cke_combo_text, .cke_toolbar > span) { color: var(--ink-2) !important; text-shadow: none !important; }
-html.lp-fbpage a.cke_button_disabled { opacity: .4 !important; }
-html.lp-fbpage .cke_toolbar_separator { background: var(--rule) !important; }
-html.lp-fbpage a.cke_combo_button { background: var(--sunk) !important; background-image: none !important; border: 1px solid var(--rule) !important; border-radius: 6px !important; box-shadow: none !important; }
-html.lp-fbpage a.cke_button__lectiosave { background: var(--accent) !important; }
-html.lp-fbpage a.cke_button__lectiosave:hover { background: var(--accent) !important; filter: brightness(1.1); }
-html.lp-on.lp-fbpage .cke_top :is(a.cke_button__lectiosave, a.cke_button__lectiosave *) { color: var(--surface) !important; font-weight: 600; }
-html.lp-fbpage .cke_contents { height: auto !important; border: 0 !important; }
-html.lp-fbpage .cke_wysiwyg_div {
-  min-height: 300px; background: var(--sunk) !important; color: var(--ink) !important; border: 1px solid var(--rule) !important; border-radius: 10px !important;
-  padding: 14px 18px !important; font: 15px/1.6 var(--font) !important;
-}
-html.lp-fbpage .cke_wysiwyg_div:focus { outline: 2px solid var(--accent) !important; outline-offset: -1px; }

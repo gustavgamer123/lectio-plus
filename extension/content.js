@@ -334,8 +334,10 @@
     }
     const p = dr.querySelector('.lp-dr-panel');
     const live = !l.cancelled && !l.allDay && l.start <= now && now < l.end;
-    const flag = l.cancelled ? '<span class="lp-flag is-danger">aflyst</span>' : l.changed ? '<span class="lp-flag is-warn">ændret</span>' : live ? '<span class="lp-flag is-ok">i gang</span>' : '';
-    const when = `${cap(DAYS[l.start.getDay()])} ${l.start.getDate()}. ${MONTHS[l.start.getMonth()]}${l.allDay ? ', hele dagen' : `, ${hm(l.start)} til ${hm(l.end)}`}`;
+    const flag = l.cancelled ? '<span class="lp-tag is-danger">aflyst</span>' : l.changed ? '<span class="lp-tag is-warn">ændret</span>' : live ? '<span class="lp-tag is-ok">i gang</span>' : '';
+    const when = `${esc(cap(DAYS[l.start.getDay()]))} ${l.start.getDate()}. ${esc(MONTHS[l.start.getMonth()])}${l.allDay ? ', hele dagen' : ` <span class="lp-mono">${hm(l.start)}–${hm(l.end)}</span>`}`;
+    const meta = [l.room ? `<div><dt>Lokale</dt><dd>${esc(l.room)}</dd></div>` : '', l.teacher ? `<div><dt>${/,/.test(l.teacher) ? 'Lærere' : 'Lærer'}</dt><dd>${esc(l.teacher)}</dd></div>` : '', l.hold ? `<div><dt>Hold</dt><dd>${esc(l.hold)}</dd></div>` : ''].join('');
+    const drName = l.title || l.subject?.name || l.hold || 'Aktivitet';
     const prevL = seq[idx - 1];
     const nextL = seq[idx + 1];
     const navLabel = (x) => (x ? `${x.subject?.name || x.title || 'Aktivitet'}, ${dayLabel(x.start, now)}${x.allDay ? '' : ' ' + hm(x.start)}` : '');
@@ -354,16 +356,11 @@
         <button type="button" class="lp-icon-btn" data-dr="x" aria-label="Luk">${ICONS.x}</button>
       </header>
       <div class="lp-dr-body">
-        <p class="lp-dr-subj">${subjDot(code || l.title)}<span>${esc(l.subject?.name || 'Aktivitet')}</span>${flag}${code ? `<button type="button" class="lp-dr-colbtn" data-dr="color" aria-expanded="false" title="Skift farve på alle ${esc(l.subject.name)}-timer">${ICONS.palette}Farve</button>` : ''}</p>
+        <div class="lp-dr-subj"><h2>${subjDot(code || l.title)}${esc(drName)}</h2>${flag}${code ? `<button type="button" class="lp-dr-colbtn" data-dr="color" aria-expanded="false" title="Skift farve på alle ${esc(l.subject.name)}-timer">${ICONS.palette}Farve</button>` : ''}</div>
         ${code ? `<div class="lp-dr-colors" hidden>${swatchRow(code, l.subject.name)}</div>` : ''}
-        <h2>${esc(l.title || l.subject?.name || l.hold || 'Aktivitet')}</h2>
-        <p class="lp-dr-when">${esc(when)}</p>
+        <p class="lp-dr-when">${l.subject && l.subject.name !== drName ? `${esc(l.subject.name)}, ` : ''}${when}</p>
         ${live ? `<span class="lp-progress"><i style="width:${Math.round(((now - l.start) / (l.end - l.start)) * 100)}%"></i></span>` : ''}
-        <dl class="lp-dr-meta">
-          ${l.room ? `<div><dt>Lokale</dt><dd>${esc(l.room)}</dd></div>` : ''}
-          ${l.teacher ? `<div><dt>${/,/.test(l.teacher) ? 'Lærere' : 'Lærer'}</dt><dd>${esc(l.teacher)}</dd></div>` : ''}
-          ${l.hold ? `<div><dt>Hold</dt><dd>${esc(l.hold)}</dd></div>` : ''}
-        </dl>
+        ${meta ? `<dl class="lp-fields">${meta}</dl>` : ''}
         <div class="lp-dr-content" aria-live="polite">
           ${l.href ? `${fromTip ? `<div class="lp-dr-tip">${fromTip}</div>` : ''}<p class="lp-dr-loading">Henter hele indholdet fra Lectio</p>` : (fromTip || '<p class="lp-empty">Ingen lektier eller noter.</p>')}
         </div>
@@ -864,6 +861,7 @@
   }
   let shellActions = '';
   let shellTabs = '';
+  let shellTitle = ''; // fx opgavens titel på opgavesiden
   const pageHead = (title, sub, actions = '') => `<header class="lp-vhead"><h1>${esc(title)}</h1>${actions ? `<div class="lp-vhead-actions">${actions}</div>` : ''}</header>${shellTabs || subTabs()}${sub ? `<p class="lp-viewsub">${sub}</p>` : ''}`;
   const viewHead = (title, sub, extra = '') => pageHead(groupTitle() || title, sub, `${extra}<a class="lp-btn lp-btn-ghost" href="${esc(origLink())}">Lectios visning</a>`);
   // Lectios egne sider får samme sidehoved som de nye sider.
@@ -875,7 +873,7 @@
     const m = title.match(TITLE_RE);
     if (m) title = m[4].trim();
     if (!title) { const dm = document.title.match(TITLE_RE); title = (dm ? dm[4] : document.title).split(' - ')[0].trim(); }
-    title = groupTitle() || title.replace(/\s+oversigt$/i, '');
+    title = shellTitle || groupTitle() || title.replace(/\s+oversigt$/i, '');
     const head = document.createElement('div');
     head.id = 'lp-pagehead';
     head.innerHTML = pageHead(title, '', shellActions);
@@ -1195,26 +1193,29 @@
     const subj = subjectFrom(info.hold || '');
     const done = /afleveret/i.test(status);
     const fact = (label, val, cls = '') => (val ? `<div class="${cls}"><dt>${label}</dt><dd>${val}</dd></div>` : '');
+    const sec = (title, body) => `<section class="lp-afl-sec"><h3>${title}</h3>${body}</section>`;
     const box = document.createElement('section');
     box.id = 'lp-afl';
-    box.className = 'lp-afl';
+    box.className = 'lp-panel lp-afl';
     box.style.setProperty('--h', hueFor(subj?.code));
     if (subj?.code) box.dataset.hc = subj.code;
+    // Opgavens titel er sidetitlen; panelet har fag og hold i hovedet og en feltliste.
+    shellTitle = info.opgavetitel || '';
+    if (!done) shellActions = '<a class="lp-btn" href="#lp-afl-upload">Gå til aflevering</a>';
+    const stTag = `<span class="lp-tag ${done ? 'is-ok' : /mangler/i.test(status) ? 'is-danger' : ''}">${esc(status || 'Ikke afleveret')}</span>`;
     box.innerHTML = `
-      <p class="lp-afl-subj">${subjDot(subj?.code)}${esc(subj?.name || info.hold || 'Opgave')}${info.hold && subj ? `<small>${esc(info.hold)}</small>` : ''}</p>
-      <h1>${esc(info.opgavetitel || 'Opgave')}</h1>
-      <dl class="lp-afl-facts">
-        ${fact('Frist', due ? `${esc(cap(DAYS[due.getDay()]))} ${due.getDate()}. ${esc(MONTHS[due.getMonth()])} kl. ${hm(due)} ${done ? '' : dueText(due, status, now)}` : esc(info.afleveringsfrist || ''))}
-        ${fact('Status', `<span class="lp-chip ${done ? 'is-ok' : /mangler/i.test(status) ? 'is-danger' : ''}">${esc(status || 'Ikke afleveret')}</span>`)}
+      <header class="lp-panel-head"><h2>${subjDot(subj?.code)}${esc(subj?.name || info.hold || 'Opgave')}${info.hold && subj ? `<small>${esc(info.hold)}</small>` : ''}</h2></header>
+      <dl class="lp-fields">
+        ${fact('Frist', due ? `<span>${esc(cap(DAYS[due.getDay()]))} ${due.getDate()}. ${esc(MONTHS[due.getMonth()])} <span class="lp-mono">${hm(due)}</span></span>${done ? '' : dueText(due, status, now)}` : esc(info.afleveringsfrist || ''))}
+        ${fact('Status', stTag)}
         ${fact('Afventer', esc(waiting))}
-        ${fact('Karakter', esc(grade), 'is-grade')}
+        ${fact('Karakter', grade ? `<b class="lp-mono">${esc(grade)}</b>` : '', 'is-grade')}
         ${fact('Elevtid', esc(info.elevtid || ''))}
         ${fact('Ansvarlig', esc(info.ansvarlig || ''))}
       </dl>
-      ${descHtml && descHtml.replace(/<[^>]+>/g, '').trim() ? `<div class="lp-afl-desc"><h2>Opgavebeskrivelse</h2><div class="lp-act">${descHtml}</div></div>` : ''}
-      ${info.opgavenote ? `<div class="lp-afl-desc"><h2>Note fra læreren</h2><p class="lp-pre">${esc(info.opgavenote)}</p></div>` : ''}
-      ${gradeNote ? `<div class="lp-afl-desc"><h2>Karakternote</h2><p class="lp-pre">${esc(gradeNote)}</p></div>` : ''}
-      ${done ? '' : '<a class="lp-btn lp-btn-main lp-afl-go" href="#lp-afl-upload">Gå til aflevering</a>'}`;
+      ${descHtml && descHtml.replace(/<[^>]+>/g, '').trim() ? sec('Opgavebeskrivelse', `<div class="lp-act">${descHtml}</div>`) : ''}
+      ${info.opgavenote ? sec('Note fra læreren', `<p class="lp-pre">${esc(info.opgavenote)}</p>`) : ''}
+      ${gradeNote ? sec('Karakternote', `<p class="lp-pre">${esc(gradeNote)}</p>`) : ''}`;
     root.parentNode.insertBefore(box, root);
     document.documentElement.classList.add('lp-aflpage');
     if (info.opgavetitel) root.classList.add('lp-afl-hasinfo');
@@ -1255,25 +1256,26 @@
     const note = noteTa ? (noteTa.value || noteTa.textContent || '').trim() : '';
     const forl = [...document.querySelectorAll('a[href*="forloeb_vis"]')].map((a) => ({ t: a.textContent.trim(), h: a.href })).filter((x) => x.t);
     const subj = l.subject;
-    const when = l.start ? `${cap(DAYS[l.start.getDay()])} ${l.start.getDate()}. ${MONTHS[l.start.getMonth()]}${l.allDay ? ', hele dagen' : `, ${hm(l.start)} til ${hm(l.end)}`}` : '';
+    const when = l.start ? `${esc(cap(DAYS[l.start.getDay()]))} ${l.start.getDate()}. ${esc(MONTHS[l.start.getMonth()])}${l.allDay ? ', hele dagen' : ` <span class="lp-mono">${hm(l.start)}–${hm(l.end)}</span>`}` : '';
     const fact = (label, val) => (val ? `<div><dt>${label}</dt><dd>${val}</dd></div>` : '');
-    const flag = l.cancelled ? '<span class="lp-flag is-danger">aflyst</span>' : l.changed ? '<span class="lp-flag is-warn">ændret</span>' : '';
+    const flag = l.cancelled ? '<span class="lp-tag is-danger">aflyst</span>' : l.changed ? '<span class="lp-tag is-warn">ændret</span>' : '';
     const hero = document.createElement('section');
     hero.id = 'lp-act-hero';
-    hero.className = 'lp-afl';
+    hero.className = 'lp-panel lp-afl';
     hero.style.setProperty('--h', hueFor(subj?.code || l.title));
     if (subj?.code) hero.dataset.hc = subj.code;
+    // Fag og hold står kun én gang: faget (eller lektionens titel) i hovedet, holdet i feltlisten.
+    const name = l.title || subj?.name || 'Lektion';
     hero.innerHTML = `
-      <p class="lp-afl-subj">${subjDot(subj?.code || l.title)}${esc(subj?.name || 'Aktivitet')}${l.hold && subj ? `<small>${esc(l.hold)}</small>` : ''}${flag}</p>
-      <h1>${esc(l.title || subj?.name || 'Lektion')}</h1>
-      <dl class="lp-afl-facts">
-        ${fact('Tid', esc(when))}
+      <header class="lp-panel-head"><h2>${subjDot(subj?.code || l.title)}${esc(name)}${subj && subj.name !== name ? `<small>${esc(subj.name)}</small>` : ''}</h2>${flag}</header>
+      <dl class="lp-fields">
+        ${fact('Tid', when)}
         ${fact('Lokale', esc(l.room || ''))}
         ${fact(/,/.test(l.teacher || '') ? 'Lærere' : 'Lærer', esc(l.teacher || ''))}
         ${fact('Hold', esc(l.hold || ''))}
         ${forl.length ? fact('Forløb', `<span class="lp-flist">${forl.map((f) => `<a href="${esc(f.h)}">${esc(f.t)}</a>`).join('')}</span>`) : ''}
       </dl>
-      ${note ? `<div class="lp-afl-desc"><h2>Note fra læreren</h2><p class="lp-pre">${esc(note)}</p></div>` : ''}`;
+      ${note ? `<section class="lp-afl-sec"><h3>Note fra læreren</h3><p class="lp-pre">${esc(note)}</p></section>` : ''}`;
     host.prepend(hero);
     document.documentElement.classList.add('lp-actpage');
     // navigation og faner flyttes op i sidehovedet

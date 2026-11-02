@@ -1,5 +1,5 @@
 // Kører audit-reglerne (tools/audit-rules.js) på Lectio-sider i dev-browseren og tæller brud på retning D.
-// Brug: npm run audit -- [sti ...] [--rule navn,navn] [--theme light|dark|both] [--width 1280]
+// Brug: npm run audit -- [sti ...] [--rule navn,navn] [--theme light|dark|both] [--width 1280] [--own] [--offline] [--click <css>]
 // Uden stier køres alle sider i Mere undtagen Studieplan, som har en egen visning.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -57,6 +57,7 @@ for (const p of pages) {
   for (const theme of themes) {
     try {
     await open(p, theme);
+    if (opts.click) { await page.click(opts.click); await page.waitForTimeout(900); }
     await page.evaluate(src);
     const found = await page.evaluate((o) => {
       const cs = getComputedStyle(document.documentElement);

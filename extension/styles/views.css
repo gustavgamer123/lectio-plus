@@ -340,3 +340,140 @@ table.lp-table tbody tr:hover > td { background: var(--sunk); }
   #lp-app .lp-mlist { border-right: 0; }
   #lp-app .lp-msearch { margin-left: 0; flex: 1 1 100%; }
 }
+
+/* ---------- Opgaveside og lektionsside: topkortet er et panel med en feltliste ---------- */
+.lp-afl { margin: 0 0 12px !important; font-family: var(--font); color: var(--ink); font-size: 14px; line-height: 1.45; }
+.lp-afl .lp-panel-head h2 small { font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+.lp-afl .lp-panel-head h2 .lp-sd, .lp-dr-subj h2 .lp-sd { margin: 0; }
+/* feltliste: etiket og værdi i to kolonner; to spalter, når der er plads */
+.lp-fields { margin: 0; padding: 10px 14px; columns: 2 300px; column-gap: 32px; font-size: 13.5px; }
+.lp-fields > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; padding: 3px 0; break-inside: avoid; }
+.lp-fields dt { color: var(--ink-2); font-weight: 500; }
+.lp-fields dd { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; overflow-wrap: anywhere; }
+.lp-fields dd a { color: var(--accent) !important; }
+.lp-fields .is-grade b { font-size: 14px; font-weight: 700; }
+.lp-fields .lp-flist a + a::before { content: ", "; color: var(--ink-2); }
+.lp-afl-sec { padding: 10px 14px 12px; border-top: 1px solid var(--rule); font-size: 14px; line-height: 1.55; }
+.lp-afl-sec h3 { margin: 0 0 4px !important; font-size: 13.5px !important; font-weight: 600 !important; color: var(--ink) !important; }
+.lp-due { font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.lp-due.is-warn { color: var(--warn); font-weight: 600; }
+.lp-due.is-danger { color: var(--danger); font-weight: 600; }
+.lp-due.is-ok { color: var(--ok); }
+#lp-app :is(h1, h2, h3, h4, h5), #lp-drawer :is(h2, h3, h4, h5), .lp-afl :is(h1, h2, h3) { color: var(--ink) !important; }
+
+/* ---------- indhold fra Lectio i lektionspanelet og på opgavesiden ---------- */
+.lp-pre { white-space: pre-line; margin: 0; overflow-wrap: anywhere; }
+.lp-c-head { margin: 14px 0 4px !important; font-size: 13.5px !important; font-weight: 600 !important; }
+.lp-dr-content > :first-child .lp-c-head, .lp-dr-content > section:first-child .lp-c-head, .lp-act > :first-child .lp-c-head { margin-top: 6px !important; }
+.lp-act { overflow-wrap: anywhere; }
+.lp-act article { margin: 0; }
+.lp-act p { margin: 0 0 6px; }
+.lp-act h5 { margin: 10px 0 4px; font-size: 14px; font-weight: 600; }
+.lp-act hr { border: 0; border-top: 1px solid var(--rule); margin: 10px 0; }
+.lp-act a { color: var(--accent); }
+.lp-act img { max-width: 100%; height: auto; }
+.lp-act :is(ul, ol) { padding-left: 20px; margin: 4px 0 8px; }
+.lp-act table { border-collapse: collapse; display: block; overflow-x: auto; }
+.lp-act :is(td, th) { border: 1px solid var(--rule); padding: 4px 8px; }
+/* en lektie eller et dokument er almindelig tekst med link, ikke en blok */
+.lp-c-file { margin: 0 !important; font-weight: 400; }
+.lp-c-file + .lp-c-file, .lp-act article + article { margin-top: 4px !important; }
+.lp-c-file img { max-height: 16px; width: auto; margin-right: 6px; vertical-align: -2px; }
+.lp-c-file a { text-decoration: none; }
+.lp-c-file a:hover { text-decoration: underline; }
+
+/* ---------- ikonknap ---------- */
+.lp-icon-btn {
+  display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius); border: 0; background: transparent;
+  color: var(--ink-3) !important; cursor: pointer; text-decoration: none !important;
+}
+.lp-icon-btn:hover { color: var(--ink) !important; background: var(--sunk); }
+
+/* ---------- lektionspanelet (skuffe fra højre) ---------- */
+#lp-drawer { position: fixed; inset: 0; z-index: 10001; font-family: var(--font); color: var(--ink); text-align: left; font-size: 14px; line-height: 1.45; }
+#lp-drawer * { box-sizing: border-box; }
+#lp-drawer svg { width: 18px; height: 18px; flex: none; }
+html.lp-drawer-open { overflow: hidden; }
+.lp-dr-scrim { position: absolute; inset: 0; background: rgba(15, 19, 24, .32); }
+.lp-dr-panel {
+  --h: 200; position: absolute; top: 0; right: 0; bottom: 0; width: min(520px, 100%); display: flex; flex-direction: column;
+  background: var(--surface); border-left: 1px solid var(--rule); box-shadow: -16px 0 40px rgba(0, 0, 0, .16); outline: none;
+}
+@media (prefers-reduced-motion: no-preference) { .lp-dr-panel { animation: lp-slide .16s ease-out; } }
+@keyframes lp-slide { from { transform: translateX(24px); opacity: .4; } }
+.lp-dr-top { display: flex; justify-content: space-between; align-items: center; height: 48px; padding: 0 10px; border-bottom: 1px solid var(--rule); }
+.lp-dr-nav { display: flex; align-items: center; gap: 2px; }
+.lp-dr-nav .lp-icon-btn:disabled { opacity: .35; cursor: default; }
+.lp-dr-count { margin-left: 8px; font: 12.5px var(--mono); color: var(--ink-2); }
+.lp-dr-body { flex: 1; overflow-y: auto; padding: 16px 20px 24px; scrollbar-width: thin; }
+.lp-dr-subj { display: flex; align-items: center; gap: 8px; }
+.lp-dr-subj h2 { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0 !important; font-size: 18px !important; font-weight: 600 !important; letter-spacing: -.005em; line-height: 1.3; }
+.lp-dr-when { margin: 2px 0 0 !important; color: var(--ink-2); font-size: 13.5px; }
+.lp-dr-body > .lp-progress { max-width: 260px; margin-top: 8px; }
+#lp-drawer .lp-fields { margin: 12px 0 0; padding: 8px 0; border-block: 1px solid var(--rule); columns: 1; }
+.lp-dr-content { margin-top: 4px; font-size: 14px; line-height: 1.55; }
+.lp-dr-content section + section { margin-top: 12px; }
+.lp-dr-tip { opacity: .6; }
+.lp-dr-loading { margin: 12px 0 0 !important; color: var(--ink-2); font-size: 13px; }
+@media (prefers-reduced-motion: no-preference) { .lp-dr-loading { animation: lp-pulse 1.4s ease-in-out infinite; } }
+@keyframes lp-pulse { 50% { opacity: .5; } }
+.lp-dr-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 20px 12px; border-top: 1px solid var(--rule); }
+.lp-dr-foot .lp-btn-primary { width: auto; margin: 0; padding: 0 14px; height: 34px; }
+.lp-dr-keys { font-size: 12.5px; color: var(--ink-2); }
+.lp-dr-keys kbd { font: 500 11px var(--mono); padding: 1px 5px; border-radius: var(--radius-sm); border: 1px solid var(--rule); color: var(--ink-2); }
+.lp-dr-colbtn {
+  margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border-radius: var(--radius);
+  border: 1px solid var(--rule); background: transparent; color: var(--ink-2) !important; font: 500 13px var(--font); cursor: pointer;
+}
+.lp-dr-colbtn svg { width: 15px !important; height: 15px !important; }
+.lp-dr-colbtn:hover, .lp-dr-colbtn[aria-expanded="true"] { background: var(--sunk); color: var(--ink) !important; }
+.lp-dr-colors { margin: 10px 0 0; padding: 10px 12px; border-radius: var(--radius); background: var(--sunk); }
+.lp-dr-colors[hidden] { display: none !important; }
+.lp-dr-colors .lp-sw.is-on { box-shadow: 0 0 0 2px var(--sunk), 0 0 0 4px hsl(var(--h) 55% var(--dot-l)); }
+@media (max-width: 860px) {
+  .lp-dr-panel { width: 100%; border-left: 0; }
+  .lp-dr-body { padding: 14px 16px 20px; }
+  .lp-dr-keys { display: none; }
+}
+
+/* ---------- farver til fag (fra Skema og lektionspanelet) ---------- */
+#lp-app .lp-vhead { position: relative; }
+#lp-colors {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: min(440px, calc(100vw - 32px)); max-height: min(72vh, 660px); overflow: auto;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: 0 14px 36px rgba(0, 0, 0, .16);
+  padding: 0; font-family: var(--font); color: var(--ink); text-align: left; font-size: 14px;
+}
+html[data-lp-theme="dark"] #lp-colors { box-shadow: 0 14px 36px rgba(0, 0, 0, .5); }
+#lp-colors:focus { outline: none; }
+#lp-colors header { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; padding: 0 6px 0 14px; border-bottom: 1px solid var(--rule); }
+#lp-colors h3 { margin: 0 !important; font-size: 14.5px !important; font-weight: 600 !important; color: var(--ink) !important; letter-spacing: 0; }
+#lp-colors .lp-icon-btn svg { width: 16px; height: 16px; }
+.lp-col-help { margin: 0 !important; padding: 8px 14px; color: var(--ink-2) !important; font-size: 13px; line-height: 1.45; }
+.lp-col-list { list-style: none !important; margin: 0 !important; padding: 0 !important; }
+.lp-col-list li { border-top: 1px solid var(--rule); margin: 0 !important; padding: 0 !important; }
+.lp-col-row {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 34px; padding: 0 14px; border: 0; border-radius: 0; background: transparent;
+  color: var(--ink) !important; font: 500 13.5px var(--font); text-align: left; cursor: pointer;
+}
+.lp-col-row:hover, .lp-col-list li.is-open .lp-col-row { background: var(--sunk); }
+.lp-col-row span { flex: 1; min-width: 0; }
+.lp-col-row small { color: var(--ink-2); font-size: 12.5px; }
+.lp-col-list li:not(.is-open) .lp-swatches { display: none; }
+.lp-col-list .lp-swatches { padding: 10px 14px 12px 32px; }
+#lp-colors footer { display: flex; justify-content: flex-end; border-top: 1px solid var(--rule); padding: 8px 14px; }
+#lp-colors footer .lp-btn:disabled { opacity: .45; cursor: default; background: transparent; }
+.lp-swatches { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.lp-sw-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.lp-sw {
+  width: 20px; height: 20px; padding: 0; border: 0; border-radius: var(--radius-sm); cursor: pointer;
+  background: hsl(var(--h) 55% var(--dot-l)); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08);
+}
+.lp-sw:hover { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08), 0 0 0 2px var(--rule); }
+.lp-sw.is-on { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px hsl(var(--h) 55% var(--dot-l)); }
+.lp-sw-reset {
+  height: 26px; padding: 0 9px; border-radius: var(--radius-sm); border: 1px solid var(--rule); background: transparent;
+  color: var(--ink-2) !important; font: 500 12.5px var(--font); cursor: pointer;
+}
+.lp-sw-reset:hover { background: var(--sunk); color: var(--ink) !important; }
+.lp-sw-reset.is-on { color: var(--ink) !important; border-color: var(--ink-2); }
+:is(.lp-sw, .lp-sw-reset, .lp-col-row, .lp-dr-colbtn):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

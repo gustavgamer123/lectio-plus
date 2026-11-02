@@ -304,3 +304,101 @@ html.lp-on .message-thread-message-header { font-size: 14.5px !important; font-w
 html.lp-on .message-thread-message-content { font-size: 14px; line-height: 1.6; }
 html.lp-on .message-thread-message * { background-color: transparent !important; }
 html.lp-msgpage textarea { width: 100% !important; font-family: var(--font) !important; }
+
+/* ---------- opgavesiden: Lectios øer under vores panel ---------- */
+html.lp-aflpage .lp-afl-hasinfo .lp-afl-info { display: none !important; }
+html.lp-aflpage .ls-elevaflevering-root { max-width: none !important; margin: 0 !important; }
+html.lp-aflpage .ls-elevaflevering-root .ls-std-island-layout-ltr { flex-direction: column; flex-wrap: nowrap; }
+html.lp-aflpage .ls-elevaflevering-root :is(.ls-std-island-layout-ltr > section, section.lf-island) { width: 100% !important; max-width: none !important; flex: none !important; }
+html.lp-aflpage .lp-afl-entries { order: -1; }
+html.lp-aflpage .ls-elevaflevering-root .islandHeaderRight { display: none !important; }
+html.lp-aflpage .lp-afl-entries textarea { width: 100% !important; }
+html.lp-aflpage .lp-afl-students.lp-afl-redundant { display: none !important; }
+/* "Vælg dokument og send" er sidens hovedhandling */
+html.lp-on .outerContentFrame .lectiofilepicker-uploadfile > .buttonfilledtonal > :is(a, button) { background: var(--accent) !important; border-color: var(--accent) !important; color: var(--accent-ink) !important; }
+/* filikoner i tabeller står ikke klistret til navnet */
+html.lp-on .outerContentFrame td a > img[src$=".auto"]:first-child { margin-right: 6px; vertical-align: -2px; }
+
+/* ---------- lektionssiden: Lectios indhold under vores panel ---------- */
+html.lp-actpage :is(.ls-std-toolbar-filled, nav.ls-std-rowblock, .ls-std-toolbar, .lectioTabToolbar, .ls-tocContainer-outer, [id$="tocAndToolbar_toolbaroutercontainer"], [id$="actHeader"]) { display: none !important; }
+html.lp-actpage .buttonlink:has(a[href*="forloeb_vis"]), html.lp-actpage :is(div, span):has(> .buttonlink a[href*="forloeb_vis"]) { display: none !important; }
+html.lp-actpage :is(#PrintAktivititetArea, .ls-toccontent-container, .ls-tabs4, .lectioTabContent, .ls-texteditor-container, .ls-tocandcontentparent, .ls-tocContent-outer, .ls-texteditor-paper-container, #homeworkContentContainer) {
+  display: block !important; width: auto !important; max-width: none !important; min-width: 0 !important; float: none !important;
+}
+html.lp-actpage :is(.ls-tocandcontentparent, .ls-texteditor-container, .ls-tocContent-outer, .ls-texteditor-paper-container) { margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
+/* papir og "Lektier og materialer" er paneler; overskriften er panelets hoved */
+html.lp-on #homeworkContentContainer, html.lp-on .ls-paper {
+  background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--rule) !important; border-radius: var(--radius) !important;
+  box-shadow: none !important; padding: 12px 14px !important;
+}
+html.lp-actpage #homeworkContentContainer { margin: 0 !important; padding: 0 14px 12px !important; font-size: 14px; line-height: 1.55; min-height: 0 !important; height: auto !important; }
+html.lp-on .lp-act-cardhead { display: flex; align-items: center; min-height: 40px; margin: 0 -14px 10px; padding: 0 14px; border-bottom: 1px solid var(--rule); font-family: var(--font); }
+html.lp-on .lp-act-cardhead h2 { margin: 0 !important; font: 600 14.5px var(--font) !important; color: var(--ink) !important; letter-spacing: 0; }
+html.lp-actpage #homeworkContentContainer .ls-paper-section-heading { font-size: 13.5px !important; font-weight: 600 !important; margin: 12px 0 4px !important; color: var(--ink) !important; }
+html.lp-actpage #homeworkContentContainer hr { border: 0 !important; border-top: 1px solid var(--rule) !important; margin: 10px 0 !important; }
+html.lp-actpage #homeworkContentContainer article.lc-display-fragment { margin: 4px 0 !important; padding: 0 !important; background: transparent !important; border: 0 !important; }
+/* lektieteksten er almindelig tekst med links, ikke en fed blok */
+html.lp-actpage #homeworkContentContainer article.lc-display-fragment > h1 {
+  display: block; margin: 0 !important; padding: 0 !important; border-radius: 0; background: none !important; font-size: 14px !important; font-weight: 400 !important; line-height: 1.55;
+}
+html.lp-actpage #homeworkContentContainer article.lc-display-fragment > h1 a { color: var(--accent) !important; }
+html.lp-actpage #homeworkContentContainer article.lc-display-fragment img { max-height: 16px; width: auto; vertical-align: -2px; margin-right: 6px; }
+html.lp-on .ls-section-title-heading, html.lp-on .ls-section-title-heading * { font-style: normal !important; }
+html.lp-on .ls-section-title-heading { font-size: 14.5px !important; font-weight: 600 !important; }
+html.lp-on .ls-paper-section-heading { font-size: 13.5px !important; font-weight: 600 !important; margin: 12px 0 4px !important; }
+html.lp-on .lc-display-fragment h1 { font-size: 14px !important; font-weight: 500 !important; }
+
+/* ---------- Elevfeedback på lektionssiden ---------- */
+html.lp-fbpage #ElevContentContainer {
+  background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--rule) !important; border-radius: var(--radius) !important;
+  padding: 0 14px 12px !important; margin: 0 !important; font-size: 14px; line-height: 1.55; min-height: 0 !important; height: auto !important; box-shadow: none !important;
+}
+html.lp-fbpage #ElevContentContainer > .ls-paper-header, html.lp-fbpage #ElevContentContainer > .nb_type_information, html.lp-fbpage .ls-tocContent-outer > menutemplate, html.lp-fbpage [id$="tocAndToolbar_toolbarMenuContainer"] { display: none !important; }
+html.lp-on .lp-fb-head { justify-content: space-between; gap: 10px 20px; flex-wrap: wrap; padding: 8px 14px; }
+html.lp-on .lp-fb-head p { margin: 2px 0 0 !important; color: var(--ink-2) !important; font-size: 13px; line-height: 1.45; }
+.lp-fb-actions { display: flex; gap: 6px; }
+.lp-fb-actions .lp-btn svg { width: 16px; height: 16px; flex: none; }
+.lp-fb-empty { padding: 10px 0 2px !important; color: var(--ink-2); }
+html.lp-fbpage #ElevContentContainer .ls-paper { background: transparent !important; border: 0 !important; border-radius: 0 !important; padding: 0 !important; margin: 12px 0 0 !important; box-shadow: none !important; min-height: 0 !important; width: auto !important; max-width: none !important; }
+html.lp-fbpage #ElevContentContainer :is(.homeworkContainer, [id$="editorContainer"], .cke, span:has(> .cke), div:has(> .cke)) { width: auto !important; max-width: none !important; display: block !important; }
+html.lp-fbpage #ElevContentContainer .ls-paper + .ls-paper { border-top: 1px solid var(--rule) !important; padding-top: 12px !important; }
+html.lp-fbpage #ElevContentContainer .ls-section-subgroup-heading { margin: 0 0 6px !important; padding: 0 !important; border: 0 !important; background: transparent !important; font-size: 12.5px !important; font-weight: 600 !important; color: var(--ink-2) !important; }
+html.lp-fbpage #ElevContentContainer .ls-section-subgroup-heading * { color: inherit !important; font-size: inherit !important; font-weight: inherit !important; margin: 0 !important; }
+html.lp-fbpage #ElevContentContainer .homeworkContainer { margin: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; }
+html.lp-fbpage #ElevContentContainer .homeworkContainer :is(h1, h2, h3) { font-size: 14.5px !important; font-weight: 600 !important; margin: 12px 0 4px !important; color: var(--ink) !important; }
+html.lp-fbpage #ElevContentContainer .homeworkContainer :is(p, li) { color: var(--ink) !important; }
+html.lp-fbpage #ElevContentContainer .homeworkContainer a { color: var(--accent) !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment { margin: 0 !important; padding: 10px 12px !important; border-radius: var(--radius-sm) !important; background: var(--sunk) !important; font-size: 14px !important; line-height: 1.55; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment + article.lc-display-fragment { margin-top: 6px !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :is(h1, h2, h3) { margin: 8px 0 2px !important; font-size: 14.5px !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment > h1[style*="background-image"] { padding: 0 0 0 24px !important; background-position: 0 50% !important; background-size: 16px auto !important; background-repeat: no-repeat !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :first-child { margin-top: 0 !important; }
+html.lp-fbpage #ElevContentContainer article.lc-display-fragment > :last-child { margin-bottom: 0 !important; }
+/* skrivetilstand: Lectios værktøjslinje bliver en rolig bar, der følger med ned */
+html.lp-fbedit [id$="tocAndToolbar_toolbaroutercontainer"] {
+  display: block !important; position: sticky !important; top: calc(var(--shell-h) + 10px); z-index: 30; margin: 0 0 12px !important; padding: 0 !important;
+  background: transparent !important; border: 0 !important; width: auto !important; max-width: none !important; height: auto !important;
+}
+html.lp-fbpage :is(.ls-texteditor-toolbarContainer, [id$="tocAndToolbar_toolbarcontent"]) { padding: 0 !important; margin: 0 !important; background: transparent !important; border: 0 !important; width: auto !important; max-width: none !important; }
+html.lp-fbpage .cke_chrome { border: 0 !important; box-shadow: none !important; padding: 0 !important; background: transparent !important; }
+html.lp-fbpage .cke_inner { background: transparent !important; }
+html.lp-fbpage .cke_top {
+  background: var(--surface) !important; background-image: none !important; border: 1px solid var(--rule) !important; border-radius: var(--radius) !important;
+  padding: 4px 6px 0 !important; box-shadow: 0 4px 14px rgba(0, 0, 0, .06) !important;
+}
+html.lp-fbpage .cke_toolgroup { background: transparent !important; background-image: none !important; border: 0 !important; box-shadow: none !important; }
+html.lp-fbpage a.cke_button { border-radius: var(--radius-sm) !important; border: 0 !important; background: transparent !important; background-image: none !important; box-shadow: none !important; }
+html.lp-fbpage :is(a.cke_button:hover, a.cke_button_on) { background: var(--sunk) !important; }
+html.lp-on.lp-fbpage .cke_top :is(a.cke_button, a.cke_button *, .cke_combo_text, .cke_toolbar > span) { color: var(--ink-2) !important; text-shadow: none !important; }
+html.lp-fbpage a.cke_button_disabled { opacity: .4 !important; }
+html.lp-fbpage .cke_toolbar_separator { background: var(--rule) !important; }
+html.lp-fbpage a.cke_combo_button { background: var(--sunk) !important; background-image: none !important; border: 1px solid var(--rule) !important; border-radius: var(--radius-sm) !important; box-shadow: none !important; }
+html.lp-fbpage a.cke_button__lectiosave { background: var(--accent) !important; }
+html.lp-fbpage a.cke_button__lectiosave:hover { background: var(--accent) !important; filter: brightness(1.08); }
+html.lp-on.lp-fbpage .cke_top :is(a.cke_button__lectiosave, a.cke_button__lectiosave *) { color: var(--accent-ink) !important; font-weight: 600; }
+html.lp-fbpage .cke_contents { height: auto !important; border: 0 !important; }
+html.lp-fbpage .cke_wysiwyg_div {
+  min-height: 300px; background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--rule) !important; border-radius: var(--radius) !important;
+  padding: 12px 14px !important; font: 14px/1.6 var(--font) !important;
+}
+html.lp-fbpage .cke_wysiwyg_div:focus { outline: 2px solid var(--accent) !important; outline-offset: -1px; }
