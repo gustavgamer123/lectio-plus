@@ -25,7 +25,6 @@
       ],
       "css": [
         "styles/tokens.css",
-        "styles.css",
         "styles/lectio.css",
         "styles/views.css",
         "styles/shell.css"

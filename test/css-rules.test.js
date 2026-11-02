@@ -8,8 +8,16 @@ const { EXT } = require('./helpers/load');
 const read = (f) => fs.readFileSync(path.join(EXT, f), 'utf8');
 const rules = (css) => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({ sel: m[1].trim(), body: m[2] }));
 
+const manifestCss = () => JSON.parse(read('manifest.json')).content_scripts.flatMap((c) => c.css || []);
+
+test('manifestet har ikke længere den gamle styles.css, og alle CSS-filer findes', () => {
+  const css = manifestCss();
+  assert.ok(!css.includes('styles.css'), 'styles.css er tømt og fjernet i plan 3');
+  for (const f of css) assert.ok(fs.existsSync(path.join(EXT, f)), `${f} mangler`);
+});
+
 test('ting der hænger fast ved rulning, starter under skallen', () => {
-  for (const f of ['styles.css', 'styles/shell.css']) {
+  for (const f of manifestCss()) {
     for (const r of rules(read(f)).filter((x) => /position:\s*sticky/.test(x.body))) {
       const top = (r.body.match(/(?:^|;)\s*top:\s*([^;]+)/) || [])[1] || '';
       assert.match(top, /var\(--shell-h\)/, `${f}: ${r.sel.split('\n').pop().trim()} har top: ${top}`);

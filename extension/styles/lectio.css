@@ -1,6 +1,73 @@
 /* ============ Lectio+ 2.0: Lectios egne sider i retning D ============ */
 /* Lectio har ingen farvevariabler, så hver komponent får sine regler her. Reglerne ændrer kun udseende: intet skjules eller flyttes. */
 
+/* ---------- grundlag fra 1.x (flyttet fra styles.css i plan 3; Lectio-brede regler, samme rækkefølge som før) ---------- */
+html.lp-takeover #s_m_outerContentFrameDiv, html.lp-takeover .ls-master-footer, html.lp-takeover #s_m_masterfooter { display: none !important; }
+@media (max-width: 860px) {
+  html.lp-on .outerContentFrame { padding: 12px 10px 30px !important; }
+}
+@media print {
+  html.lp-on body { padding: 0 !important; }
+}
+html.lp-on, html.lp-on body { overflow-x: hidden; }
+html.lp-on .ls-master-header-container, html.lp-on [id$="masterHeaderDiv"], html.lp-on [id$="mastermenu"] { display: none !important; }
+html.lp-on[data-lp-theme="dark"] .outerContentFrame :is(table, td, th) { border-color: var(--rule) !important; }
+html.lp-on { font-size: 14px !important; }
+html.lp-on body { line-height: 1.5; }
+html.lp-on .outerContentFrame { padding: clamp(16px, 2vw, 36px) clamp(16px, 2.4vw, 44px) 56px !important; }
+html.lp-on .maintitle { font-size: clamp(24px, 2vw, 32px) !important; letter-spacing: -.02em; }
+html.lp-on .outerContentFrame table { font-size: inherit; }
+html.lp-on .lf-grid, html.lp-on .ls-table-layout1, html.lp-on .ls-table-layout2, html.lp-on .ls-table-layout5 { width: 100%; }
+html.lp-on .lf-grid th, html.lp-on .ls-table-layout2 th, html.lp-on .ls-table-layout5 th, html.lp-on .ls-table-layout1 th { font-size: 13px !important; color: var(--ink-3) !important; font-weight: 600 !important; text-transform: none !important; padding: 10px 14px !important; white-space: nowrap; }
+html.lp-on .lf-grid td, html.lp-on .ls-table-layout2 td, html.lp-on .ls-table-layout5 td, html.lp-on .ls-table-layout1 td { padding: 11px 14px !important; line-height: 1.45; }
+html.lp-on .lf-grid tr:last-child td { border-bottom: 0 !important; }
+html.lp-on .ls-std-table-inputlist { border-collapse: collapse; width: 100%; }
+html.lp-on .ls-std-table-inputlist th, html.lp-on .ls-std-table-inputlist td { padding: 8px 12px 8px 0 !important; border: 0 !important; border-bottom: 1px solid var(--rule) !important; vertical-align: top; text-align: left; }
+html.lp-on .ls-std-table-inputlist tr:last-child > * { border-bottom: 0 !important; }
+html.lp-on .ls-std-table-inputlist tr > :first-child { color: var(--ink-2) !important; font-weight: 500; white-space: nowrap; width: 1%; padding-right: 24px !important; }
+html.lp-on .outerContentFrame a { text-decoration: none; }
+html.lp-on .outerContentFrame a:hover { text-decoration: underline; }
+html.lp-on .buttonlink > a, html.lp-on a.buttonlink, html.lp-on .button > a, html.lp-on a.button, html.lp-on .lec-button, html.lp-on input[type="submit"], html.lp-on input[type="button"]:not(.hidetabinputbutton), html.lp-on button.button { display: inline-flex !important; align-items: center; gap: 6px; min-height: 34px; padding: 0 14px !important; border-radius: var(--radius) !important; border: 1px solid var(--rule) !important; background: var(--surface) !important; color: var(--ink) !important; font: 500 14px var(--font) !important; text-decoration: none !important; cursor: pointer; box-shadow: none !important; }
+html.lp-on .buttonlink > a:hover, html.lp-on a.buttonlink:hover, html.lp-on .button > a:hover, html.lp-on input[type="submit"]:hover { background: var(--sunk) !important; }
+html.lp-on .buttonlink { background: transparent !important; border: 0 !important; padding: 0 !important; }
+html.lp-on .buttonicon a { color: var(--ink-2) !important; border-radius: var(--radius); }
+html.lp-on .buttonicon a:hover { background: var(--sunk) !important; color: var(--ink) !important; }
+html.lp-on input[type="checkbox"], html.lp-on input[type="radio"] { accent-color: var(--accent); width: 16px; height: 16px; }
+html.lp-on input[type="text"], html.lp-on input[type="search"], html.lp-on input[type="password"], html.lp-on input[type="email"], html.lp-on input[type="tel"], html.lp-on input[type="number"], html.lp-on input[type="date"], html.lp-on select, html.lp-on textarea { min-height: 34px; font: 14px var(--font) !important; border-color: var(--rule) !important; }
+html.lp-on input:focus, html.lp-on select:focus, html.lp-on textarea:focus { outline: 2px solid var(--accent) !important; outline-offset: 1px; border-color: var(--accent) !important; }
+html.lp-on textarea { line-height: 1.5 !important; padding: 10px 12px !important; }
+html.lp-on .ls-std-toolbar, html.lp-on .ls-std-toolbar-filled { background: transparent !important; border: 0 !important; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 0 12px !important; }
+html.lp-on .lectioTabToolbar { display: flex !important; gap: 4px; border-bottom: 1px solid var(--rule) !important; background: transparent !important; margin-bottom: 14px; padding: 0 !important; }
+html.lp-on .lectioTabToolbar a { padding: 8px 14px !important; color: var(--ink-2) !important; text-decoration: none !important; border: 0 !important; background: transparent !important; box-shadow: inset 0 -2px 0 transparent; border-radius: 0 !important; }
+html.lp-on .lectioTabToolbar a:hover { color: var(--ink) !important; }
+html.lp-on .lectioTabToolbar a[class*="selected"], html.lp-on .lectioTabToolbar a[aria-selected="true"], html.lp-on .lectioTabToolbar .selected a { color: var(--ink) !important; font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); }
+html.lp-on .lectioTabContent { background: transparent !important; border: 0 !important; padding: 0 !important; }
+html.lp-on .TreeNode-container { display: flex; align-items: center; gap: 4px; padding: 1px 0; }
+html.lp-on .TreeNode-chevron { opacity: .5; }
+html.lp-on a.TreeNode { display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px !important; border-radius: var(--radius); color: var(--ink-2) !important; text-decoration: none !important; font-size: 14px; flex: 1; min-width: 0; }
+html.lp-on a.TreeNode:hover { background: var(--sunk) !important; color: var(--ink) !important; }
+html.lp-on a.TreeNode.selectedFolder { background: var(--accent-soft) !important; color: var(--ink) !important; font-weight: 600; }
+html.lp-on .TreeNode-icon { filter: grayscale(1); opacity: .55; width: 16px; height: auto; }
+html.lp-on .TreeNode-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.lp-on .ls-lectiofilepicker-container { display: flex !important; gap: 20px; align-items: flex-start; }
+html.lp-on .lectiofilepicker-foldertree-col { flex: 0 0 240px; width: 240px !important; background: transparent !important; border: 0 !important; }
+html.lp-on .lectiofilepicker-foldercontent-col { flex: 1 1 auto; min-width: 0; width: auto !important; background: var(--surface) !important; border: 1px solid var(--rule) !important; border-radius: var(--radius); padding: 16px 20px !important; }
+html.lp-on .ui-dialog, html.lp-on dialog { background: var(--surface) !important; color: var(--ink) !important; border: 1px solid var(--rule) !important; border-radius: var(--radius) !important; box-shadow: 0 24px 60px rgba(0, 0, 0, .25) !important; padding: 0 !important; overflow: hidden; }
+html.lp-on .ui-dialog-titlebar { background: transparent !important; border: 0 !important; border-bottom: 1px solid var(--rule) !important; padding: 14px 18px !important; font-weight: 700; color: var(--ink) !important; }
+html.lp-on .ui-dialog-content { padding: 16px 18px !important; background: transparent !important; color: var(--ink) !important; }
+html.lp-on .ui-widget-overlay { background: rgba(15, 18, 17, .4) !important; opacity: 1 !important; }
+html.lp-on .ls-columnlist, html.lp-on [class*="columnlist"] { column-gap: 24px; }
+html.lp-on .ls-columnlist a, html.lp-on [class*="columnlist"] a { display: block; padding: 4px 6px; border-radius: var(--radius-sm); }
+html.lp-on .ls-columnlist a:hover, html.lp-on [class*="columnlist"] a:hover { background: var(--sunk); text-decoration: none; }
+html.lp-on[data-lp-theme="dark"] { color-scheme: dark; }
+html.lp-on[data-lp-theme="light"] { color-scheme: light; }
+html.lp-has-pagehead .ls-master-pageheader { display: none !important; }
+html.lp-on #masterContent, html.lp-on .ls-master-container1, html.lp-on .ls-master-container2, html.lp-on .outerContentFrame { width: auto !important; max-width: none !important; margin-left: 0 !important; margin-right: 0 !important; }
+html.lp-on [id$="helptipDiv"] { display: none !important; }
+html.lp-on #masterContent, html.lp-on .ls-master-container1, html.lp-on .ls-master-container2 { display: block !important; }
+html.lp-on { scrollbar-gutter: stable; }
+html.lp-on .outerContentFrame .ls-content { display: block !important; width: auto !important; }
+
 /* ---------- side, typografi, felter og mørkt tema (flyttet fra styles.css, skrives om i de næste opgaver) ---------- */
 html.lp-on body {
   background: var(--bg) !important;
@@ -264,7 +331,7 @@ html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledt
 /* ---------- beskedsiden i Lectios egen visning og en åben tråd ---------- */
 html.lp-msgpage .lp-hide { display: none !important; }
 html.lp-msgpage :is(.ls-foldertree2, .lectiofilepicker-foldertree-col) { background: transparent !important; border: 0 !important; box-shadow: none !important; }
-/* Lectio gør mappelisten sticky med top: 104px (sit eget sidehoved); inde i sin overflow: hidden-beholder bliver det et tomt felt over listen */
+/* Mappelisten var sticky under skallen (top 104 px); inde i Lectios overflow: hidden-beholder blev det et tomt felt over listen */
 html.lp-on .ls-foldertree2 { top: 0 !important; }
 html.lp-msgpage [id$="ListGridSelectionTree"] a, html.lp-on [id$="FolderTreeView"] a {
   display: inline-block; padding: 3px 6px; border-radius: var(--radius-sm); color: var(--ink-2) !important; text-decoration: none !important; font-size: 13.5px;
