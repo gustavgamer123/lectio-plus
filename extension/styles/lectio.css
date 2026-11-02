@@ -260,3 +260,47 @@ html.lp-on .ls-content:has(#fixedBlock) { padding-bottom: 72px !important; }
 /* Lectio dæmper selv knapper uden for brug med opacity; det overtager farverne ovenfor, så teksten holder mindst 3:1 */
 html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon):is(.disabled, [aria-disabled="true"], :has(> :is(a, button):is([disabled], [aria-disabled="true"], .disabled, .aspNetDisabled))),
 html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext, .buttonicon) > :is(a, button):is([disabled], [aria-disabled="true"], .disabled, .aspNetDisabled) { opacity: 1 !important; }
+
+/* ---------- beskedsiden i Lectios egen visning og en åben tråd ---------- */
+html.lp-msgpage .lp-hide { display: none !important; }
+html.lp-msgpage :is(.ls-foldertree2, .lectiofilepicker-foldertree-col) { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+/* Lectio gør mappelisten sticky med top: 104px (sit eget sidehoved); inde i sin overflow: hidden-beholder bliver det et tomt felt over listen */
+html.lp-on .ls-foldertree2 { top: 0 !important; }
+html.lp-msgpage [id$="ListGridSelectionTree"] a, html.lp-on [id$="FolderTreeView"] a {
+  display: inline-block; padding: 3px 6px; border-radius: var(--radius-sm); color: var(--ink-2) !important; text-decoration: none !important; font-size: 13.5px;
+}
+html.lp-msgpage [id$="ListGridSelectionTree"] a:hover { background: var(--sunk); color: var(--ink) !important; }
+html.lp-msgpage [id$="ListGridSelectionTree"] img { filter: grayscale(1); opacity: .5; }
+html.lp-msgpage table[id*="threadGV"] { width: 100% !important; }
+html.lp-msgpage table[id*="threadGV"] td { padding: 6px 10px !important; vertical-align: middle; }
+html.lp-msgpage table[id*="threadGV"] td:nth-child(-n+3) { width: 22px; padding-left: 4px !important; padding-right: 4px !important; }
+html.lp-msgpage table[id*="threadGV"] img { opacity: .4; }
+html.lp-msgpage table[id*="threadGV"] tr:hover img { opacity: .85; }
+html.lp-msgpage table[id*="threadGV"] td:nth-child(4) { font-size: 13.5px; }
+html.lp-msgpage table[id*="threadGV"] td:nth-child(4) :is(a, span) { color: var(--ink) !important; text-decoration: none !important; }
+html.lp-msgpage table[id*="threadGV"] td:nth-child(n+5) { color: var(--ink-2) !important; font-size: 13px; }
+html.lp-msgpage table[id*="threadGV"] td:nth-child(n+5) img { display: none; }
+html.lp-msgpage .lp-clickrow { cursor: pointer; }
+html.lp-msgpage .lp-unread td:nth-child(4), html.lp-msgpage .lp-unread td:nth-child(4) * { font-weight: 700 !important; }
+html.lp-msgpage .lp-unread td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+/* Lectios links Ny besked, Svar, Videresend ... som knapper */
+.lp-lbtn {
+  display: inline-flex !important; align-items: center; gap: 4px; height: 32px; padding: 0 11px !important; border-radius: var(--radius); border: 1px solid var(--rule);
+  background: var(--surface) !important; color: var(--ink) !important; text-decoration: none !important; font: 500 13.5px var(--font);
+}
+.lp-lbtn:hover { background: var(--sunk) !important; }
+.lp-lbtn.is-primary { background: var(--accent) !important; border-color: var(--accent); color: var(--accent-ink) !important; font-weight: 600; }
+/* tråden: hovedet og hver besked er et panel */
+html.lp-msgpage .message-thread-container { background: transparent !important; }
+html.lp-on [id$="messageThreadHeaderDiv"] { border-radius: var(--radius) !important; }
+html.lp-msgpage .thread-header-container { border-bottom: 1px solid var(--rule); padding-bottom: 12px; margin-bottom: 14px; }
+html.lp-msgpage table[id*="MessagesGV"], html.lp-msgpage table[id*="MessagesGV"] td { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+html.lp-on .message-thread-message-sender { color: var(--ink-2) !important; margin: 14px 0 4px 2px; font-size: 13px; }
+html.lp-on .message-thread-message {
+  background: var(--surface) !important; border: 1px solid var(--rule) !important; border-radius: var(--radius) !important; padding: 12px 14px !important;
+  box-shadow: none !important; font-size: 14px; line-height: 1.6; margin-bottom: 12px;
+}
+html.lp-on .message-thread-message-header { font-size: 14.5px !important; font-weight: 600 !important; }
+html.lp-on .message-thread-message-content { font-size: 14px; line-height: 1.6; }
+html.lp-on .message-thread-message * { background-color: transparent !important; }
+html.lp-msgpage textarea { width: 100% !important; font-family: var(--font) !important; }

@@ -84,5 +84,5 @@ for (const r of report) {
   total += counts.reduce((a, b) => a + b, 0);
   console.log([`${slug(r.page).slice(0, 38)} ${r.theme}`.padEnd(46), ...counts.map((c) => String(c || '.').padStart(8))].join(''));
 }
-console.log(`\n${total} brud (unikke selectors) ved ${width} px. Detaljer: shots/audit-${width}.json`);
+console.log(`\n${total} brud (unikke selectors) ved ${width} px. Detaljer: shots/audit${opts.own ? '-own' : ''}-${width}.json`);
 process.exit(total ? 1 : 0);

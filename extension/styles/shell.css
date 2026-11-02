@@ -104,6 +104,9 @@ html.lp-boot body::before { content: ""; position: fixed; inset: 0 0 auto 0; hei
 .lp-btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) !important; justify-content: center; width: 100%; margin-top: 18px; height: 38px; font-weight: 600; }
 .lp-btn-primary:hover { background: var(--accent); filter: brightness(1.08); }
 .lp-btn-primary svg { width: 16px !important; height: 16px !important; }
+/* sidens vigtigste handling (Ny besked, Svar, Gå til aflevering): fyldt accent i normal bredde */
+.lp-btn-main { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) !important; font-weight: 600; }
+.lp-btn-main:hover { background: var(--accent); filter: brightness(1.08); }
 .lp-filter { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; }
 .lp-filter button {
   display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: var(--radius-sm); border: 1px solid var(--rule);

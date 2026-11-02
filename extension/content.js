@@ -1113,11 +1113,10 @@
       </div>
       <div class="lp-mpanes">
         <div class="lp-mlist" role="list">${list.length ? list.map((m, i) => `
-          <a class="lp-mitem${m.unread ? ' is-unread' : ''}" role="listitem" href="${esc(m.href || '#')}" data-i="${i}">
-            <span class="lp-mi-top"><strong>${esc(m.from)}</strong><small>${esc(m.changed)}</small></span>
+          <a class="lp-mitem${m.unread ? ' is-unread' : ''}" role="listitem" href="${esc(m.href || '#')}" data-i="${i}" title="${esc(m.subject)}${m.to ? ' (til ' + esc(m.to) + ')' : ''}">
+            <span class="lp-mi-top"><strong>${esc(m.from)}</strong><small class="lp-mono">${esc(m.changed)}</small></span>
             <span class="lp-mi-subj">${esc(m.subject)}</span>
-            <span class="lp-mi-to">Til ${esc(m.to)}</span>
-          </a>`).join('') : '<p class="lp-empty">Ingen beskeder i denne mappe.</p>'}</div>
+          </a>`).join('') : '<p class="lp-empty lp-pad">Ingen beskeder i denne mappe.</p>'}</div>
         <div class="lp-mread" aria-live="polite"><p class="lp-empty">Vælg en besked for at læse den her.</p></div>
       </div>`;
     app.querySelector('[data-act=new]')?.addEventListener('click', () => newBtn.click());
