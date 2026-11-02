@@ -263,3 +263,23 @@ table.lp-table tbody tr:hover > td { background: var(--sunk); }
 #lp-app table.lp-tasks td { display: table-cell !important; text-align: left !important; }
 /* mono skal vinde over den generelle "font-family: inherit" fra 1.x (som har høj specificitet) */
 :is(#lp-app, #lp-drawer) .lp-mono { font-family: var(--mono) !important; font-size: 12.5px; }
+
+/* ---------- Fravær, Karakterer og Studieplan ---------- */
+#lp-app .lp-panel + .lp-panel { margin-top: 12px; }
+#lp-app .lp-muted { color: var(--ink-2); }
+#lp-app small.lp-muted { font-size: 12px; }
+#lp-app .lp-note { margin: 0 !important; padding: 8px 14px 10px; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--ink-2); }
+#lp-app .lp-pad { padding: 10px 14px; }
+#lp-app table.lp-table td.is-warn { color: var(--warn); font-weight: 600; }
+#lp-app table.lp-table td.is-danger { color: var(--danger); font-weight: 600; }
+#lp-app .lp-abs-bar { width: 30%; }
+#lp-app .lp-bar { display: block; height: 6px; margin-top: 6px; border-radius: 0; background: var(--sunk); overflow: hidden; }
+#lp-app .lp-bar i { display: block; height: 100%; background: var(--ink-2); }
+#lp-app .lp-bar.is-warn i { background: var(--warn); }
+#lp-app .lp-bar.is-danger i { background: var(--danger); }
+#lp-app table.lp-sp .lp-progress { max-width: 160px; }
+#lp-app .lp-sp-all summary { cursor: pointer; color: var(--accent); font-size: 12.5px; list-style: none; white-space: nowrap; }
+#lp-app .lp-sp-all summary::-webkit-details-marker { display: none; }
+#lp-app .lp-sp-all ul { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+#lp-app table.lp-sp td:last-child { max-width: 260px; }
+#lp-app .lp-sp-all li a { overflow-wrap: anywhere; }

@@ -14,11 +14,12 @@ const fixture = (name, re) => { try { const m = fs.readFileSync(path.join(ROOT, 
 export const OWN_PAGES = navCtx.LP.NAV_TABS.map((n) => n.path).concat(['studieplan.aspx?displaytype=ugeteksttabel',
   fixture('OpgaverElev.aspx.html', /ElevAflevering\.aspx\?[^"']+/), fixture('SkemaNy.aspx.html', /aktivitet\/aktivitetforside2\.aspx\?absid=\d+/)]).filter(Boolean);
 
-const opts = { theme: 'both', width: '1280', rule: '', own: false };
+const opts = { theme: 'both', width: '1280', rule: '', own: false, offline: false };
 const paths = [];
 const argv = process.argv.slice(2);
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === '--own') opts.own = true;
+  else if (argv[i] === '--offline') opts.offline = true;
   else if (argv[i].startsWith('--')) opts[argv[i].slice(2)] = argv[++i];
   else paths.push(argv[i]);
 }
@@ -30,20 +31,32 @@ const allow = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'audit-allow.j
 const allowed = (p, v) => allow.some((a) => (a.page === '*' || a.page === p) && a.rule === v.rule && (a.selector === '*' || v.selector.includes(a.selector)));
 const src = fs.readFileSync(path.join(ROOT, 'tools', 'audit-rules.js'), 'utf8');
 
-const { context } = await connect();
-const base = schoolBase(context);
-await reloadExtension(context);
-await setSettings(context, { theme: 'auto' });
-const page = await context.newPage();
-await page.setViewportSize({ width, height: 800 });
-const report = [];
-for (const p of pages) {
-  for (const theme of themes) {
-    try {
+// --offline: siderne vises fra fixtures i en headless Chromium (tools/offline.mjs), så der ikke skal være logget ind.
+let page; let open; let browser;
+if (opts.offline) {
+  const off = await import('./offline.mjs');
+  ({ browser } = await off.offlineContext(width));
+  page = await browser.contexts()[0].newPage();
+  open = (p, theme) => off.openOffline(page, p, theme);
+} else {
+  const { context } = await connect();
+  const base = schoolBase(context);
+  await reloadExtension(context);
+  await setSettings(context, { theme: 'auto' });
+  page = await context.newPage();
+  await page.setViewportSize({ width, height: 800 });
+  open = async (p, theme) => {
     await page.emulateMedia({ colorScheme: theme });
     await page.goto(ORIGIN + base + p, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
     await page.waitForTimeout(300);
+  };
+}
+const report = [];
+for (const p of pages) {
+  for (const theme of themes) {
+    try {
+    await open(p, theme);
     await page.evaluate(src);
     const found = await page.evaluate((o) => {
       const cs = getComputedStyle(document.documentElement);
@@ -59,6 +72,7 @@ for (const p of pages) {
   }
 }
 await page.close();
+if (browser) await browser.close();
 
 fs.mkdirSync(path.join(ROOT, 'shots'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'shots', `audit${opts.own ? '-own' : ''}-${width}.json`), JSON.stringify(report, null, 1));

@@ -987,39 +987,44 @@
   function renderAbsenceView(app) {
     const a = parseAbsence(document);
     if (!a) { app.innerHTML = viewHead('Fravær', '') + errBox('Fraværstabellen blev ikke fundet'); return; }
-    const fmt = (v) => (v || 0).toFixed(1).replace('.', ',') + ' %';
+    const pct = (v) => (v || 0).toFixed(1).replace('.', ',') + ' %';
     const lvl = (p) => (p >= 10 ? 'is-danger' : p >= 5 ? 'is-warn' : '');
-    const max = Math.max(10, ...a.rows.map((r) => Math.max(r.pct || 0, r.wPct || 0)));
-    const bar = (p) => `<span class="lp-bar ${lvl(p)}"><i style="width:${Math.max(0, Math.min(100, ((p || 0) / max) * 100))}%"></i></span>`;
+    const max = Math.max(10, ...a.rows.map((r) => r.pct || 0));
+    const bar = (p) => (p ? `<span class="lp-bar ${lvl(p)}"><i style="width:${Math.min(100, (p / max) * 100)}%"></i></span>` : '');
+    const frac = (m) => (m ? `${String(m[0]).replace('.', ',')} / ${m[1]}` : '–');
+    // Lectio har to tal pr. hold: "Opgjort" er fraværet indtil nu, og brøken er moduler i hele perioden. De står hver for sig.
+    const rows = a.rows.slice().sort((x, y) => x.hold.localeCompare(y.hold, 'da')).map((r) => {
+      const s = subjectFrom(r.hold);
+      return `<tr><td>${subjDot(s?.code)}${esc(s?.name || r.hold)} <small class="lp-muted">${esc(r.hold)}</small></td>
+        <td class="lp-mono ${lvl(r.pct)}">${r.pct ? pct(r.pct) : '–'}</td><td class="lp-abs-bar">${bar(r.pct)}</td>
+        <td class="lp-mono">${frac(r.mods)}</td><td class="lp-mono">${r.wPct ? pct(r.wPct) : '–'}</td></tr>`;
+    }).join('');
     app.innerHTML = viewHead('Fravær', 'Opgjort for dette skoleår') +
       `<div class="lp-bignums">
-        <div class="${lvl(a.total.pct)}"><b>${fmt(a.total.pct)}</b><span>almindeligt fravær${a.total.mods ? `, ${String(a.total.mods[0]).replace('.', ',')} af ${a.total.mods[1]} moduler` : ''}</span></div>
-        <div class="${lvl(a.total.wPct)}"><b>${fmt(a.total.wPct)}</b><span>skriftligt fravær${a.total.wTime ? `, ${String(a.total.wTime[0]).replace('.', ',')} af ${String(a.total.wTime[1]).replace('.', ',')} elevtimer` : ''}</span></div>
+        <div class="${lvl(a.total.pct)}"><b>${pct(a.total.pct)}</b><span>almindeligt fravær, opgjort</span></div>
+        <div class="${lvl(a.total.wPct)}"><b>${pct(a.total.wPct)}</b><span>skriftligt fravær, opgjort</span></div>
       </div>
-      <div class="lp-sheet"><section class="lp-group"><h2>Pr. hold</h2>
-        <div class="lp-abs-table" role="table">
-          <div class="lp-abs-row is-head" role="row"><span>Hold</span><span>Almindeligt</span><span></span><span>Skriftligt</span><span></span></div>
-          ${a.rows.slice().sort((x, y) => x.hold.localeCompare(y.hold, 'da')).map((r) => { const s = subjectFrom(r.hold); return `<div class="lp-abs-row" role="row">
-            <span>${subjDot(s?.code)}${esc(s?.name || r.hold)} <small>${esc(r.hold)}</small></span>
-            <span class="${lvl(r.pct)}">${fmt(r.pct)}<small>${r.mods ? `${String(r.mods[0]).replace('.', ',')}/${r.mods[1]}` : ''}</small></span>${bar(r.pct)}
-            <span class="${lvl(r.wPct)}">${r.wTime || r.wPct ? fmt(r.wPct) : '<small>ingen</small>'}</span>${r.wTime || r.wPct ? bar(r.wPct) : '<span></span>'}
-          </div>`; }).join('')}
-        </div>
-        <p class="lp-note">Tallene er Lectios egne. Grafen og fraværsskemaet findes under Lectios visning.</p></section></div>`;
+      <section class="lp-panel"><header class="lp-panel-head"><h2>Pr. hold</h2></header>
+        <table class="lp-table lp-abs"><thead><tr><th>Hold</th><th>Opgjort</th><th></th><th>Moduler i perioden</th><th>Skriftligt</th></tr></thead><tbody>${rows}</tbody></table>
+        <p class="lp-note">Opgjort er fraværet indtil nu. Moduler i perioden er fravær ud af alle moduler i perioden. Bjælken er fuld ved ${String(Math.round(max * 10) / 10).replace('.', ',')} %.</p>
+      </section>`;
   }
 
   function renderGradesView(app) {
     const { current, protocol } = parseGrades(document);
     const a = LP.gradeAverage(protocol);
-    const fmt = (v) => (v == null ? '–' : v.toFixed(1).replace('.', ','));
+    const g = (v) => esc(v || '–');
+    const now = current.length ? `<table class="lp-table"><thead><tr><th>Fag</th><th>Form</th><th>1. standpunkt</th><th>2. standpunkt</th><th>Årskarakter</th><th>Eksamen</th></tr></thead><tbody>
+      ${current.map((x) => { const s = subjectFrom(x.hold); return `<tr><td>${subjDot(s?.code)}${esc(x.subject)} ${esc(x.level)} <small class="lp-muted">${esc(x.hold)}</small></td><td>${g(x.form)}</td>
+        <td class="lp-mono">${g(x.s1)}</td><td class="lp-mono">${g(x.s2)}</td><td class="lp-mono">${g(x.year)}</td><td class="lp-mono">${g(x.exam)}</td></tr>`; }).join('')}</tbody></table>`
+      : '<p class="lp-empty lp-pad">Ingen karakterer endnu.</p>';
+    const bevis = protocol.length ? `<section class="lp-panel"><header class="lp-panel-head"><h2>Beviset</h2><small>${protocol.length} linjer</small></header>
+      <table class="lp-table"><thead><tr><th>Termin</th><th>Fag</th><th>Form</th><th>Type</th><th>Vægt</th><th>Karakter</th></tr></thead><tbody>
+      ${protocol.map((l) => `<tr${l.counts ? '' : ' class="is-done"'}><td>${esc(l.term)}</td><td>${esc(l.subject)}</td><td>${esc(l.form)}</td><td>${esc(l.type)}${l.counts ? '' : ' <span class="lp-tag">tæller ikke med</span>'}</td>
+        <td class="lp-mono">${l.weight == null ? '' : String(l.weight).replace('.', ',')}</td><td class="lp-mono"><b>${esc(l.grade)}</b></td></tr>`).join('')}</tbody></table></section>` : '';
     app.innerHTML = viewHead('Karakterer', '') +
-      `<div class="lp-bignums"><div><b>${fmt(a.avg)}</b><span>${a.n ? `snit på beviset, ${a.n} karakterer` : 'Ingen karakterer på beviset endnu'}</span></div></div>
-      <div class="lp-sheet"><section class="lp-group"><h2>Karakterer i år</h2>
-        <div class="lp-gr-table" role="table">
-          <div class="lp-gr-row is-head" role="row"><span>Fag</span><span>1. standpunkt</span><span>2. standpunkt</span><span>Årskarakter</span></div>
-          ${current.map((x) => `<div class="lp-gr-row" role="row"><span>${esc(x.subject)} ${esc(x.level)}<small> ${esc(x.form)}</small></span>
-            <span class="lp-grade">${esc(x.s1 || '–')}</span><span class="lp-grade">${esc(x.s2 || '–')}</span><span class="lp-grade">${esc(x.year || '–')}</span></div>`).join('') || '<p class="lp-empty">Ingen karakterer endnu.</p>'}
-        </div></section></div>`;
+      `<div class="lp-bignums"><div><b>${a.avg == null ? '–' : a.avg.toFixed(1).replace('.', ',')}</b><span>${a.n ? `snit på beviset, vægtet, ${a.n} karakterer` : 'Ingen karakterer på beviset endnu'}</span></div></div>
+      <section class="lp-panel"><header class="lp-panel-head"><h2>Karakterer i år</h2></header>${now}</section>${bevis}`;
   }
 
   /* ---------------- beskedsiden ---------------- */
@@ -1354,28 +1359,21 @@
   function renderStudyPlanView(app) {
     const sp = parseStudyPlan(document);
     if (!sp) return false;
-    const range = (p) => (p.from && p.to && p.from !== p.to ? `uge ${p.from} til ${p.to}` : p.from ? `uge ${p.from}` : '');
-    const cards = sp.holds.filter((h) => h.phases.length).map((h) => {
+    const range = (p) => (p.from && p.to && p.from !== p.to ? `${p.from}-${p.to}` : p.from ? `${p.from}` : '');
+    const link = (p) => `<a href="${esc(p.href || '#')}">${esc(p.title)}</a>`;
+    const rows = sp.holds.filter((h) => h.phases.length).map((h) => {
       const s = subjectFrom(h.name);
       const y = sp.nowY;
       const cur = y != null ? h.phases.find((p) => p.y <= y && y < p.y2) : null;
       const next = y != null ? h.phases.find((p) => p.y > y) : null;
-      const past = y != null ? h.phases.filter((p) => p.y2 <= y) : [];
-      const later = y != null ? h.phases.filter((p) => p.y > y && p !== next) : h.phases;
       const prog = cur ? Math.round(((y - cur.y) / (cur.y2 - cur.y)) * 100) : 0;
-      const item = (p) => `<li><a href="${esc(p.href || '#')}">${esc(p.title)}</a><small>${esc(range(p))}</small></li>`;
-      return `<section class="lp-card lp-sp"${hc(s?.code)} style="--h:${hueFor(s?.code || h.name)}">
-        <header class="lp-card-head"><h2>${subjDot(s?.code || h.name)}${esc(s?.name || h.name)}</h2><small>${esc(h.name)}</small></header>
-        <div class="lp-card-body">
-          ${cur ? `<div class="lp-sp-now"><span>Nu</span><a href="${esc(cur.href || '#')}"><strong>${esc(cur.title)}</strong></a><small>${esc(range(cur))}</small><span class="lp-progress"><i style="width:${prog}%"></i></span></div>` : '<p class="lp-empty lp-sp-none">Intet forløb lige nu.</p>'}
-          ${next ? `<div class="lp-sp-next"><span>Næste</span><a href="${esc(next.href || '#')}">${esc(next.title)}</a><small>${esc(range(next))}</small></div>` : ''}
-          ${past.length || later.length ? `<details class="lp-sp-more"><summary>Alle forløb (${h.phases.length})</summary>
-            ${past.length ? `<p class="lp-sp-group">Tidligere</p><ul>${past.map(item).join('')}</ul>` : ''}
-            ${later.length ? `<p class="lp-sp-group">Senere</p><ul>${later.map(item).join('')}</ul>` : ''}</details>` : ''}
-        </div></section>`;
+      return `<tr${hc(s?.code)}><td>${subjDot(s?.code || h.name)}${esc(s?.name || h.name)}</td><td class="lp-muted">${esc(h.name)}</td>
+        <td>${cur ? `${link(cur)}<span class="lp-progress"><i style="width:${prog}%"></i></span>` : '<span class="lp-muted">Intet forløb lige nu</span>'}</td>
+        <td class="lp-mono">${cur ? esc(range(cur)) : ''}</td><td>${next ? `${link(next)} <small class="lp-mono lp-muted">${esc(range(next))}</small>` : '–'}</td>
+        <td><details class="lp-sp-all"><summary>${h.phases.length} forløb</summary><ul>${h.phases.map((p) => `<li>${link(p)} <small class="lp-mono lp-muted">${esc(range(p))}</small></li>`).join('')}</ul></details></td></tr>`;
     });
     app.innerHTML = viewHead('Studieplan', 'Forløb i dine hold lige nu og hvad der kommer') +
-      (cards.length ? `<div class="lp-spgrid">${cards.join('')}</div>` : '<p class="lp-empty">Studieplanen er tom.</p>');
+      (rows.length ? `<section class="lp-panel"><table class="lp-table lp-sp"><thead><tr><th>Fag</th><th>Hold</th><th>Nu</th><th>Uger</th><th>Næste</th><th>Alle</th></tr></thead><tbody>${rows.join('')}</tbody></table></section>` : '<p class="lp-empty">Studieplanen er tom.</p>');
     return true;
   }
 
