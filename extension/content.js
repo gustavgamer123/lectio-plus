@@ -14,7 +14,7 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
   // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
   const LP = globalThis.LP;
-  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText', 'absenceForecast', 'absenceHold'].every((k) => LP[k])) {
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText', 'absenceForecast', 'absenceHold', 'simulateAverage', 'yearAverage', 'protocolIndex'].every((k) => LP[k])) {
     document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
     return;
   }
@@ -1149,19 +1149,84 @@
 
   function renderGradesView(app) {
     const { current, protocol } = parseGrades(document);
-    const a = LP.gradeAverage(protocol);
+    // Snit-simulator (spec 7.3): p = linjer på beviset, y/e = årskarakter og eksamen i "Karakterer i år". Intet gemmes.
+    const sim = { p: {}, y: {}, e: {} };
     const g = (v) => esc(v || '–');
-    const now = current.length ? `<table class="lp-table"><thead><tr><th>Fag</th><th>Form</th><th>1. standpunkt</th><th>2. standpunkt</th><th>Årskarakter</th><th>Eksamen</th></tr></thead><tbody>
-      ${current.map((x) => { const s = subjectFrom(x.hold); return `<tr><td>${subjDot(s?.code)}${esc(x.subject)} ${esc(x.level)} <small class="lp-muted">${esc(x.hold)}</small></td><td>${g(x.form)}</td>
-        <td class="lp-mono">${g(x.s1)}</td><td class="lp-mono">${g(x.s2)}</td><td class="lp-mono">${g(x.year)}</td><td class="lp-mono">${g(x.exam)}</td></tr>`; }).join('')}</tbody></table>`
-      : '<p class="lp-empty lp-pad">Ingen karakterer endnu.</p>';
-    const bevis = protocol.length ? `<section class="lp-panel"><header class="lp-panel-head"><h2>Beviset</h2><small>${protocol.length} linjer</small></header>
-      <table class="lp-table"><thead><tr><th>Termin</th><th>Fag</th><th>Form</th><th>Type</th><th>Vægt</th><th>Karakter</th></tr></thead><tbody>
-      ${protocol.map((l) => `<tr${l.counts ? '' : ' class="is-done"'}><td>${esc(l.term)}</td><td>${esc(l.subject)}</td><td>${esc(l.form)}</td><td>${esc(l.type)}${l.counts ? '' : ' <span class="lp-tag">tæller ikke med</span>'}</td>
-        <td class="lp-mono">${l.weight == null ? '' : String(l.weight).replace('.', ',')}</td><td class="lp-mono"><b>${esc(l.grade)}</b></td></tr>`).join('')}</tbody></table></section>` : '';
-    app.innerHTML = viewHead('Karakterer', '') +
-      `<div class="lp-bignums"><div><b>${a.avg == null ? '–' : a.avg.toFixed(1).replace('.', ',')}</b><span>${a.n ? `snit på beviset, vægtet, ${a.n} karakterer` : 'Ingen karakterer på beviset endnu'}</span></div></div>
-      <section class="lp-panel"><header class="lp-panel-head"><h2>Karakterer i år</h2></header>${now}</section>${bevis}`;
+    const fmt = (v) => (v == null ? '–' : v.toFixed(1).replace('.', ','));
+    const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+    const count = () => Object.keys(sim.p).length + Object.keys(sim.y).length + Object.keys(sim.e).length;
+    const inputs = () => {
+      const over = { ...sim.p }; const extra = [];
+      for (const [kind, map] of [['year', sim.y], ['exam', sim.e]]) for (const [i, grade] of Object.entries(map)) {
+        const pi = LP.protocolIndex(protocol, current[i], kind);
+        if (pi >= 0) over[pi] = grade; else if (grade) extra.push({ grade });
+      }
+      return { over, extra };
+    };
+    const btn = (key, val, map, i) => {
+      const s = own(map, i);
+      const shown = s ? map[i] || '–' : val || '–';
+      return '<button type="button" class="lp-gbtn' + (s ? ' is-sim' : '') + '" data-g="' + key + '" aria-haspopup="menu" aria-label="' + esc(shown) + (s ? ', simuleret' : '') + '. Prøv en anden karakter">' + esc(shown) + '</button>';
+    };
+    const draw = (focusKey) => {
+      const base = LP.gradeAverage(protocol);
+      const active = count() > 0;
+      const { over, extra } = inputs();
+      const a = active ? LP.simulateAverage(protocol, over, extra) : base;
+      const diff = active && a.avg != null && base.avg != null ? a.avg - base.avg : null;
+      const yA = LP.yearAverage(current, sim.y);
+      const now = current.length ? '<table class="lp-table"><thead><tr><th>Fag</th><th>Form</th><th>1. standpunkt</th><th>2. standpunkt</th><th>Årskarakter</th><th>Eksamen</th></tr></thead><tbody>' +
+        current.map((x, i) => { const s = subjectFrom(x.hold); return '<tr><td>' + subjDot(s?.code) + esc(x.subject) + ' ' + esc(x.level) + ' <small class="lp-muted">' + esc(x.hold) + '</small></td><td>' + g(x.form) + '</td>' +
+          '<td class="lp-mono">' + g(x.s1) + '</td><td class="lp-mono">' + g(x.s2) + '</td><td>' + btn('y:' + i, x.year, sim.y, i) + '</td><td>' + btn('e:' + i, x.exam, sim.e, i) + '</td></tr>'; }).join('') + '</tbody></table>'
+        : '<p class="lp-empty lp-pad">Ingen karakterer endnu.</p>';
+      const bevis = protocol.length ? '<section class="lp-panel"><header class="lp-panel-head"><h2>Beviset</h2><small>' + protocol.length + ' linjer</small></header>' +
+        '<table class="lp-table"><thead><tr><th>Termin</th><th>Fag</th><th>Form</th><th>Type</th><th>Vægt</th><th>Karakter</th></tr></thead><tbody>' +
+        protocol.map((l, i) => '<tr' + (l.counts ? '' : ' class="is-done"') + '><td>' + esc(l.term) + '</td><td>' + esc(l.subject) + '</td><td>' + esc(l.form) + '</td><td>' + esc(l.type) + (l.counts ? '' : ' <span class="lp-tag">tæller ikke med</span>') + '</td>' +
+          '<td class="lp-mono">' + (l.weight == null ? '' : String(l.weight).replace('.', ',')) + '</td><td>' + (l.counts ? btn('p:' + i, l.grade, sim.p, i) : '<span class="lp-mono">' + esc(l.grade) + '</span>') + '</td></tr>').join('') + '</tbody></table></section>' : '';
+      const label = active ? 'simuleret snit på beviset' : a.n ? 'snit på beviset, vægtet, ' + a.n + ' karakterer' : 'Ingen karakterer på beviset endnu';
+      app.innerHTML = viewHead('Karakterer', '') +
+        '<div class="lp-bignums"><div class="' + (active ? 'is-sim' : '') + '"><b>' + fmt(a.avg) + (diff ? '<em class="lp-diff">' + (diff > 0 ? '+' : '−') + fmt(Math.abs(diff)) + '</em>' : '') + '</b><span>' + label + '</span></div>' +
+        '<div><b>' + fmt(yA) + '</b><span>snit af årskarakterer' + (Object.keys(sim.y).length ? ', simuleret' : '') + '</span></div>' +
+        (active ? '<button type="button" class="lp-btn" data-act="reset">Nulstil ' + count() + (count() === 1 ? ' simuleret karakter' : ' simulerede karakterer') + '</button>' : '') + '</div>' +
+        '<section class="lp-panel"><header class="lp-panel-head"><h2>Karakterer i år</h2></header>' + now + '</section>' + bevis +
+        '<p class="lp-note lp-gnote">Klik på en karakter for at prøve en anden. Simulerede karakterer gemmes ikke. En forventet karakter uden linje på beviset regnes med vægt 1.</p>';
+      app.querySelector('[data-act=reset]')?.addEventListener('click', () => { sim.p = {}; sim.y = {}; sim.e = {}; draw(); });
+      if (focusKey) app.querySelector('[data-g="' + focusKey + '"]')?.focus();
+    };
+    const closeMenu = () => document.querySelectorAll('.lp-gmenu').forEach((m) => m.remove());
+    app.addEventListener('click', (e) => {
+      const b = e.target.closest('.lp-gbtn');
+      if (!b) return;
+      closeMenu();
+      const key = b.dataset.g; const [kind, idx] = key.split(':'); const map = sim[kind];
+      const orig = kind === 'p' ? protocol[idx].grade : kind === 'y' ? current[idx].year : current[idx].exam;
+      const cur = own(map, idx) ? map[idx] : orig;
+      const m = document.createElement('div');
+      m.className = 'lp-gmenu'; m.setAttribute('role', 'menu');
+      m.innerHTML = LP.SCALE_7.map((v) => '<button type="button" role="menuitem" data-v="' + v + '"' + (v === cur ? ' class="is-on"' : '') + '><span class="lp-gm-num">' + v + '</span></button>').join('') +
+        '<hr><button type="button" role="menuitem" data-v="">Uden karakter</button>' + (own(map, idx) ? '<button type="button" role="menuitem" data-v="__orig">Som i Lectio (' + esc(orig || '–') + ')</button>' : '');
+      document.body.appendChild(m);
+      const r = b.getBoundingClientRect();
+      m.style.left = Math.min(r.left + scrollX, scrollX + document.documentElement.clientWidth - m.offsetWidth - 8) + 'px';
+      m.style.top = (r.bottom + scrollY + 4) + 'px';
+      const items = [...m.querySelectorAll('button')];
+      (items.find((x) => x.classList.contains('is-on')) || items[0]).focus();
+      m.addEventListener('keydown', (ev) => {
+        const i = items.indexOf(document.activeElement);
+        if (ev.key === 'Escape') { ev.stopPropagation(); closeMenu(); b.focus(); }
+        else if (ev.key === 'ArrowDown') { ev.preventDefault(); items[(i + 1) % items.length].focus(); }
+        else if (ev.key === 'ArrowUp') { ev.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+      });
+      m.addEventListener('click', (ev) => {
+        const it = ev.target.closest('[data-v]');
+        if (!it) return;
+        if (it.dataset.v === '__orig') delete map[idx]; else map[idx] = it.dataset.v;
+        closeMenu(); draw(key);
+      });
+      const away = (ev) => { if (!ev.target.closest('.lp-gmenu, .lp-gbtn')) { closeMenu(); document.removeEventListener('pointerdown', away, true); } };
+      document.addEventListener('pointerdown', away, true);
+    });
+    draw();
   }
 
   /* ---------------- beskedsiden ---------------- */
