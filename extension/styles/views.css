@@ -708,3 +708,12 @@ html[data-lp-theme="dark"] #lp-colors { box-shadow: 0 14px 36px rgba(0, 0, 0, .5
 .lp-sw-reset:hover { background: var(--sunk); color: var(--ink) !important; }
 .lp-sw-reset.is-on { color: var(--ink) !important; border-color: var(--ink-2); }
 :is(.lp-sw, .lp-sw-reset, .lp-col-row, .lp-dr-colbtn):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Hvad er ændret (Forside) ---------- */
+#lp-app .lp-changes { margin: 0 0 12px; }
+#lp-app .lp-changes[hidden] { display: none; }
+#lp-app .lp-changes .lp-panel-head h2 small { font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+#lp-app .lp-changes-list { list-style: none; margin: 0; padding: 4px 0; }
+#lp-app .lp-changes-list a { display: flex; align-items: center; gap: 10px; min-height: 30px; padding: 3px 14px; color: var(--ink) !important; text-decoration: none !important; font-size: 13.5px; }
+#lp-app .lp-changes-list a:hover { background: var(--sunk); }
+#lp-app .lp-changes-list .lp-tag { flex: none; min-width: 76px; justify-content: center; }

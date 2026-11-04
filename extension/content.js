@@ -14,7 +14,7 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
   // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
   const LP = globalThis.LP;
-  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight'].every((k) => LP[k])) {
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText'].every((k) => LP[k])) {
     document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
     return;
   }
@@ -98,6 +98,8 @@
     }
     saveCache();
     if (/^(msgs|tasks|hw)$/.test(key) && typeof updateBadges === 'function') updateBadges();
+    if (/^(msgs|tasks|hw)$/.test(key)) recordChanges(key, data);
+    else if (key.startsWith('skema:') && data && data.lessons && [0, 7].some((d) => key === skemaKey(new Date(Date.now() + d * 864e5)))) recordChanges(key, data.lessons);
     if (key === 'front' && shell) shell.setHold((data && data.hold) || []);
   }
   const isFresh = (key, min) => cache[key] && Date.now() - cache[key].t < min * 6e4;
@@ -149,6 +151,39 @@
     if (USER.name) cache.__user = USER.name;
   }
   const schoolName = (document.title.split(' - ').pop() || 'Lectio').trim();
+
+  /* ---------------- "Hvad er ændret?" (spec 7.1) ---------------- */
+  // Ét øjebliksbillede pr. datatype og én fælles log i chrome.storage.local pr. skole og elev (src/lib/changes.js).
+  const changesKey = () => `lp-changes:${SCHOOL}:${USER.name}`;
+  const hasLocal = hasChrome && !!chrome.storage.local;
+  const localGet = (k) => new Promise((res) => { if (!hasLocal) return res(null); try { chrome.storage.local.get(k, (o) => res((o || {})[k] || null)); } catch (e) { res(null); } });
+  const localSet = (k, v) => new Promise((res) => { if (!hasLocal) return res(); try { chrome.storage.local.set({ [k]: v }, () => res()); } catch (e) { res(); } });
+  let changeQ = Promise.resolve();
+  let onChanges = null;
+  const changeState = () => localGet(changesKey()).then((st) => st || { snap: {}, log: [], seenAt: null });
+  function recordChanges(part, data) {
+    if (!USER.name || !hasLocal) return;
+    changeQ = changeQ.then(async () => {
+      const st = await changeState();
+      const now = Date.now();
+      const next = LP.snapshot(part, data);
+      const lines = LP.diffSnapshots(part, st.snap[part] || null, next, now);
+      st.snap[part] = next;
+      for (const p of Object.keys(st.snap)) if (p.startsWith('skema:') && Object.values(st.snap[p]).every((x) => x.e < now - 864e5)) delete st.snap[p];
+      st.log = LP.mergeLog(st.log, lines, now, st.snap);
+      if (!st.seenAt) st.seenAt = now;
+      await localSet(changesKey(), st);
+      if (onChanges) onChanges(st);
+    }).catch((e) => console.warn('[Lectio+] ændringer', e));
+  }
+  function markChangesSeen() {
+    changeQ = changeQ.then(async () => {
+      const st = await changeState();
+      st.log = []; st.seenAt = Date.now();
+      await localSet(changesKey(), st);
+      if (onChanges) onChanges(st);
+    });
+  }
 
   /* ---------------- tema ---------------- */
   let settings = DEFAULTS;
@@ -519,6 +554,7 @@
     app.innerHTML = `
       <header class="lp-vhead"><h1>Forside</h1><nav id="lp-chips" class="lp-chips" aria-label="Status"></nav></header>
       <p class="lp-viewsub">${esc(cap(DAYS[now.getDay()]))} ${now.getDate()}. ${esc(MONTHS[now.getMonth()])}, uge ${w}</p>
+      <section id="lp-changes" class="lp-panel lp-changes" aria-live="polite" hidden></section>
       <div id="lp-next" class="lp-hero">${skeleton(1)}</div>
       <div class="lp-dgrid">
         ${card('lp-c-day', 'I dag', BASE + 'SkemaNy.aspx', 'Hele ugen', skeleton(6))}
@@ -534,6 +570,20 @@
       if (title) c.querySelector('h2').textContent = title;
       return c;
     };
+
+    /* Hvad er ændret: kun synlig, når der er linjer */
+    onChanges = (st) => {
+      const el = document.getElementById('lp-changes');
+      if (!el) return;
+      const t = Date.now();
+      const log = (st && st.log || []).filter((l) => l.until == null || l.until >= t);
+      el.hidden = !log.length;
+      if (!log.length) { el.innerHTML = ''; return; }
+      el.innerHTML = `<header class="lp-panel-head"><h2>Hvad er ændret <small>siden ${esc(fmtWhen(new Date(st.seenAt)))}</small></h2><button type="button" class="lp-btn" data-act="seen">Marker som set</button></header>
+        <ul class="lp-changes-list">${log.map((l) => { const [tag, cls] = LP.CHANGE_TAG[l.kind] || ['', '']; return `<li><a href="${esc(l.href || '#')}"><span class="lp-tag ${cls}">${esc(tag)}</span><span>${esc(LP.changeText(l, t))}</span></a></li>`; }).join('')}</ul>`;
+      el.querySelector('[data-act=seen]').addEventListener('click', markChangesSeen);
+    };
+    changeState().then((st) => onChanges && onChanges(st));
 
     /* status som små rolige pills */
     const chips = {};
