@@ -6,18 +6,19 @@ Et roligere og mere overskueligt Lectio. Se [hjemmesiden](https://gustavgamer123
 
 ## Det får du
 
-- Overblik over din dag med næste modul og lokale
-- Lektier og afleveringer samlet pr. dag
-- Nyt ugeskema hvor du klikker på et modul og ser lektier og noter
-- Vælg din egen farve til hvert fag
-- Egne sider til opgaver og lektier samt fravær og karakterer
-- Flueben på lektier
-- Mørk tilstand på hele Lectio
-- Hurtig søgning med Ctrl+K
+- Nyt design på alle sider i Lectio, i samme stil som Lectio selv, i lyst og mørkt tema
+- Forside med næste modul og lokale, dagens skema, lektier, afleveringer og beskeder
+- **Hvad er ændret:** flyttede og aflyste moduler, nye opgaver, lektier og beskeder siden sidst
+- **Klar til i morgen:** om aftenen viser Forside næste skoledag med lektier og din egen huskeliste
+- Ugeskema delt op efter tid; klik på et modul og se lektier og noter
+- Egne sider til opgaver, lektier, beskeder (med læsepanel), fravær, karakterer og studieplan
+- **Fraværsberegner**, **snit-simulator** og **travle uger**
+- Notifikationer om nye lokaler, aflysninger, beskeder og frister, hvis du slår dem til
+- Din egen farve til hvert fag, flueben på lektier og hurtig søgning med Ctrl+K
 
 ## Privatliv
 
-Udvidelsen har ingen server og sender ingen data nogen steder hen. Læs hele [privatlivspolitikken](https://gustavgamer123.github.io/lectio-plus/privatliv/).
+Udvidelsen har ingen server og sender ingen data nogen steder hen. Alt hentes fra lectio.dk og gemmes på din egen computer. Slår du notifikationer til, tjekker Lectio+ lectio.dk med jævne mellemrum, også når Lectio er lukket. Læs hele [privatlivspolitikken](https://gustavgamer123.github.io/lectio-plus/privatliv/).
 
 ## Installér
 
@@ -29,8 +30,10 @@ Hent den gratis i [Chrome Web Store](https://chromewebstore.google.com/detail/le
 2. Slå Udviklertilstand til
 3. Klik Indlæs upakket og vælg mappen `extension`
 
+Tests: `npm install` og `npm test`.
+
 ## Bemærk
 
 Lectio+ er et uafhængigt projekt og er ikke lavet af eller tilknyttet MaCom A/S eller Lectio.
 
-Skrifttypen Schibsted Grotesk er udgivet under SIL Open Font License.
+Skrifttyperne IBM Plex (udvidelsen) og Schibsted Grotesk (hjemmesiden) er udgivet under SIL Open Font License.
