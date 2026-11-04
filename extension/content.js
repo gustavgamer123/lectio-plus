@@ -14,7 +14,7 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
   // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
   const LP = globalThis.LP;
-  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText', 'absenceForecast', 'absenceHold', 'simulateAverage', 'yearAverage', 'protocolIndex'].every((k) => LP[k])) {
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText', 'absenceForecast', 'absenceHold', 'simulateAverage', 'yearAverage', 'protocolIndex', 'busyWeeks'].every((k) => LP[k])) {
     document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
     return;
   }
@@ -981,7 +981,7 @@
     const row = (x) => {
       const d = x.due;
       const cls = /mangler/i.test(x.status) ? ' class="is-late"' : /afleveret/i.test(x.status) ? ' class="is-done"' : '';
-      return `<tr data-subj="${esc(x.subject?.code || '')}"${cls}>
+      return `<tr data-subj="${esc(x.subject?.code || '')}" data-due="${d ? d.getTime() : ''}"${cls}>
         <td class="lp-mono">${d ? `${d.getDate()}. ${esc(MONTHS[d.getMonth()].slice(0, 3))} ${hm(d)}` : ''}</td>
         <td class="lp-task-what"><a href="${esc(x.href || '#')}">${esc(x.title)}</a>${x.note ? `<div class="lp-task-note">${esc(x.note)}</div>` : ''}</td>
         <td class="lp-task-subj">${subjDot(x.subject?.code)}${esc(x.subject?.name || x.hold)}</td>
@@ -990,10 +990,28 @@
     };
     const table = (list) => `<table class="lp-table lp-tasks"><thead><tr><th>Frist</th><th>Opgave</th><th>Fag</th><th>Elevtid</th><th>Status</th></tr></thead><tbody>${list.map(row).join('')}</tbody></table>`;
     const group = (title, list, cls = '') => list.length ? `<section class="lp-group ${cls}"><h2>${esc(title)} <span>${list.length}</span></h2>${table(list)}</section>` : '';
-    app.innerHTML = viewHead('Opgaver', `${open.length} åbne, ${missing.length} mangler, ${done.length} afleveret`) +
+    // Travle uger (spec 7.4): de næste 8 uger; et klik på en uge filtrerer listen.
+    const weeks = LP.busyWeeks(tasks, now);
+    const maxH = Math.max(1, ...weeks.map((w) => w.hours));
+    const nf = (v) => String(Math.round(v * 10) / 10).replace('.', ',');
+    const busy = '<section class="lp-panel lp-busy"><header class="lp-panel-head"><h2>Travle uger</h2><small>elevtimer for opgaver, der ikke er afleveret</small><button type="button" class="lp-btn lp-btn-ghost" data-wk="" hidden>Alle uger</button></header>' +
+      '<div class="lp-busy-bars" role="group" aria-label="Vis opgaver i en uge">' + weeks.map((w) => '<button type="button" class="lp-busy-w' + (w.top ? ' is-top' : '') + '" data-wk="' + w.start + '" aria-pressed="false" aria-label="Uge ' + w.w + ': ' + w.count + (w.count === 1 ? ' aflevering' : ' afleveringer') + ', ' + nf(w.hours) + ' elevtimer' + (w.top ? ', travleste uge' : '') + '">' +
+        '<span class="lp-busy-v">' + (w.hours ? nf(w.hours) + ' t' : '') + '</span><span class="lp-busy-bar"><i style="height:' + (w.count ? Math.max(4, Math.round((w.hours / maxH) * 100)) : 0) + '%"></i></span>' +
+        '<span class="lp-busy-wk">uge ' + w.w + '</span><span class="lp-busy-n">' + (w.count ? w.count + (w.count === 1 ? ' aflevering' : ' afleveringer') : '–') + '</span></button>').join('') + '</div></section>';
+    app.innerHTML = viewHead('Opgaver', `${open.length} åbne, ${missing.length} mangler, ${done.length} afleveret`) + busy +
       subjectFilter(app, tasks) +
       `<div class="lp-sheet">${group('Mangler', missing, 'is-late')}${group('Kommende', open)}${open.length + missing.length === 0 ? '<p class="lp-empty">Ingen åbne opgaver.</p>' : ''}
        ${done.length ? `<details class="lp-group lp-done"><summary><h2>Afleveret <span>${done.length}</span></h2></summary>${table(done)}</details>` : ''}</div>`;
+    const bp = app.querySelector('.lp-busy');
+    bp.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-wk]');
+      if (!b) return;
+      const wk = b.dataset.wk && b.getAttribute('aria-pressed') !== 'true' ? weeks.find((w) => String(w.start) === b.dataset.wk) : null;
+      bp.querySelectorAll('.lp-busy-w').forEach((x) => x.setAttribute('aria-pressed', String(!!wk && x === b)));
+      bp.querySelector('[data-wk=""]').hidden = !wk;
+      app.querySelectorAll('tr[data-due]').forEach((tr) => { const d = +tr.dataset.due; tr.classList.toggle('lp-wk-out', !!wk && !(d >= wk.start && d < wk.end)); });
+      app.querySelectorAll('.lp-sheet .lp-group').forEach((g) => g.classList.toggle('lp-wk-empty', !!wk && !g.querySelector('tr[data-due]:not(.lp-wk-out)')));
+    });
   }
 
   function renderHomeworkView(app) {
