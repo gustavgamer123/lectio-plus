@@ -98,6 +98,14 @@ test('parseMessages: læst, ulæst og link', () => {
   assert.equal(m[0].href, '/lectio/123/beskeder2.aspx?type=visbesked&id=12345678');
 });
 
+// Baggrundens offscreen-dokument omdøber on*-attributter til data-lp-on*, så Chrome ikke logger CSP-fejl ved læsningen.
+test('parseMessages finder besked-id, også når onclick er omdøbt til data-lp-onclick', () => {
+  const m = LP.parseMessages(doc(`<table id="s_m_Content_Content_threadGV_ctl00"><tbody>
+    ${row(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'])}${row(['', '', '<img id="x_readId" src="/lectio/img/mread.gif">', `<span data-lp-onclick="__doPostBack('t','_87654321')">Emne</span>`, 'Afsender', 'Første', 'Til', 'i går'])}
+  </tbody></table>`), BASE);
+  assert.equal(m[0].href, '/lectio/123/beskeder2.aspx?type=visbesked&id=87654321');
+});
+
 test('parseAbsence: hold sorteret og samlet', () => {
   const a = LP.parseAbsence(doc(`<table id="s_m_Content_Content_SFTabStudentAbsenceDataTable"><tbody>
     ${row(['2b DA', '1/40', '2,50 %', '0/10', '0 %'])}

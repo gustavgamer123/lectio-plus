@@ -194,7 +194,8 @@
       const c = r.cells;
       const readImg = r.querySelector('[id$="readId"]');
       const src = readImg ? readImg.getAttribute('src') || '' : '';
-      const oc = c[3].querySelector('[onclick]')?.getAttribute('onclick') || '';
+      const ocEl = c[3].querySelector('[onclick], [data-lp-onclick]');
+      const oc = (ocEl && (ocEl.getAttribute('onclick') || ocEl.getAttribute('data-lp-onclick'))) || '';
       const mid = (oc.match(/_(\d{6,})'/) || [])[1];
       const link = c[3].querySelector('a');
       return {
