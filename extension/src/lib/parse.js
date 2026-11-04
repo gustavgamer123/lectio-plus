@@ -210,6 +210,10 @@
     });
   };
 
+  // Kan man svare i en beskedtråd? Lectio viser et svarfelt med Send-knap, når man kan. (Den tomme
+  // <span class="grayed-out"> i modtagerlinjen er der altid og siger ikke noget.)
+  LP.threadCanReply = (doc) => !!doc.querySelector('[id$="SendMessageBtn"]');
+
   LP.parseAbsence = (doc) => {
     const num = LP.num;
     const t = doc.querySelector('table[id$="SFTabStudentAbsenceDataTable"]');

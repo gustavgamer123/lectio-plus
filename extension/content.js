@@ -1080,7 +1080,7 @@
     });
     const rec = doc.querySelector('[id$="RecipientsReadMode"]');
     const to = rec ? ([...rec.querySelectorAll(':scope > span, :scope > a')].map((x) => x.textContent.trim()).filter(Boolean).join(', ') || rec.textContent.trim()) : '';
-    const locked = !!doc.querySelector('.thread-header-content-recipients .grayed-out');
+    const locked = !LP.threadCanReply(doc);
     return { msgs, to, locked, subject: msgs[0]?.title || '' };
   }
   function fmtWhen(d, now = new Date()) {

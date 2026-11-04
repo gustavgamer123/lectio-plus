@@ -51,3 +51,13 @@ test('content.js klikker aldrig direkte på Lectios knapper', () => {
   const src = fs.readFileSync(path.join(EXT, 'content.js'), 'utf8');
   for (const bad of [/getElementById\([^)]*\)\?\.click\(\)/, /\b(newBtn|allRead)\.click\(\)/, /\.a\.click\(\)/]) assert.doesNotMatch(src, bad);
 });
+
+// Fejl nummer to: læsepanelet sagde "Tråden kan ikke besvares" om alle tråde og skjulte Svar, fordi Lectio altid har en tom
+// <span class="grayed-out"> i modtagerlinjen. Om man kan svare, ses på, om tråden har et svarfelt med Send-knap.
+test('LP.threadCanReply: en tråd med svarfelt kan besvares, selv med den tomme grayed-out', () => {
+  const { LP, document: d } = loadExt(['src/lib/core.js', 'src/lib/parse.js']);
+  const doc = (body) => new d.defaultView.DOMParser().parseFromString(`<html><body>${body}</body></html>`, 'text/html');
+  const head = '<div class="thread-header-content-recipients"><span class="grayed-out"></span></div>';
+  assert.equal(LP.threadCanReply(doc(head + '<a id="s_m_Content_Content_MessageThreadCtrl_MessagesGV_ctl02_SendMessageBtn">Send</a>')), true);
+  assert.equal(LP.threadCanReply(doc(head)), false);
+});
