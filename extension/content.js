@@ -14,7 +14,7 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
   // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
   const LP = globalThis.LP;
-  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText'].every((k) => LP[k])) {
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText', 'absenceForecast', 'absenceHold'].every((k) => LP[k])) {
     document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
     return;
   }
@@ -1055,7 +1055,96 @@
       <section class="lp-panel"><header class="lp-panel-head"><h2>Pr. hold</h2></header>
         <table class="lp-table lp-abs"><thead><tr><th>Hold</th><th>Opgjort</th><th></th><th>Moduler i perioden</th><th>Skriftligt</th></tr></thead><tbody>${rows}</tbody></table>
         <p class="lp-note">Opgjort er fraværet indtil nu. Moduler i perioden er fravær ud af alle moduler i perioden. Bjælken er fuld ved ${String(Math.round(max * 10) / 10).replace('.', ',')} %.</p>
+      </section>
+      <section class="lp-panel lp-calc" id="lp-calc">
+        <header class="lp-panel-head"><h2>Fraværsberegner</h2><button type="button" class="lp-btn" data-act="reset" hidden>Nulstil</button></header>
+        <div class="lp-calc-body">
+          <div class="lp-calc-pick">
+            <h3>Moduler de næste to uger</h3>
+            <div id="lp-calc-days"><p class="lp-empty">Henter skemaet</p></div>
+            <h3>Opgaver, der ikke bliver afleveret</h3>
+            <div id="lp-calc-tasks"><p class="lp-empty">Henter opgaverne</p></div>
+          </div>
+          <div class="lp-calc-out" id="lp-calc-out" aria-live="polite"><p class="lp-empty">Vælg moduler eller opgaver for at se, hvad fraværet ville blive.</p></div>
+        </div>
+        <p class="lp-note">Skønnet regner på fraværet i perioden (moduler og elevtid), fordi Lectio kun viser det opgjorte fravær som en procent. Lectios eget tal kan afvige.</p>
       </section>`;
+
+    // Fraværsberegner (spec 7.2): vælg moduler og opgaver, se fraværet før og efter. Intet gemmes.
+    const now = new Date();
+    const picked = new Set();
+    const lessons = new Map();
+    const tasks = new Map();
+    const weeks = {};
+    const keyOf = (l) => ((l.href || '').match(/absid=(\d+)/i) || [])[1] || (+new Date(l.start) + '|' + (l.hold || ''));
+    const calcEl = app.querySelector('#lp-calc');
+    const drawDays = () => {
+      lessons.clear();
+      const all = Object.values(weeks).flat().filter((l) => l.start && !l.allDay && !l.cancelled && new Date(l.start) > now);
+      const byDay = new Map();
+      for (const l of all.sort((x, y) => new Date(x.start) - new Date(y.start))) {
+        const hold = LP.absenceHold(a.rows, l.hold);
+        if (!hold) continue;
+        const k = 'l:' + keyOf(l);
+        lessons.set(k, { hold, l });
+        const d = startOfDay(new Date(l.start)).getTime();
+        if (!byDay.has(d)) byDay.set(d, []);
+        byDay.get(d).push(k);
+      }
+      const box = calcEl.querySelector('#lp-calc-days');
+      if (!byDay.size) { box.innerHTML = '<p class="lp-empty">Ingen kommende moduler fundet.</p>'; return; }
+      box.innerHTML = [...byDay].map(([d, ks]) => {
+        const day = new Date(d);
+        return '<fieldset class="lp-calc-day"><legend><label><input type="checkbox" data-day="' + d + '"> ' + esc(cap(DAYS[day.getDay()])) + ' ' + day.getDate() + '/' + (day.getMonth() + 1) + '</label></legend>' +
+          ks.map((k) => { const { l } = lessons.get(k); const s = l.subject; return '<label class="lp-calc-item"><input type="checkbox" data-k="' + esc(k) + '"' + (picked.has(k) ? ' checked' : '') + '> <span class="lp-mono">' + hm(new Date(l.start)) + '</span> ' + subjDot(s?.code) + esc(s?.name || l.title || l.hold) + '</label>'; }).join('') + '</fieldset>';
+      }).join('');
+      syncDays();
+    };
+    const drawTasks = (list) => {
+      tasks.clear();
+      const box = calcEl.querySelector('#lp-calc-tasks');
+      const open = (list || []).filter((t) => !/afleveret/i.test(t.status || '') && t.due && new Date(t.due) > now && (LP.num(t.hours) || 0) > 0);
+      const rows = open.map((t) => { const hold = LP.absenceHold(a.rows, t.hold); if (!hold) return ''; const k = 't:' + (((t.href || '').match(/exerciseid=(\d+)/i) || [])[1] || t.title); tasks.set(k, { hold, h: LP.num(t.hours), t });
+        return '<label class="lp-calc-item"><input type="checkbox" data-k="' + esc(k) + '"' + (picked.has(k) ? ' checked' : '') + '> ' + subjDot(t.subject?.code) + esc(t.title) + ' <small class="lp-muted">' + String(LP.num(t.hours)).replace('.', ',') + ' t</small></label>'; }).join('');
+      box.innerHTML = rows || '<p class="lp-empty">Ingen kommende opgaver med elevtid.</p>';
+    };
+    const syncDays = () => calcEl.querySelectorAll('[data-day]').forEach((cb) => {
+      const items = [...cb.closest('fieldset').querySelectorAll('[data-k]')];
+      const n = items.filter((i) => i.checked).length;
+      cb.checked = n === items.length && n > 0; cb.indeterminate = n > 0 && n < items.length;
+    });
+    const fmt = (v) => (v == null ? '–' : v.toFixed(1).replace('.', ',') + ' %');
+    const drawOut = () => {
+      const picks = { mods: {}, hours: {} };
+      for (const k of picked) {
+        if (lessons.has(k)) { const { hold } = lessons.get(k); picks.mods[hold] = (picks.mods[hold] || 0) + 1; }
+        if (tasks.has(k)) { const { hold, h } = tasks.get(k); picks.hours[hold] = (picks.hours[hold] || 0) + h; }
+      }
+      const r = LP.absenceForecast(a.rows, picks);
+      calcEl.querySelector('[data-act=reset]').hidden = !picked.size;
+      const out = calcEl.querySelector('#lp-calc-out');
+      if (!picked.size) { out.innerHTML = '<p class="lp-empty">Vælg moduler eller opgaver for at se, hvad fraværet ville blive.</p>'; return; }
+      const table = (title, part, extra) => {
+        const rs = r.rows.filter((x) => x[part === 'mods' ? 'k' : 'h']);
+        if (!rs.length) return '';
+        const line = (label, v, cls = '') => '<tr class="' + cls + '"><td>' + label + '</td><td class="lp-mono">' + fmt(v.now) + '</td><td class="lp-mono ' + lvl(v.then) + '">ca. ' + fmt(v.then) + '</td></tr>';
+        return '<h3>' + title + ' <small class="lp-muted">' + extra + '</small></h3><table class="lp-table"><thead><tr><th>Hold</th><th>Nu</th><th>Med valgte</th></tr></thead><tbody>' +
+          rs.map((x) => { const s = subjectFrom(x.hold); const none = x[part].now == null ? ' <small class="lp-muted">(' + (part === 'mods' ? 'ingen moduler' : 'ingen elevtid') + ' i perioden endnu)</small>' : '';
+            return line(subjDot(s?.code) + esc(s?.name || x.hold) + ' <small class="lp-muted">' + esc(x.hold) + '</small>' + none, x[part]); }).join('') +
+          line('<b>Samlet</b>', r.total[part], 'lp-calc-total') + '</tbody></table>';
+      };
+      out.innerHTML = table('Almindeligt fravær', 'mods', '+' + r.total.k + (r.total.k === 1 ? ' modul' : ' moduler')) +
+        table('Skriftligt fravær', 'hours', '+' + String(Math.round(r.total.h * 10) / 10).replace('.', ',') + ' elevtimer');
+    };
+    calcEl.addEventListener('change', (e) => {
+      const cb = e.target;
+      if (cb.dataset.day) cb.closest('fieldset').querySelectorAll('[data-k]').forEach((i) => { i.checked = cb.checked; if (cb.checked) picked.add(i.dataset.k); else picked.delete(i.dataset.k); });
+      else if (cb.dataset.k) { if (cb.checked) picked.add(cb.dataset.k); else picked.delete(cb.dataset.k); }
+      syncDays(); drawOut();
+    });
+    calcEl.querySelector('[data-act=reset]').addEventListener('click', () => { picked.clear(); calcEl.querySelectorAll('input[type=checkbox]').forEach((i) => { i.checked = false; i.indeterminate = false; }); drawOut(); });
+    [0, 7].forEach((d) => loadWeek(new Date(now.getTime() + d * 864e5), (sk) => { weeks[d] = sk.lessons || []; drawDays(); drawOut(); }, () => { if (!Object.keys(weeks).length) calcEl.querySelector('#lp-calc-days').innerHTML = '<p class="lp-empty">Skemaet kunne ikke hentes.</p>'; }));
+    loadSrc('tasks', (list) => { drawTasks(list); drawOut(); }, () => { calcEl.querySelector('#lp-calc-tasks').innerHTML = '<p class="lp-empty">Opgaverne kunne ikke hentes.</p>'; });
   }
 
   function renderGradesView(app) {

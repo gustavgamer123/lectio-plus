@@ -717,3 +717,25 @@ html[data-lp-theme="dark"] #lp-colors { box-shadow: 0 14px 36px rgba(0, 0, 0, .5
 #lp-app .lp-changes-list a { display: flex; align-items: center; gap: 10px; min-height: 30px; padding: 3px 14px; color: var(--ink) !important; text-decoration: none !important; font-size: 13.5px; }
 #lp-app .lp-changes-list a:hover { background: var(--sunk); }
 #lp-app .lp-changes-list .lp-tag { flex: none; min-width: 76px; justify-content: center; }
+
+/* ---------- Fraværsberegner (Fravær) ---------- */
+#lp-app .lp-calc-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+#lp-app .lp-calc-pick { padding: 10px 14px 12px; border-right: 1px solid var(--rule); max-height: 520px; overflow-y: auto; scrollbar-width: thin; }
+#lp-app .lp-calc-out { padding: 10px 14px 12px; min-width: 0; }
+#lp-app .lp-calc h3 { margin: 6px 0 6px !important; font-size: 13.5px !important; font-weight: 600 !important; }
+#lp-app .lp-calc h3 small { font-weight: 500; font-size: 12.5px; }
+#lp-app .lp-calc-pick h3 + div { margin-bottom: 12px; }
+#lp-app .lp-calc-day { margin: 0 0 8px; padding: 0; border: 0; }
+#lp-app .lp-calc-day legend { padding: 0; margin-bottom: 2px; font-size: 13px; font-weight: 600; color: var(--ink); }
+#lp-app .lp-calc-item { display: flex; align-items: center; gap: 6px; min-height: 26px; padding-left: 20px; font-size: 13.5px; cursor: pointer; }
+#lp-app .lp-calc-day legend label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+#lp-app .lp-calc-item .lp-sd { margin-right: 0; }
+#lp-app .lp-calc-out .lp-table { margin-bottom: 12px; border: 1px solid var(--rule); }
+#lp-app .lp-calc-out .lp-table :is(th, td):first-child { padding-left: 10px; }
+#lp-app tr.lp-calc-total > td { font-weight: 600; border-top: 1px solid var(--rule); }
+#lp-app td.is-warn { color: var(--warn); font-weight: 600; }
+#lp-app td.is-danger { color: var(--danger); font-weight: 600; }
+@container (max-width: 820px) {
+  #lp-app .lp-calc-body { grid-template-columns: minmax(0, 1fr); }
+  #lp-app .lp-calc-pick { border-right: 0; border-bottom: 1px solid var(--rule); max-height: none; }
+}

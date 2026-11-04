@@ -54,6 +54,7 @@
         "src/lib/grades.js",
         "src/lib/week.js",
         "src/lib/changes.js",
+        "src/lib/absence.js",
         "src/lib/icons.js",
         "src/shell/nav.js",
         "src/shell/shell.js",
