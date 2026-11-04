@@ -36,6 +36,16 @@
         "https://www.lectio.dk/lectio/*"
       ],
       "js": [
+        "src/main/click.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://www.lectio.dk/lectio/*"
+      ],
+      "js": [
         "src/lib/core.js",
         "src/lib/subjects.js",
         "src/lib/parse.js",

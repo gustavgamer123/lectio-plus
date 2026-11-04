@@ -878,7 +878,7 @@
     head.id = 'lp-pagehead';
     head.innerHTML = pageHead(title, '', shellActions);
     cc.prepend(head);
-    head.querySelectorAll('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy)?.click()));
+    head.querySelectorAll('[data-proxy]').forEach((b) => b.addEventListener('click', () => LP.lectioClick(document.getElementById(b.dataset.proxy))));
     document.documentElement.classList.add('lp-has-pagehead');
   }
   // Lectios egne underfaner (fx Karaktermeddelelse og Fraværsårsager) vises også i de nye visninger.
@@ -1117,10 +1117,10 @@
           </a>`).join('') : '<p class="lp-empty lp-pad">Ingen beskeder i denne mappe.</p>'}</div>
         <div class="lp-mread" aria-live="polite"><p class="lp-empty">Vælg en besked for at læse den her.</p></div>
       </div>`;
-    app.querySelector('[data-act=new]')?.addEventListener('click', () => newBtn.click());
-    app.querySelector('[data-act=allread]')?.addEventListener('click', () => allRead.click());
-    app.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => folders[+b.dataset.f]?.a.click()));
-    app.querySelector('.lp-fselect')?.addEventListener('change', (e) => { const f = folders[+e.target.value]; if (f) f.a.click(); });
+    app.querySelector('[data-act=new]')?.addEventListener('click', () => LP.lectioClick(newBtn));
+    app.querySelector('[data-act=allread]')?.addEventListener('click', () => LP.lectioClick(allRead));
+    app.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => LP.lectioClick(folders[+b.dataset.f]?.a)));
+    app.querySelector('.lp-fselect')?.addEventListener('change', (e) => { const f = folders[+e.target.value]; if (f) LP.lectioClick(f.a); });
     app.querySelector('.lp-msearch').addEventListener('input', (e) => {
       const q = e.target.value.toLowerCase().trim();
       app.querySelectorAll('.lp-mitem').forEach((el) => { el.hidden = q && !el.textContent.toLowerCase().includes(q); });
@@ -1316,7 +1316,7 @@
     head.innerHTML = `<div><h2>Elevfeedback</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div>
       <div class="lp-fb-actions">${editing ? proxy(newBtn, 'Nyt indlæg', ICONS.plus, 'lp-btn-ghost') : proxy(editBtn, empty ? 'Skriv' : 'Rediger', ICONS.pen)}</div>`;
     fb.prepend(head);
-    head.querySelectorAll('[data-proxy]').forEach((b) => b.addEventListener('click', () => document.getElementById(b.dataset.proxy)?.click()));
+    head.querySelectorAll('[data-proxy]').forEach((b) => b.addEventListener('click', () => LP.lectioClick(document.getElementById(b.dataset.proxy))));
     if (empty) head.insertAdjacentHTML('afterend', '<p class="lp-empty lp-fb-empty">Du har ikke skrevet noget til denne lektion endnu.</p>');
     // ekstra sikkerhed: dukker editoren op senere, skiftes kortet til skrivetilstand
     if (!editing) {

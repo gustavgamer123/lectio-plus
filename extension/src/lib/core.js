@@ -15,6 +15,15 @@
   LP.abs = (href, base) => { if (!href || href === '#' || /^javascript:/i.test(href)) return null; try { return new URL(href, LP.ORIGIN + base).href; } catch (e) { return null; } };
   LP.num = (s) => { const v = parseFloat(String(s).replace(',', '.').replace(/[^\d.\-]/g, '')); return isNaN(v) ? null : v; };
 
+  // Tryk på en af Lectios egne knapper. Mange er javascript:-links, som Chrome blokerer, når udvidelsen klikker
+  // direkte; derfor beder vi scriptet i sidens egen verden (src/main/click.js) om at klikke. Uden det: almindeligt klik.
+  LP.lectioClick = (el) => {
+    if (!el) return false;
+    if (el.ownerDocument.documentElement.hasAttribute('data-lp-main')) el.dispatchEvent(new el.ownerDocument.defaultView.Event('lp-click'));
+    else el.click();
+    return true;
+  };
+
   LP.isoWeek = (d) => {
     const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     const day = t.getUTCDay() || 7;

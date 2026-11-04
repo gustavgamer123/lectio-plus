@@ -170,6 +170,8 @@ html.lp-on .outerContentFrame input:is([type="submit"], [type="button"]):not(.hi
   padding: 0 12px !important; margin: 0 !important; border: 1px solid transparent !important; border-radius: var(--radius) !important; box-shadow: none !important;
   font: 500 13.5px/1.2 var(--font) !important; letter-spacing: 0 !important; text-transform: none !important; text-decoration: none !important; white-space: nowrap; cursor: pointer;
 }
+/* Lectio skriver genvejsbogstavet som <span class="shortcutletter">S</span>end (eller <u>); uden dette lægger knappens gap sig midt i ordet ("S end") */
+html.lp-on .outerContentFrame :is(.buttonfilled, .buttonoutlined, .buttonfilledtonal, .buttontext) > :is(a, button) > :is(u, .shortcutletter) { display: contents; }
 html.lp-on .outerContentFrame .buttonfilled > :is(a, button) { background: var(--accent) !important; border-color: var(--accent) !important; color: var(--accent-ink) !important; }
 html.lp-on .outerContentFrame .buttonfilledtonal > :is(a, button) { background: var(--accent-soft) !important; color: var(--accent) !important; }
 html.lp-on .outerContentFrame .buttontext > :is(a, button) { background: transparent !important; color: var(--accent) !important; padding: 0 6px !important; }
@@ -371,6 +373,9 @@ html.lp-on .message-thread-message-header { font-size: 14.5px !important; font-w
 html.lp-on .message-thread-message-content { font-size: 14px; line-height: 1.6; }
 html.lp-on .message-thread-message * { background-color: transparent !important; }
 html.lp-msgpage textarea { width: 100% !important; font-family: var(--font) !important; }
+/* skrivetilstand: søgefeltet til modtagere er ét felt med D-hjørner (Lectio tegner en rund kant uden om et felt med kant) */
+html.lp-on .ls-searchbox-container-outlined { border-radius: var(--radius) !important; border-color: var(--rule) !important; }
+html.lp-on .ls-searchbox-container-outlined input { border-color: transparent !important; box-shadow: none !important; }
 
 /* ---------- opgavesiden: Lectios øer under vores panel ---------- */
 html.lp-aflpage .lp-afl-hasinfo .lp-afl-info { display: none !important; }
