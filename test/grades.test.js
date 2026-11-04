@@ -37,3 +37,13 @@ test('yearAverage: snit af årskarakterer uden vægt, med simulerede karakterer'
   assert.equal(LP.yearAverage(cur, { 2: '4' }), 7);
   assert.equal(LP.yearAverage([]), null);
 });
+
+// Snit af standpunkter: seneste standpunkt pr. fag (2. hvis det findes, ellers 1.), uden vægt, og de kan simuleres.
+test('standpointAverage bruger 2. standpunkt, ellers 1., og kan simuleres', () => {
+  const cur = [{ s1: '7', s2: '10' }, { s1: '4', s2: '' }, { s1: '', s2: '' }, { s1: 'B', s2: '' }];
+  assert.equal(LP.standpointAverage(cur), 7);
+  assert.equal(LP.standpointAverage(cur, { 1: '12' }), 11, 'simuleret 1. standpunkt');
+  assert.equal(LP.standpointAverage(cur, {}, { 1: '02', 2: '7' }), (10 + 2 + 7) / 3, 'simuleret 2. standpunkt og et fag uden standpunkt');
+  assert.equal(LP.standpointAverage(cur, {}, { 0: '' }), (7 + 4) / 2, 'Uden karakter på 2. standpunkt falder tilbage til 1.');
+  assert.equal(LP.standpointAverage([]), null);
+});

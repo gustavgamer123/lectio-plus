@@ -34,4 +34,17 @@
     const gs = (current || []).map((r, i) => String(Object.prototype.hasOwnProperty.call(overrides, i) ? overrides[i] : r.year || '').trim()).filter((g) => LP.SCALE_7.includes(g));
     return gs.length ? gs.reduce((a, g) => a + Number(g), 0) / gs.length : null;
   };
+
+  // Snit af standpunkter for alle fag: seneste standpunkt pr. række (2. hvis der er en tal-karakter, ellers 1.), uden vægt.
+  // o1/o2: simulerede 1. og 2. standpunkter { <rækkeindeks>: '7' } ('' = uden karakter).
+  LP.standpointAverage = (current, o1 = {}, o2 = {}) => {
+    const pick = (o, i, v) => String(Object.prototype.hasOwnProperty.call(o, i) ? o[i] : v || '').trim();
+    const gs = (current || []).map((r, i) => {
+      const b = pick(o2, i, r.s2);
+      if (LP.SCALE_7.includes(b)) return b;
+      const a = pick(o1, i, r.s1);
+      return LP.SCALE_7.includes(a) ? a : null;
+    }).filter(Boolean);
+    return gs.length ? gs.reduce((s, g) => s + Number(g), 0) / gs.length : null;
+  };
 })();

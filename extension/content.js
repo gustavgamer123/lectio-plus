@@ -14,7 +14,7 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
   // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
   const LP = globalThis.LP;
-  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText', 'absenceForecast', 'absenceHold', 'simulateAverage', 'yearAverage', 'protocolIndex', 'busyWeeks', 'nextSchoolDay', 'eveningMode', 'dayPlan'].every((k) => LP[k])) {
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText', 'absenceForecast', 'absenceHold', 'simulateAverage', 'yearAverage', 'protocolIndex', 'standpointAverage', 'busyWeeks', 'nextSchoolDay', 'eveningMode', 'dayPlan'].every((k) => LP[k])) {
     document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
     return;
   }
@@ -75,6 +75,18 @@
       memo[path] = p.catch((e) => { delete memo[path]; throw e; });
     }
     return memo[path];
+  }
+  // En postback (fx Lectios Vis-knap med andre datoer) går gennem samme kø som hentningerne. Den læser kun data.
+  function postDoc(path, form) {
+    const run = () => {
+      if (pageCtrl.signal.aborted) throw new Error('afbrudt');
+      return fetch(BASE + path, { method: 'POST', body: new URLSearchParams(form), credentials: 'include', signal: pageCtrl.signal })
+        .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        .then((t) => new DOMParser().parseFromString(t, 'text/html'));
+    };
+    const p = queue.then(run, run);
+    queue = p.catch(() => {});
+    return p;
   }
   const idle = (fn, timeout = 2000) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout }) : setTimeout(fn, 300));
 
@@ -1134,18 +1146,18 @@
     // Lectio har to tal pr. hold: "Opgjort" er fraværet indtil nu, og brøken er moduler i hele perioden. De står hver for sig.
     const rows = a.rows.slice().sort((x, y) => x.hold.localeCompare(y.hold, 'da')).map((r) => {
       const s = subjectFrom(r.hold);
-      return `<tr><td>${subjDot(s?.code)}${esc(s?.name || r.hold)} <small class="lp-muted">${esc(r.hold)}</small></td>
+      return `<tr data-hold="${esc(r.hold)}"><td>${subjDot(s?.code)}${esc(s?.name || r.hold)} <small class="lp-muted">${esc(r.hold)}</small></td>
         <td class="lp-mono ${lvl(r.pct)}">${r.pct ? pct(r.pct) : '–'}</td><td class="lp-abs-bar">${bar(r.pct)}</td>
         <td class="lp-mono">${frac(r.mods)}</td><td class="lp-mono">${r.wPct ? pct(r.wPct) : '–'}</td></tr>`;
     }).join('');
     app.innerHTML = viewHead('Fravær', 'Opgjort for dette skoleår') +
       `<div class="lp-bignums">
-        <div class="${lvl(a.total.pct)}"><b>${pct(a.total.pct)}</b><span>almindeligt fravær, opgjort</span></div>
-        <div class="${lvl(a.total.wPct)}"><b>${pct(a.total.wPct)}</b><span>skriftligt fravær, opgjort</span></div>
+        <div id="lp-abs-n1" class="${lvl(a.total.pct)}"><b>${pct(a.total.pct)}</b><span>almindeligt fravær, opgjort</span></div>
+        <div id="lp-abs-n2" class="${lvl(a.total.wPct)}"><b>${pct(a.total.wPct)}</b><span>skriftligt fravær, opgjort</span></div>
       </div>
       <section class="lp-panel"><header class="lp-panel-head"><h2>Pr. hold</h2></header>
-        <table class="lp-table lp-abs"><thead><tr><th>Hold</th><th>Opgjort</th><th></th><th>Moduler i perioden</th><th>Skriftligt</th></tr></thead><tbody>${rows}</tbody></table>
-        <p class="lp-note">Opgjort er fraværet indtil nu. Moduler i perioden er fravær ud af alle moduler i perioden. Bjælken er fuld ved ${String(Math.round(max * 10) / 10).replace('.', ',')} %.</p>
+        <table class="lp-table lp-abs"><thead><tr><th>Hold</th><th>Opgjort</th><th></th><th id="lp-abs-mh">Moduler i perioden</th><th>Skriftligt</th></tr></thead><tbody>${rows}</tbody></table>
+        <p class="lp-note" id="lp-abs-note">Opgjort er fraværet indtil nu. Moduler i perioden er fravær ud af alle moduler i perioden. Bjælken er fuld ved ${String(Math.round(max * 10) / 10).replace('.', ',')} %.</p>
       </section>
       <section class="lp-panel lp-calc" id="lp-calc">
         <header class="lp-panel-head"><h2>Fraværsberegner</h2><button type="button" class="lp-btn" data-act="reset" hidden>Nulstil</button></header>
@@ -1158,12 +1170,45 @@
           </div>
           <div class="lp-calc-out" id="lp-calc-out" aria-live="polite"><p class="lp-empty">Vælg moduler eller opgaver for at se, hvad fraværet ville blive.</p></div>
         </div>
-        <p class="lp-note">Skønnet regner på fraværet i perioden (moduler og elevtid), fordi Lectio kun viser det opgjorte fravær som en procent. Lectios eget tal kan afvige.</p>
+        <p class="lp-note" id="lp-calc-basis">Henter fraværet for hele skoleåret.</p>
       </section>`;
 
     // Fraværsberegner (spec 7.2): vælg moduler og opgaver, se fraværet før og efter. Intet gemmes.
     const now = new Date();
     const picked = new Set();
+    // Lectios "Periode" er som standard sidste måned. Til beregneren spørges Lectio om perioden 1/8 til i dag, præcis som at
+    // vælge datoerne og trykke Vis (det læser kun data). Så regner beregneren videre fra hele skoleårets fravær.
+    const year = { rows: null };
+    const rowsFor = () => year.rows || a.rows;
+    let lastTasks = null;
+    const dmy = (d) => String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '-' + d.getFullYear();
+    const syStart = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
+    const loadYear = () => {
+      const form = document.getElementById('aspnetForm');
+      const sEl = document.querySelector('[id$="PeriodePicker_start__date_tb"]');
+      const eEl = document.querySelector('[id$="PeriodePicker_end__date_tb"]');
+      const vis = document.querySelector('[id$="VisPeriodeBtn"]');
+      const target = ((vis && vis.getAttribute('onclick')) || '').match(/PostBackOptions\("([^"]+)"/);
+      if (!form || !sEl || !eEl || !target) return Promise.reject(new Error('Periodevælgeren blev ikke fundet'));
+      const fd = new FormData(form);
+      fd.set(sEl.name, '01/08-' + syStart); fd.set(eEl.name, dmy(now));
+      fd.set('__EVENTTARGET', target[1]); fd.set('__EVENTARGUMENT', '');
+      return postDoc(location.pathname.slice(BASE.length) + location.search, fd).then((doc) => {
+        const r = parseAbsence(doc);
+        if (!r || !r.rows.length || !r.rows.some((x) => x.mods)) throw new Error('Fraværet for skoleåret kunne ikke læses');
+        return { rows: r.rows };
+      });
+    };
+    const showYear = () => {
+      const sum = (k, i) => rowsFor().reduce((t, x) => t + ((x[k] && x[k][i]) || 0), 0);
+      const n = (v) => String(Math.round(v * 10) / 10).replace('.', ',');
+      const basis = calcEl.querySelector('#lp-calc-basis');
+      if (!year.rows) { basis.textContent = 'Skoleårets fravær kunne ikke hentes, så beregneren regner på perioden ' + (document.querySelector('[id$="PeriodePicker_start__date_tb"]')?.value || '') + ' til ' + (document.querySelector('[id$="PeriodePicker_end__date_tb"]')?.value || '') + '. Lectios eget tal kan afvige.'; return; }
+      basis.textContent = 'Beregneren regner på hele skoleåret (1/8 ' + syStart + ' til i dag): ' + n(sum('mods', 0)) + (sum('mods', 0) === 1 ? ' fraværsmodul' : ' fraværsmoduler') + ' ud af ' + n(sum('mods', 1)) + ' og ' + n(sum('wTime', 0)) + ' ud af ' + n(sum('wTime', 1)) + ' elevtimer. De store tal øverst er Lectios opgjorte fravær; med valgte moduler lægges ændringen oveni. Lectios eget tal kan afvige lidt.';
+      app.querySelector('#lp-abs-mh').textContent = 'Moduler i skoleåret';
+      const note = app.querySelector('#lp-abs-note'); note.textContent = note.textContent.replace('Moduler i perioden er fravær ud af alle moduler i perioden.', 'Moduler i skoleåret er fravær ud af alle moduler fra 1/8 til i dag.');
+      for (const r of year.rows) { const td = app.querySelector('tr[data-hold="' + CSS.escape(r.hold) + '"] td:nth-child(4)'); if (td) td.textContent = r.mods ? String(r.mods[0]).replace('.', ',') + ' / ' + r.mods[1] : '–'; }
+    };
     const lessons = new Map();
     const tasks = new Map();
     const weeks = {};
@@ -1174,7 +1219,7 @@
       const all = Object.values(weeks).flat().filter((l) => l.start && !l.allDay && !l.cancelled && new Date(l.start) > now);
       const byDay = new Map();
       for (const l of all.sort((x, y) => new Date(x.start) - new Date(y.start))) {
-        const hold = LP.absenceHold(a.rows, l.hold);
+        const hold = LP.absenceHold(rowsFor(), l.hold);
         if (!hold) continue;
         const k = 'l:' + keyOf(l);
         lessons.set(k, { hold, l });
@@ -1195,7 +1240,7 @@
       tasks.clear();
       const box = calcEl.querySelector('#lp-calc-tasks');
       const open = (list || []).filter((t) => !/afleveret/i.test(t.status || '') && t.due && new Date(t.due) > now && (LP.num(t.hours) || 0) > 0);
-      const rows = open.map((t) => { const hold = LP.absenceHold(a.rows, t.hold); if (!hold) return ''; const k = 't:' + (((t.href || '').match(/exerciseid=(\d+)/i) || [])[1] || t.title); tasks.set(k, { hold, h: LP.num(t.hours), t });
+      const rows = open.map((t) => { const hold = LP.absenceHold(rowsFor(), t.hold); if (!hold) return ''; const k = 't:' + (((t.href || '').match(/exerciseid=(\d+)/i) || [])[1] || t.title); tasks.set(k, { hold, h: LP.num(t.hours), t });
         return '<label class="lp-calc-item"><input type="checkbox" data-k="' + esc(k) + '"' + (picked.has(k) ? ' checked' : '') + '> ' + subjDot(t.subject?.code) + esc(t.title) + ' <small class="lp-muted">' + String(LP.num(t.hours)).replace('.', ',') + ' t</small></label>'; }).join('');
       box.innerHTML = rows || '<p class="lp-empty">Ingen kommende opgaver med elevtid.</p>';
     };
@@ -1211,7 +1256,17 @@
         if (lessons.has(k)) { const { hold } = lessons.get(k); picks.mods[hold] = (picks.mods[hold] || 0) + 1; }
         if (tasks.has(k)) { const { hold, h } = tasks.get(k); picks.hours[hold] = (picks.hours[hold] || 0) + h; }
       }
-      const r = LP.absenceForecast(a.rows, picks);
+      const r = LP.absenceForecast(rowsFor(), picks);
+      const big = (id, base, part, label, on) => {
+        const el = app.querySelector(id);
+        const t = r.total[part];
+        const d = on && t.now != null && t.then != null ? t.then - t.now : null;
+        const v = d == null ? base : Math.max(0, base + d);
+        el.className = (d == null ? '' : 'is-sim ') + lvl(v);
+        el.innerHTML = '<b>' + (d == null ? '' : 'ca. ') + pct(v) + (d == null ? '' : '<em class="lp-diff">+' + d.toFixed(1).replace('.', ',') + '</em>') + '</b><span>' + label + (d == null ? ', opgjort' : ', med de valgte') + '</span>';
+      };
+      big('#lp-abs-n1', a.total.pct || 0, 'mods', 'almindeligt fravær', r.total.k > 0);
+      big('#lp-abs-n2', a.total.wPct || 0, 'hours', 'skriftligt fravær', r.total.h > 0);
       calcEl.querySelector('[data-act=reset]').hidden = !picked.size;
       const out = calcEl.querySelector('#lp-calc-out');
       if (!picked.size) { out.innerHTML = '<p class="lp-empty">Vælg moduler eller opgaver for at se, hvad fraværet ville blive.</p>'; return; }
@@ -1235,17 +1290,18 @@
     });
     calcEl.querySelector('[data-act=reset]').addEventListener('click', () => { picked.clear(); calcEl.querySelectorAll('input[type=checkbox]').forEach((i) => { i.checked = false; i.indeterminate = false; }); drawOut(); });
     [0, 7].forEach((d) => loadWeek(new Date(now.getTime() + d * 864e5), (sk) => { weeks[d] = sk.lessons || []; drawDays(); drawOut(); }, () => { if (!Object.keys(weeks).length) calcEl.querySelector('#lp-calc-days').innerHTML = '<p class="lp-empty">Skemaet kunne ikke hentes.</p>'; }));
-    loadSrc('tasks', (list) => { drawTasks(list); drawOut(); }, () => { calcEl.querySelector('#lp-calc-tasks').innerHTML = '<p class="lp-empty">Opgaverne kunne ikke hentes.</p>'; });
+    load('absYear', loadYear, TTL.abs, (d) => { year.rows = d.rows; showYear(); drawDays(); if (lastTasks) drawTasks(lastTasks); drawOut(); }, () => showYear());
+    loadSrc('tasks', (list) => { lastTasks = list; drawTasks(list); drawOut(); }, () => { calcEl.querySelector('#lp-calc-tasks').innerHTML = '<p class="lp-empty">Opgaverne kunne ikke hentes.</p>'; });
   }
 
   function renderGradesView(app) {
     const { current, protocol } = parseGrades(document);
-    // Snit-simulator (spec 7.3): p = linjer på beviset, y/e = årskarakter og eksamen i "Karakterer i år". Intet gemmes.
-    const sim = { p: {}, y: {}, e: {} };
+    // Snit-simulator (spec 7.3): p = linjer på beviset, y/e = årskarakter og eksamen, s1/s2 = standpunkter i "Karakterer i år". Intet gemmes.
+    const sim = { p: {}, y: {}, e: {}, s1: {}, s2: {} };
     const g = (v) => esc(v || '–');
     const fmt = (v) => (v == null ? '–' : v.toFixed(1).replace('.', ','));
     const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
-    const count = () => Object.keys(sim.p).length + Object.keys(sim.y).length + Object.keys(sim.e).length;
+    const count = () => Object.values(sim).reduce((n, m) => n + Object.keys(m).length, 0);
     const inputs = () => {
       const over = { ...sim.p }; const extra = [];
       for (const [kind, map] of [['year', sim.y], ['exam', sim.e]]) for (const [i, grade] of Object.entries(map)) {
@@ -1261,14 +1317,17 @@
     };
     const draw = (focusKey) => {
       const base = LP.gradeAverage(protocol);
-      const active = count() > 0;
+      // Kun årskarakter, eksamen og linjer på beviset ændrer snittet på beviset; standpunkter ændrer kun deres eget snit.
+      const active = Object.keys(sim.p).length + Object.keys(sim.y).length + Object.keys(sim.e).length > 0;
       const { over, extra } = inputs();
       const a = active ? LP.simulateAverage(protocol, over, extra) : base;
       const diff = active && a.avg != null && base.avg != null ? a.avg - base.avg : null;
       const yA = LP.yearAverage(current, sim.y);
+      const sA = LP.standpointAverage(current, sim.s1, sim.s2);
+      const sSim = Object.keys(sim.s1).length + Object.keys(sim.s2).length > 0;
       const now = current.length ? '<table class="lp-table"><thead><tr><th>Fag</th><th>Form</th><th>1. standpunkt</th><th>2. standpunkt</th><th>Årskarakter</th><th>Eksamen</th></tr></thead><tbody>' +
         current.map((x, i) => { const s = subjectFrom(x.hold); return '<tr><td>' + subjDot(s?.code) + esc(x.subject) + ' ' + esc(x.level) + ' <small class="lp-muted">' + esc(x.hold) + '</small></td><td>' + g(x.form) + '</td>' +
-          '<td class="lp-mono">' + g(x.s1) + '</td><td class="lp-mono">' + g(x.s2) + '</td><td>' + btn('y:' + i, x.year, sim.y, i) + '</td><td>' + btn('e:' + i, x.exam, sim.e, i) + '</td></tr>'; }).join('') + '</tbody></table>'
+          '<td>' + btn('s1:' + i, x.s1, sim.s1, i) + '</td><td>' + btn('s2:' + i, x.s2, sim.s2, i) + '</td><td>' + btn('y:' + i, x.year, sim.y, i) + '</td><td>' + btn('e:' + i, x.exam, sim.e, i) + '</td></tr>'; }).join('') + '</tbody></table>'
         : '<p class="lp-empty lp-pad">Ingen karakterer endnu.</p>';
       const bevis = protocol.length ? '<section class="lp-panel"><header class="lp-panel-head"><h2>Beviset</h2><small>' + protocol.length + ' linjer</small></header>' +
         '<table class="lp-table"><thead><tr><th>Termin</th><th>Fag</th><th>Form</th><th>Type</th><th>Vægt</th><th>Karakter</th></tr></thead><tbody>' +
@@ -1277,11 +1336,12 @@
       const label = active ? 'simuleret snit på beviset' : a.n ? 'snit på beviset, vægtet, ' + a.n + ' karakterer' : 'Ingen karakterer på beviset endnu';
       app.innerHTML = viewHead('Karakterer', '') +
         '<div class="lp-bignums"><div class="' + (active ? 'is-sim' : '') + '"><b>' + fmt(a.avg) + (diff ? '<em class="lp-diff">' + (diff > 0 ? '+' : '−') + fmt(Math.abs(diff)) + '</em>' : '') + '</b><span>' + label + '</span></div>' +
-        '<div><b>' + fmt(yA) + '</b><span>snit af årskarakterer' + (Object.keys(sim.y).length ? ', simuleret' : '') + '</span></div>' +
-        (active ? '<button type="button" class="lp-btn" data-act="reset">Nulstil ' + count() + (count() === 1 ? ' simuleret karakter' : ' simulerede karakterer') + '</button>' : '') + '</div>' +
+        '<div class="' + (sSim ? 'is-sim' : '') + '"><b>' + fmt(sA) + '</b><span>snit af standpunkter, alle fag' + (sSim ? ', simuleret' : '') + '</span></div>' +
+        '<div class="' + (Object.keys(sim.y).length ? 'is-sim' : '') + '"><b>' + fmt(yA) + '</b><span>snit af årskarakterer' + (Object.keys(sim.y).length ? ', simuleret' : '') + '</span></div>' +
+        (count() ? '<button type="button" class="lp-btn" data-act="reset">Nulstil ' + count() + (count() === 1 ? ' simuleret karakter' : ' simulerede karakterer') + '</button>' : '') + '</div>' +
         '<section class="lp-panel"><header class="lp-panel-head"><h2>Karakterer i år</h2></header>' + now + '</section>' + bevis +
-        '<p class="lp-note lp-gnote">Klik på en karakter for at prøve en anden. Simulerede karakterer gemmes ikke. En forventet karakter uden linje på beviset regnes med vægt 1.</p>';
-      app.querySelector('[data-act=reset]')?.addEventListener('click', () => { sim.p = {}; sim.y = {}; sim.e = {}; draw(); });
+        '<p class="lp-note lp-gnote">Klik på en karakter for at prøve en anden, også standpunkterne. Simulerede karakterer gemmes ikke. Snit af standpunkter bruger det seneste standpunkt i hvert fag, uden vægt. En forventet karakter uden linje på beviset regnes med vægt 1.</p>';
+      app.querySelector('[data-act=reset]')?.addEventListener('click', () => { for (const k of Object.keys(sim)) sim[k] = {}; draw(); });
       if (focusKey) app.querySelector('[data-g="' + focusKey + '"]')?.focus();
     };
     const closeMenu = () => document.querySelectorAll('.lp-gmenu').forEach((m) => m.remove());
@@ -1290,7 +1350,7 @@
       if (!b) return;
       closeMenu();
       const key = b.dataset.g; const [kind, idx] = key.split(':'); const map = sim[kind];
-      const orig = kind === 'p' ? protocol[idx].grade : kind === 'y' ? current[idx].year : current[idx].exam;
+      const orig = kind === 'p' ? protocol[idx].grade : kind === 'y' ? current[idx].year : kind === 'e' ? current[idx].exam : kind === 's1' ? current[idx].s1 : current[idx].s2;
       const cur = own(map, idx) ? map[idx] : orig;
       const m = document.createElement('div');
       m.className = 'lp-gmenu'; m.setAttribute('role', 'menu');
