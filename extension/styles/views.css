@@ -784,3 +784,36 @@ html[data-lp-theme="dark"] #lp-colors { box-shadow: 0 14px 36px rgba(0, 0, 0, .5
 @container (max-width: 700px) {
   #lp-app .lp-busy-bars { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* ---------- Klar til i morgen (Forside) ---------- */
+#lp-app .lp-hero > .lp-ready { grid-column: 1 / -1; }
+#lp-app .lp-ready .lp-panel-head small { margin: 0 auto 0 4px; font-size: 12.5px; }
+#lp-app .lp-ready-body { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+#lp-app .lp-ready-facts { columns: 1; border-right: 1px solid var(--rule); }
+#lp-app .lp-ready-facts dd .lp-muted { display: inline-flex; align-items: center; }
+#lp-app .lp-ready-list { flex-direction: column; align-items: flex-start; gap: 4px; }
+#lp-app .lp-ready-hw { display: flex; align-items: baseline; gap: 6px; cursor: pointer; }
+#lp-app .lp-ready-hw input { margin: 0; transform: translateY(2px); flex: none; }
+#lp-app .lp-ready-hw .lp-sd { margin-right: 0; }
+#lp-app .lp-ready-hw input:checked ~ span { color: var(--ink-2); text-decoration: line-through; }
+#lp-app .lp-ready-remember { padding: 10px 14px 12px; min-width: 0; }
+#lp-app .lp-ready-remember h3 { margin: 0 0 4px !important; font-size: 13.5px !important; font-weight: 600 !important; }
+#lp-app .lp-ready-remember ul { list-style: none; margin: 0 0 8px; padding: 0; }
+#lp-app .lp-ready-remember li { display: flex; align-items: center; gap: 6px; min-height: 28px; font-size: 13.5px; }
+#lp-app .lp-ready-remember li .lp-sd { margin-right: 0; }
+#lp-app .lp-ready-remember li > span { font-weight: 600; }
+#lp-app .lp-ready-remember li .lp-icon-btn { width: 24px; height: 24px; margin-left: auto; }
+#lp-app .lp-ready-remember li .lp-icon-btn svg { width: 14px; height: 14px; }
+#lp-app .lp-ready-add { display: flex; gap: 6px; }
+#lp-app .lp-ready-add :is(select, input) {
+  box-sizing: border-box; height: 32px; padding: 0 8px; border: 1px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font: 13.5px var(--font);
+}
+#lp-app .lp-ready-add select { max-width: 42%; }
+#lp-app .lp-ready-add input { flex: 1; min-width: 0; }
+@container (max-width: 820px) {
+  #lp-app .lp-ready-body { grid-template-columns: minmax(0, 1fr); }
+  #lp-app .lp-ready-facts { border-right: 0; border-bottom: 1px solid var(--rule); }
+}
+
+/* afkrydsningsfelter i de egne visninger: Chromes egne i accentfarven, som følger temaet (Lectios CSS gør dem ellers hvide) */
+:is(#lp-app, #lp-drawer) input:is([type="checkbox"], [type="radio"]) { appearance: auto !important; background: none !important; width: 15px; height: 15px; margin: 0; accent-color: var(--accent); }

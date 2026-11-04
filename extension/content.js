@@ -14,13 +14,13 @@
   if (!logoutLink) { document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot'); return; } // ikke logget ind
   // Mangler en af filerne i src/, vises almindeligt Lectio i stedet for et startdække uden menu.
   const LP = globalThis.LP;
-  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText', 'absenceForecast', 'absenceHold', 'simulateAverage', 'yearAverage', 'protocolIndex', 'busyWeeks'].every((k) => LP[k])) {
+  if (!LP || !['esc', 'hueFor', 'parseSkema', 'ICONS', 'activeKey', 'buildShell', 'darkFix', 'markEmptyRows', 'markCategoryCells', 'gradeAverage', 'alldayHeight', 'snapshot', 'diffSnapshots', 'mergeLog', 'changeText', 'absenceForecast', 'absenceHold', 'simulateAverage', 'yearAverage', 'protocolIndex', 'busyWeeks', 'nextSchoolDay', 'eveningMode', 'dayPlan'].every((k) => LP[k])) {
     document.documentElement.classList.remove('lp-on', 'lp-takeover', 'lp-boot');
     return;
   }
 
   /* ---------------- indstillinger ---------------- */
-  const DEFAULTS = { enabled: true, theme: 'auto', dashboard: true, skema: true, views: true, hideDone: false, colors: {} };
+  const DEFAULTS = { enabled: true, theme: 'auto', dashboard: true, skema: true, views: true, hideDone: false, colors: {}, remember: {} };
   const hasChrome = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync;
   function loadSettings() {
     return new Promise((res) => {
@@ -160,6 +160,9 @@
   const localSet = (k, v) => new Promise((res) => { if (!hasLocal) return res(); try { chrome.storage.local.set({ [k]: v }, () => res()); } catch (e) { res(); } });
   let changeQ = Promise.resolve();
   let onChanges = null;
+  let onRemember = null;
+  // Nøgle for en lektie; samme som fluebenene på Lektier (localStorage 'lp-hw-done').
+  const hwKey = (x) => { let h = 0; for (const ch of `${x.dateTxt}|${x.activity}|${x.text.slice(0, 80)}`) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return 'k' + h.toString(36); };
   const changeState = () => localGet(changesKey()).then((st) => st || { snap: {}, log: [], seenAt: null });
   function recordChanges(part, data) {
     if (!USER.name || !hasLocal) return;
@@ -573,6 +576,8 @@
 
     /* Hvad er ændret: kun synlig, når der er linjer */
     onChanges = (st) => {
+      ready.changes = st;
+      if (ready.day) drawReady();
       const el = document.getElementById('lp-changes');
       if (!el) return;
       const t = Date.now();
@@ -630,6 +635,56 @@
     const knownLessons = () => (weeks.cur ? weeks.cur.lessons : []).concat(weeks.next ? weeks.next.lessons : []).filter((l) => l.start);
     /* lektier: kun næste skoledag, resten bag et klik */
     let hwData = null;
+
+    /* Klar til i morgen (spec 7.5): om aftenen og på dage uden moduler viser Forside næste skoledag. */
+    const ready = { day: null, plan: null, changes: null };
+    const hwDoneGet = () => { try { return JSON.parse(localStorage.getItem('lp-hw-done') || '{}'); } catch (e) { return {}; } };
+    const saveRemember = (r) => { settings.remember = r; saveSetting('remember', r); drawReady(); };
+    const drawReady = () => {
+      const hero = document.getElementById('lp-next');
+      if (!hero || !ready.day || !ready.plan) return;
+      const { day, plan } = ready;
+      const f = plan.first;
+      const t = Date.now();
+      const changes = ((ready.changes && ready.changes.log) || []).filter((l) => l.when != null && sameDay(new Date(l.when), day) && (l.until == null || l.until >= t));
+      const hws = (hwData || []).filter((x) => x.date && sameDay(x.date, day));
+      const done = hwDoneGet();
+      const rem = settings.remember || {};
+      const nameOf = (c) => plan.lessons.find((x) => x.subject?.code === c)?.subject?.name || c;
+      const items = plan.codes.flatMap((c) => (rem[c] || []).map((txt, i) => ({ c, txt, i })));
+      hero.innerHTML = '<section class="lp-panel lp-ready"><header class="lp-panel-head"><h2>Klar til ' + esc(dayLabel(day, now)) + '</h2><small class="lp-muted">' + esc(cap(DAYS[day.getDay()])) + ' ' + day.getDate() + '. ' + esc(MONTHS[day.getMonth()]) + '</small></header>' +
+        '<div class="lp-ready-body"><dl class="lp-fields lp-ready-facts">' +
+        '<div><dt>Du møder</dt><dd><span><span class="lp-mono">' + hm(f.start) + '</span>' + (f.room ? ' i ' + esc(f.room) : '') + '</span><span class="lp-muted">' + subjDot(f.subject?.code) + esc(f.subject?.name || f.title || '') + '</span></dd></div>' +
+        '<div><dt>Moduler</dt><dd><span>' + plan.count + ', fri <span class="lp-mono">' + hm(plan.end) + '</span></span></dd></div>' +
+        (changes.length ? '<div><dt>Ændringer</dt><dd class="lp-ready-list">' + changes.map((l) => { const tg = LP.CHANGE_TAG[l.kind] || ['', '']; return '<span><span class="lp-tag ' + tg[1] + '">' + esc(tg[0]) + '</span> ' + esc(LP.changeText(l, t)) + '</span>'; }).join('') + '</dd></div>' : '') +
+        '<div><dt>Lektier</dt><dd class="lp-ready-list">' + (hws.length ? hws.map((x) => { const k = hwKey(x); return '<label class="lp-ready-hw"><input type="checkbox" data-hwk="' + esc(k) + '"' + (done[k] ? ' checked' : '') + '>' + subjDot(x.subject?.code) + '<span><b>' + esc(x.subject?.name || 'Lektie') + '</b> ' + esc((x.text || '').split('\n')[0].slice(0, 120)) + '</span></label>'; }).join('') : '<span class="lp-muted">Ingen lektier.</span>') + '</dd></div>' +
+        '</dl><div class="lp-ready-remember"><h3>Husk</h3><ul>' +
+        (items.map((r) => '<li>' + subjDot(r.c) + '<span>' + esc(r.txt) + '</span><small class="lp-muted">' + esc(nameOf(r.c)) + '</small><button type="button" class="lp-icon-btn" data-rem="' + esc(r.c) + ':' + r.i + '" aria-label="Fjern ' + esc(r.txt) + ' fra huskelisten">' + ICONS.x + '</button></li>').join('') || '<li class="lp-muted">Intet på huskelisten til dagens fag.</li>') +
+        '</ul><form class="lp-ready-add"><select aria-label="Fag">' + plan.codes.map((c) => '<option value="' + esc(c) + '">' + esc(nameOf(c)) + '</option>').join('') + '</select><input type="text" maxlength="60" placeholder="Fx idrætstøj" aria-label="Ting at huske til faget"><button type="submit" class="lp-btn">Tilføj</button></form></div></div></section>';
+      hero.querySelectorAll('[data-hwk]').forEach((cb) => cb.addEventListener('change', () => {
+        const d = hwDoneGet();
+        if (cb.checked) d[cb.dataset.hwk] = Date.now(); else delete d[cb.dataset.hwk];
+        try { localStorage.setItem('lp-hw-done', JSON.stringify(d)); } catch (e) { /* ignorer */ }
+      }));
+      hero.querySelectorAll('[data-rem]').forEach((b) => b.addEventListener('click', () => {
+        const [c, i] = b.dataset.rem.split(':');
+        const r = { ...(settings.remember || {}) };
+        r[c] = (r[c] || []).filter((_, j) => j !== +i);
+        if (!r[c].length) delete r[c];
+        saveRemember(r);
+      }));
+      hero.querySelector('.lp-ready-add').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const txt = e.currentTarget.querySelector('input').value.trim();
+        const c = e.currentTarget.querySelector('select').value;
+        if (!txt || !c) return;
+        const r = { ...(settings.remember || {}) };
+        r[c] = [...(r[c] || []), txt].slice(0, 10);
+        saveRemember(r);
+        document.querySelector('#lp-next .lp-ready-add input')?.focus();
+      });
+    };
+    onRemember = drawReady;
     const absId = (href) => ((href || '').match(/absid=(\d+)/i) || [])[1];
     const drawHomework = () => {
       if (!hwData) return;
@@ -702,6 +757,11 @@
         const when = sameDay(next.start, now) ? `kl. ${hm(next.start)}, ${relTime(next.start, now)}` : `${dayLabel(next.start, now)} kl. ${hm(next.start)}`;
         h += block('naeste', next, when);
       }
+      if (LP.eveningMode(lessons, now)) {
+        const nd = LP.nextSchoolDay(lessons, now);
+        if (nd) { ready.day = nd; ready.plan = LP.dayPlan(lessons, nd); drawReady(); return; }
+      }
+      ready.day = null;
       const hero = document.getElementById('lp-next');
       if (!h && weeks.askedNext && !weeks.next) h = skeleton(1);
       hero.innerHTML = h || '<p class="lp-hero-free">Ingen flere timer i denne og næste uge.</p>';
@@ -712,7 +772,7 @@
       document.getElementById('lp-next').innerHTML = '';
     });
 
-    loadSrc('hw', (hw) => { hwData = hw; drawHomework(); }, (e) => setBody('lp-c-hw', errBox(e)));
+    loadSrc('hw', (hw) => { hwData = hw; drawHomework(); drawReady(); }, (e) => setBody('lp-c-hw', errBox(e)));
 
     /* afleveringer: de mangler og de næste fem */
     loadSrc('tasks', (tasks) => {
@@ -1021,7 +1081,7 @@
     const rows = t ? [...t.rows].slice(1).filter((r) => r.cells.length >= 3) : [];
     let doneSet = {};
     try { doneSet = JSON.parse(localStorage.getItem('lp-hw-done') || '{}'); } catch (e) { /* tom */ }
-    const keyOf = (x) => { let h = 0; for (const ch of `${x.dateTxt}|${x.activity}|${x.text.slice(0, 80)}`) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return 'k' + h.toString(36); };
+    const keyOf = hwKey;
     const groups = new Map();
     items.forEach((x, i) => { x.node = rows[i] ? rows[i].cells[2] : null; x.key = keyOf(x); const k = x.date ? x.date.getTime() : x.dateTxt; if (!groups.has(k)) groups.set(k, { date: x.date, label: x.dateTxt, items: [] }); groups.get(k).items.push(x); });
     const modul = (a) => (a.match(/(\d+)\.\s*modul/) || [])[1];
@@ -1752,7 +1812,10 @@
   }
 
   if (hasChrome && chrome.storage.onChanged) {
-    chrome.storage.onChanged.addListener((ch) => {
+    // Kun indstillinger (sync); ændringsloggen i local må ikke genindlæse siden.
+    chrome.storage.onChanged.addListener((ch, area) => {
+      if (area !== 'sync') return;
+      if (ch.remember && Object.keys(ch).length === 1) { settings.remember = ch.remember.newValue || {}; if (onRemember) onRemember(); return; }
       if (ch.theme && Object.keys(ch).length === 1) { settings.theme = ch.theme.newValue; saveBoot(); applyTheme(); return; }
       if (ch.hideDone && Object.keys(ch).length === 1) return;
       if (ch.colors && Object.keys(ch).length === 1) { settings.colors = ch.colors.newValue || {}; repaintColors(); return; }
