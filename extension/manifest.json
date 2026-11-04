@@ -12,8 +12,23 @@
     "default_popup": "popup.html",
     "default_title": "Lectio+"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "popup.html",
+    "open_in_tab": true
+  },
   "permissions": [
-    "storage"
+    "storage",
+    "alarms",
+    "offscreen"
+  ],
+  "optional_permissions": [
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://www.lectio.dk/*"
   ],
   "content_scripts": [
     {

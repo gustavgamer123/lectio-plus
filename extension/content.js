@@ -108,7 +108,8 @@
   const SOURCES = {
     hw: { path: 'material_lektieoversigt.aspx', parse: (d) => parseHomework(d) },
     tasks: { path: 'OpgaverElev.aspx', parse: (d) => parseAssignments(d) },
-    msgs: { path: 'beskeder2.aspx', parse: (d) => parseMessages(d) },
+    // mappeid=-70 er Nyeste. Uden den giver Lectio den mappe, eleven sidst kiggede i (fx Sendte beskeder).
+    msgs: { path: 'beskeder2.aspx?mappeid=-70', parse: (d) => parseMessages(d) },
     abs: { path: 'subnav/fravaerelev.aspx', parse: (d) => parseAbsence(d) },
     grades: { path: 'grades/grade_report.aspx', parse: (d) => parseGrades(d) },
     front: { path: 'forside.aspx', parse: (d) => parseFront(d) }
@@ -179,6 +180,8 @@
       if (onChanges) onChanges(st);
     }).catch((e) => console.warn('[Lectio+] ændringer', e));
   }
+  // Baggrundshentningen (background.js) skal vide, hvilken skole og elev den henter for, og hvornår Lectio sidst var åben.
+  if (USER.name && hasLocal) localGet('lp-bg').then((bg) => localSet('lp-bg', { ...(bg || {}), base: BASE, school: SCHOOL, user: USER.name, lastVisit: Date.now(), loggedOut: false }));
   function markChangesSeen() {
     changeQ = changeQ.then(async () => {
       const st = await changeState();
@@ -1710,7 +1713,8 @@
     try {
       if (PAGE === 'opgaverelev.aspx' && !q.length) cachePut('tasks', parseAssignments(document));
       if (PAGE === 'material_lektieoversigt.aspx' && !q.length) cachePut('hw', parseHomework(document));
-      if (PAGE === 'beskeder2.aspx' && (!q.length || params.get('mappeid') === '-70')) { const m = parseMessages(document); if (m.length) cachePut('msgs', m); }
+      const folder = (document.querySelector('[id$="ListGridSelectionTree"] a.selectedFolder')?.textContent || '').trim();
+      if (PAGE === 'beskeder2.aspx' && (params.get('mappeid') === '-70' || (!q.length && /^Nyeste$/i.test(folder)))) { const m = parseMessages(document); if (m.length) cachePut('msgs', m); }
       if (PAGE === 'subnav/fravaerelev.aspx' && !q.length) { const a = parseAbsence(document); if (a) cachePut('abs', a); }
       if (PAGE === 'grades/grade_report.aspx' && !q.length) { const g = parseGrades(document); if (g.current.length || g.protocol.length) cachePut('grades', g); }
       if (PAGE === 'skemany.aspx' && q.every((k) => k === 'week')) {
@@ -1745,7 +1749,7 @@
     }
     html.classList.add('lp-on');
     document.addEventListener('click', (e) => {
-      if (e.target.closest && e.target.closest('a[href*="logout.aspx"]')) { try { sessionStorage.removeItem(CACHE_KEY); sessionStorage.removeItem('lp-user:' + SCHOOL); } catch (er) { /* ignorer */ } }
+      if (e.target.closest && e.target.closest('a[href*="logout.aspx"]')) { try { sessionStorage.removeItem(CACHE_KEY); sessionStorage.removeItem('lp-user:' + SCHOOL); } catch (er) { /* ignorer */ } localGet('lp-bg').then((bg) => localSet('lp-bg', { ...(bg || {}), loggedOut: true })); }
     }, true);
 
     const onlyWeek = [...params.keys()].every((k) => k === 'week');
@@ -1818,6 +1822,7 @@
       if (ch.remember && Object.keys(ch).length === 1) { settings.remember = ch.remember.newValue || {}; if (onRemember) onRemember(); return; }
       if (ch.theme && Object.keys(ch).length === 1) { settings.theme = ch.theme.newValue; saveBoot(); applyTheme(); return; }
       if (ch.hideDone && Object.keys(ch).length === 1) return;
+      if (ch.notify && Object.keys(ch).length === 1) return;
       if (ch.colors && Object.keys(ch).length === 1) { settings.colors = ch.colors.newValue || {}; repaintColors(); return; }
       location.reload();
     });
