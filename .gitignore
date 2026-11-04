@@ -3,3 +3,4 @@ node_modules/
 test/fixtures/private/
 shots/
 .superpowers/
+dist/

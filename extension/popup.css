@@ -1,0 +1,52 @@
+/* Lectio+ : popuppen og indstillingssiden i retning D (samme farver som tokens.css). */
+@font-face { font-family: "LP Plex"; font-weight: 400; src: url("fonts/plex-sans-400.woff2") format("woff2"); }
+@font-face { font-family: "LP Plex"; font-weight: 500; src: url("fonts/plex-sans-500.woff2") format("woff2"); }
+@font-face { font-family: "LP Plex"; font-weight: 600; src: url("fonts/plex-sans-600.woff2") format("woff2"); }
+@font-face { font-family: "LP Plex"; font-weight: 700; src: url("fonts/plex-sans-700.woff2") format("woff2"); }
+@font-face { font-family: "LP Plex Mono"; font-weight: 500; src: url("fonts/plex-mono-500.woff2") format("woff2"); }
+* { box-sizing: border-box; }
+html.lp-popup { color-scheme: light; }
+html.lp-popup[data-lp-theme="dark"] { color-scheme: dark; }
+body { margin: 0; width: 360px; background: var(--bg); color: var(--ink); font: 13.5px/1.45 var(--font); }
+html.lp-options body { width: auto; max-width: 560px; margin: 24px auto; border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
+.pp-bar { display: flex; align-items: baseline; gap: 8px; height: 44px; padding: 0 14px; align-items: center; background: var(--bar); color: #fff; }
+.pp-bar b { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.pp-bar b span { color: var(--bar-ink-2); }
+.pp-bar small { margin-left: auto; font: 500 12px var(--mono); color: var(--bar-ink-2); }
+main { padding: 0 0 6px; }
+.pp-group { border-bottom: 1px solid var(--rule); background: var(--surface); }
+.pp-group:last-child { border-bottom: 0; }
+.pp-group h2 { margin: 0; padding: 10px 14px 4px; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.pp-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 6px 14px; cursor: pointer; }
+.pp-row + .pp-row { border-top: 1px solid var(--rule); }
+.pp-row > span { display: flex; flex-direction: column; min-width: 0; font-weight: 500; }
+.pp-row small { font-weight: 400; font-size: 12px; color: var(--ink-2); line-height: 1.4; margin-top: 1px; }
+.pp-row input[type="checkbox"] { flex: none; width: 16px; height: 16px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.pp-sub { padding-left: 14px; }
+.pp-sub[hidden] { display: none; }
+.pp-sub .pp-row { padding-left: 10px; border-left: 2px solid var(--rule); font-weight: 400; }
+.pp-sub .pp-row > span { font-weight: 400; }
+.pp-actions { cursor: default; }
+select, input[type="text"] {
+  height: 30px; padding: 0 8px; border: 1px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font: 13px var(--font);
+}
+select:focus-visible, input:focus-visible, .pp-btn:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pp-btn { height: 30px; padding: 0 10px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: 500 13px var(--font); cursor: pointer; }
+.pp-btn:hover { background: var(--sunk); }
+.pp-status { margin: 0 14px 6px; padding: 6px 10px; border-left: 2px solid var(--rule); background: var(--sunk); font-size: 12.5px; color: var(--ink-2); }
+.pp-status.is-warn { border-left-color: var(--warn); color: var(--ink); }
+.pp-status.is-ok { border-left-color: var(--ok); }
+.pp-help { margin: 0; padding: 4px 14px 8px; font-size: 12.5px; color: var(--ink-2); }
+.pp-help b { color: var(--ink); font-weight: 600; }
+.pp-help a { color: var(--accent); }
+.pp-list { list-style: none; margin: 0; padding: 0 14px; }
+.pp-list li { display: flex; align-items: center; gap: 8px; min-height: 30px; border-top: 1px solid var(--rule); }
+.pp-list li:first-child { border-top: 0; }
+.pp-list li small { color: var(--ink-2); font-size: 12px; }
+.pp-list li button { margin-left: auto; width: 24px; height: 24px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink-2); font-size: 16px; line-height: 1; cursor: pointer; }
+.pp-list li button:hover { background: var(--sunk); color: var(--ink); }
+.pp-list .pp-empty { color: var(--ink-2); font-size: 12.5px; }
+.pp-add { display: flex; gap: 6px; padding: 6px 14px 12px; }
+.pp-add select { max-width: 40%; }
+.pp-add input { flex: 1; min-width: 0; }
+kbd { font: 500 11px var(--mono); padding: 1px 5px; border: 1px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink-2); }

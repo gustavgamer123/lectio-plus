@@ -20,7 +20,7 @@
   }
 
   /* ---------------- indstillinger ---------------- */
-  const DEFAULTS = { enabled: true, theme: 'auto', dashboard: true, skema: true, views: true, hideDone: false, colors: {}, remember: {} };
+  const DEFAULTS = { enabled: true, theme: 'auto', dashboard: true, skema: true, views: true, hideDone: false, colors: {}, remember: {}, seen20: false };
   const hasChrome = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync;
   function loadSettings() {
     return new Promise((res) => {
@@ -99,7 +99,8 @@
     saveCache();
     if (/^(msgs|tasks|hw)$/.test(key) && typeof updateBadges === 'function') updateBadges();
     if (/^(msgs|tasks|hw)$/.test(key)) recordChanges(key, data);
-    else if (key.startsWith('skema:') && data && data.lessons && [0, 7].some((d) => key === skemaKey(new Date(Date.now() + d * 864e5)))) recordChanges(key, data.lessons);
+    if (key.startsWith('skema:') && data && data.lessons) rememberSubjects(data.lessons);
+    if (key.startsWith('skema:') && data && data.lessons && [0, 7].some((d) => key === skemaKey(new Date(Date.now() + d * 864e5)))) recordChanges(key, data.lessons);
     if (key === 'front' && shell) shell.setHold((data && data.hold) || []);
   }
   const isFresh = (key, min) => cache[key] && Date.now() - cache[key].t < min * 6e4;
@@ -182,6 +183,15 @@
   }
   // Baggrundshentningen (background.js) skal vide, hvilken skole og elev den henter for, og hvornår Lectio sidst var åben.
   if (USER.name && hasLocal) localGet('lp-bg').then((bg) => localSet('lp-bg', { ...(bg || {}), base: BASE, school: SCHOOL, user: USER.name, lastVisit: Date.now(), loggedOut: false }));
+  // Fagenes navne til popuppens huskeliste (fagkode -> navn); skrives kun, når der kommer et nyt fag.
+  let subjNames = null;
+  async function rememberSubjects(lessons) {
+    if (!hasLocal) return;
+    if (!subjNames) subjNames = (await localGet('lp-subjects')) || {};
+    let added = false;
+    for (const l of lessons) { const c = l.subject && l.subject.code; if (c && !subjNames[c]) { subjNames[c] = l.subject.name || c; added = true; } }
+    if (added) localSet('lp-subjects', subjNames);
+  }
   function markChangesSeen() {
     changeQ = changeQ.then(async () => {
       const st = await changeState();
@@ -1733,6 +1743,33 @@
     if (document.readyState === 'complete') setTimeout(go, 1200); else addEventListener('load', () => setTimeout(go, 1200), { once: true });
   }
 
+
+  /* ---------------- "Nyt i 2.0" (spec 9): vises én gang efter opdateringen ---------------- */
+  function showWhatsNew() {
+    if (settings.seen20 || document.getElementById('lp-new')) return;
+    const box = document.createElement('div');
+    box.id = 'lp-new';
+    box.innerHTML = '<div class="lp-new-scrim"></div><section class="lp-new-panel" role="dialog" aria-modal="true" aria-labelledby="lp-new-h" tabindex="-1">' +
+      '<header class="lp-panel-head"><h2 id="lp-new-h">Nyt i Lectio+ 2.0</h2></header>' +
+      '<div class="lp-new-body"><p>Lectio+ har fået et nyt design på alle sider i Lectio, i samme stil som Lectio selv: roligt, tæt og let at overskue.</p>' +
+      '<ul>' +
+      '<li><b>Hvad er ændret</b> øverst på Forside: flyttede og aflyste moduler, nye opgaver, lektier og beskeder siden sidst.</li>' +
+      '<li><b>Klar til i morgen</b>: om aftenen viser Forside næste skoledag med lektier og din egen huskeliste.</li>' +
+      '<li><b>Fraværsberegner</b> på Fravær og <b>snit-simulator</b> på Karakterer.</li>' +
+      '<li><b>Travle uger</b> på Opgaver: se hvilke uger der bliver travle.</li>' +
+      '<li><b>Notifikationer</b>, hvis du slår dem til i indstillingerne.</li>' +
+      '</ul><p class="lp-muted">Dine indstillinger og farver er med fra før, og Lectios egen visning er stadig et klik væk.</p></div>' +
+      '<footer class="lp-new-foot"><button type="button" class="lp-btn" data-new="options">Indstillinger</button><button type="button" class="lp-btn lp-btn-main" data-new="close">Kom i gang</button></footer></section>';
+    document.body.appendChild(box);
+    const close = () => { box.remove(); settings.seen20 = true; saveSetting('seen20', true); document.removeEventListener('keydown', onKey, true); };
+    const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+    document.addEventListener('keydown', onKey, true);
+    box.querySelector('.lp-new-scrim').addEventListener('click', close);
+    box.querySelector('[data-new=close]').addEventListener('click', close);
+    box.querySelector('[data-new=options]').addEventListener('click', () => { try { chrome.runtime.sendMessage({ type: 'lp-open-options' }); } catch (e) { /* ignorer */ } close(); });
+    box.querySelector('[data-new=close]').focus();
+  }
+
   async function init() {
     try { localStorage.removeItem('lp-test-code'); localStorage.removeItem('lp-dev-code'); localStorage.removeItem('lpx-run'); localStorage.removeItem('lpq'); localStorage.removeItem('lpz'); localStorage.removeItem('lpy'); localStorage.removeItem('lpx2'); } catch (e) { /* oprydning efter test */ }
     settings = await loadSettings();
@@ -1777,6 +1814,7 @@
     if (!takeover) { const oc = document.querySelector('.outerContentFrame'); LP.markEmptyRows(oc); LP.markCategoryCells(oc); darkFix(); }
     watchPage();
     html.classList.remove('lp-boot');
+    showWhatsNew();
 
     if (takeover) {
       const app = document.createElement('main');
@@ -1822,7 +1860,8 @@
       if (ch.remember && Object.keys(ch).length === 1) { settings.remember = ch.remember.newValue || {}; if (onRemember) onRemember(); return; }
       if (ch.theme && Object.keys(ch).length === 1) { settings.theme = ch.theme.newValue; saveBoot(); applyTheme(); return; }
       if (ch.hideDone && Object.keys(ch).length === 1) return;
-      if (ch.notify && Object.keys(ch).length === 1) return;
+      // Nøgler, som siden ikke skal genindlæses for.
+      if (Object.keys(ch).every((k) => ['notify', 'seen20', 'settingsVersion'].includes(k))) return;
       if (ch.colors && Object.keys(ch).length === 1) { settings.colors = ch.colors.newValue || {}; repaintColors(); return; }
       location.reload();
     });

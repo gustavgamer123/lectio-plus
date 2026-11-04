@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Lectio+",
-  "version": "1.7.1",
-  "description": "Et roligere og mere overskueligt Lectio: overblik, nyt ugeskema, mørk tilstand og hurtig søgning (Ctrl+K).",
+  "version": "2.0.0",
+  "description": "Lectio i ét roligt design med overblik, hvad er ændret, fraværsberegner, snit-simulator og notifikationer. Data bliver hos dig.",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",

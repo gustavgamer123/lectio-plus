@@ -23,7 +23,11 @@ async function schedule() {
   if (n.on && has) chrome.alarms.create(ALARM, { periodInMinutes: PERIOD_MIN, delayInMinutes: 1 });
   else chrome.alarms.clear(ALARM);
 }
-chrome.runtime.onInstalled.addListener(schedule);
+// Indstillingerne fra 1.x har samme nøgler og betydning (spec 9); versionen noteres, og "Nyt i 2.0" vises én gang (seen20).
+chrome.runtime.onInstalled.addListener((d) => {
+  if (d.reason === 'update' || d.reason === 'install') chrome.storage.sync.set({ settingsVersion: 2 });
+  schedule();
+});
 chrome.runtime.onStartup.addListener(schedule);
 chrome.storage.onChanged.addListener((ch, area) => { if (area === 'sync' && ch.notify) schedule(); });
 
